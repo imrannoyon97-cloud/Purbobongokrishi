@@ -1,1394 +1,1546 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>পূর্ববঙ্গ কৃষি কেন্দ্র</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
-:root{
- --bg:#f3f1e8;
- --card:#fffdf6;
- --ink:#1d2b22;
- --mute:#6b7769;
- --line:#dcd8c5;
- --green:#1f5d3a;
- --green2:#e1eddc;
- --straw:#d9a62e;
- --red:#b3392b;
- --red2:#f6dfda;
- --amber2:#f8ecc9;
-}
 
 *{
- box-sizing:border-box
+  box-sizing:border-box;
 }
 
 body{
- margin:0;
- background:var(--bg);
- color:var(--ink);
- font-family:'Hind Siliguri',sans-serif;
- font-size:16px;
- padding-bottom:78px
+  margin:0;
+  background:#f5f7f8;
+  color:#17251c;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Noto Sans Bengali",
+    sans-serif;
+  font-size:15px;
 }
 
-.wrap{
- max-width:560px;
- margin:auto;
- padding:0 16px
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.app{
+  width:100%;
+  max-width:560px;
+  margin:auto;
+  min-height:100vh;
+  background:#f5f7f8;
 }
 
 header{
- padding:18px 0 14px
+  background:#126b3a;
+  color:white;
+  padding:13px 15px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
 }
 
-header h1{
- margin:0;
- font-size:26px;
- color:var(--green)
+.header-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
 }
 
-header p{
- margin:0;
- color:var(--mute);
- font-size:14px
+.logo-title{
+  font-size:19px;
+  font-weight:800;
 }
 
-.band{
- height:6px;
- background:repeating-linear-gradient(
-  90deg,
-  var(--green) 0 14px,
-  var(--straw) 14px 20px
- );
- border-radius:3px;
- margin-top:10px
+.logo-sub{
+  font-size:11px;
+  opacity:.85;
+  margin-top:2px;
 }
 
-section{
- display:none
+.logout-btn{
+  border:0;
+  background:rgba(255,255,255,.16);
+  color:#fff;
+  padding:7px 10px;
+  border-radius:8px;
+  font-size:12px;
 }
 
-section.on{
- display:block
+main{
+  padding:12px;
+  padding-bottom:78px;
+}
+
+.hidden{
+  display:none!important;
 }
 
 .card{
- background:var(--card);
- border:1px solid var(--line);
- border-radius:14px;
- padding:14px;
- margin:12px 0
+  background:#fff;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+  border:1px solid #e3e8e5;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
 }
 
-h2{
- font-size:18px;
- margin:18px 0 6px
+.card-title{
+  font-weight:800;
+  font-size:16px;
+  margin-bottom:9px;
 }
 
-.hero{
- background:var(--green);
- color:white;
- border-radius:18px;
- padding:18px;
- margin-top:6px
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
 }
 
-.hero small{
- opacity:.8
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
 }
 
-.hero .big{
- font-size:40px;
- font-weight:700
+.field{
+  margin-bottom:8px;
 }
 
-.row3{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:8px
-}
-
-.row3 div{
- background:#ffffff22;
- border-radius:10px;
- padding:8px
-}
-
-.row3 b{
- display:block
-}
-
-.row3 span{
- font-size:12px
-}
-
-.stats{
- display:grid;
- grid-template-columns:repeat(2,1fr);
- gap:10px;
- margin-top:12px
-}
-
-.stat{
- background:var(--card);
- border:1px solid var(--line);
- border-radius:14px;
- padding:12px
-}
-
-.stat b{
- font-size:25px;
- display:block
-}
-
-.stat span{
- color:var(--mute);
- font-size:13px
-}
-
-.grid2{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:10px
-}
-
-.two{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:10px
-}
-
-label{
- display:block;
- color:var(--mute);
- font-size:13px;
- margin:9px 0 3px
+.field label{
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  color:#526057;
+  margin-bottom:4px;
 }
 
 input,
 select,
 textarea{
- width:100%;
- font:inherit;
- font-size:16px;
- padding:10px 12px;
- border:1px solid var(--line);
- border-radius:10px;
- background:var(--bg);
- color:var(--ink)
+  width:100%;
+  border:1px solid #d7dfda;
+  background:#fff;
+  border-radius:8px;
+  padding:9px 10px;
+  outline:none;
+  color:#17251c;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:#15945a;
+  box-shadow:0 0 0 2px rgba(21,148,90,.08);
 }
 
 textarea{
- min-height:70px
+  resize:vertical;
+  min-height:65px;
 }
 
 .btn{
- width:100%;
- margin-top:13px;
- padding:11px;
- border:0;
- border-radius:12px;
- background:var(--green);
- color:white;
- font:inherit;
- font-weight:600;
- cursor:pointer
+  border:0;
+  border-radius:8px;
+  padding:9px 11px;
+  font-weight:700;
+  font-size:13px;
 }
 
-.btn.secondary{
- background:var(--green2);
- color:var(--green)
+.btn-primary{
+  background:#126b3a;
+  color:#fff;
 }
 
-.seg{
- display:flex;
- background:var(--green2);
- border-radius:12px;
- padding:3px;
- margin:12px 0
+.btn-secondary{
+  background:#e9f4ed;
+  color:#126b3a;
 }
 
-.seg button{
- flex:1;
- border:0;
- background:none;
- padding:8px;
- border-radius:9px;
- font:inherit;
- color:var(--ink)
+.btn-danger{
+  background:#ffe8e8;
+  color:#b42318;
 }
 
-.seg button.on{
- background:var(--card);
- font-weight:600;
- color:var(--green)
+.btn-warning{
+  background:#fff3d6;
+  color:#875b00;
 }
 
-.item{
- display:flex;
- justify-content:space-between;
- align-items:center;
- gap:10px;
- padding:10px 0;
- border-bottom:1px solid var(--line)
+.btn-small{
+  padding:6px 8px;
+  font-size:11px;
 }
 
-.item:last-child{
- border:0
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
 }
 
-.t{
- font-weight:500
+.stats{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
 }
 
-.s{
- font-size:13px;
- color:var(--mute)
+.stat{
+  background:#fff;
+  border:1px solid #e2e8e4;
+  border-radius:10px;
+  padding:10px;
 }
 
-.amt{
- font-weight:700;
- white-space:nowrap
+.stat-label{
+  font-size:11px;
+  color:#66736b;
 }
 
-.x{
- border:0;
- background:none;
- color:var(--mute);
- font-size:20px;
- padding:3px 8px
+.stat-value{
+  font-size:21px;
+  font-weight:800;
+  margin-top:3px;
 }
 
-.empty{
- text-align:center;
- color:var(--mute);
- padding:18px 0
+.green{
+  color:#126b3a;
 }
 
-.goat{
- border:1px solid var(--line);
- background:var(--card);
- border-radius:12px;
- padding:9px 10px;
- margin:7px 0
+.orange{
+  color:#bd6c00;
 }
 
-.top{
- display:flex;
- justify-content:space-between
+.red{
+  color:#c62828;
 }
 
-.goat h3{
- margin:0;
- font-size:15px;
- line-height:1.35;
- max-width:260px;
- overflow-wrap:anywhere
+.blue{
+  color:#1d5d9b;
 }
 
-.facts{
- display:grid;
- grid-template-columns:repeat(4,1fr);
- gap:5px;
- margin:7px 0
+.login-wrap{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
 }
 
-.facts div{
- background:var(--bg);
- border-radius:10px;
- padding:6px
+.login-box{
+  width:100%;
+  max-width:420px;
 }
 
-.facts b{
- display:block
+.login-logo{
+  text-align:center;
+  margin-bottom:18px;
 }
 
-.facts span{
- font-size:11px;
- color:var(--mute)
+.login-logo h1{
+  margin:0;
+  color:#126b3a;
+  font-size:26px;
 }
 
-.tag{
- font-size:12px;
- padding:2px 8px;
- border-radius:99px;
- background:var(--green2);
- color:var(--green)
+.login-logo p{
+  margin:5px 0;
+  color:#66736b;
+  font-size:13px;
 }
 
-.tag.warn{
- background:var(--amber2);
- color:#8a6200
+.tabbar{
+  display:flex;
+  gap:5px;
+  overflow-x:auto;
+  margin-bottom:10px;
 }
 
-.tag.late{
- background:var(--red2);
- color:var(--red)
+.tab{
+  flex:1;
+  white-space:nowrap;
+  border:1px solid #dce4df;
+  background:#fff;
+  color:#526057;
+  padding:8px 7px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:700;
 }
 
-.vaccine-grid{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:8px
+.tab.active{
+  background:#126b3a;
+  color:#fff;
+  border-color:#126b3a;
 }
 
-.chip{
- border:1px solid var(--line);
- background:var(--bg);
- border-radius:12px;
- padding:9px;
- text-align:left;
- font:inherit
+.goat-card{
+  border:1px solid #e0e7e2;
+  background:#fff;
+  border-radius:11px;
+  padding:10px;
+  margin-bottom:8px;
 }
 
-.chip.done{
- outline:2px solid var(--green)
+.goat-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px;
 }
 
-.chip.warn{
- background:var(--amber2)
+.goat-name{
+  font-size:16px;
+  font-weight:800;
 }
 
-.chip.late{
- background:var(--red2)
+.goat-id{
+  font-size:11px;
+  color:#66736b;
+  margin-top:2px;
 }
 
-.chip small{
- display:block;
- color:var(--mute);
- font-size:11px;
- margin-top:3px
+.badge{
+  display:inline-block;
+  padding:3px 7px;
+  border-radius:20px;
+  font-size:10px;
+  font-weight:700;
+  background:#edf5ef;
+  color:#126b3a;
 }
 
-.summary4{
- display:grid;
- grid-template-columns:repeat(4,1fr);
- gap:7px
+.badge-red{
+  background:#ffe8e8;
+  color:#b42318;
 }
 
-.summary4 .stat{
- padding:9px
+.badge-orange{
+  background:#fff2d6;
+  color:#8a5a00;
 }
 
-.summary4 b{
- font-size:21px
+.info-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px 10px;
+  margin-top:8px;
+  font-size:12px;
+  color:#536158;
 }
 
-nav{
- position:fixed;
- left:0;
- right:0;
- bottom:0;
- background:var(--card);
- border-top:1px solid var(--line);
- display:flex;
- padding:6px 8px;
- z-index:20
+.info-row strong{
+  color:#17251c;
 }
 
-nav button{
- flex:1;
- border:0;
- background:none;
- font:inherit;
- font-size:12px;
- color:var(--mute);
- padding:6px 0
+.summary{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:7px;
 }
 
-nav button.on{
- color:var(--green);
- font-weight:600
+.summary-item{
+  background:#f6faf7;
+  border-radius:8px;
+  padding:8px;
 }
 
-.nb{
- display:inline-grid;
- place-items:center;
- min-width:18px;
- height:18px;
- border-radius:9px;
- background:var(--red);
- color:white;
- font-size:10px;
- margin-left:2px
+.summary-item b{
+  display:block;
+  font-size:18px;
+  color:#126b3a;
 }
 
-#login{
- max-width:420px;
- margin:auto;
- min-height:100vh;
- padding:28px 20px;
- display:none;
- flex-direction:column;
- justify-content:center
+.summary-item span{
+  font-size:10px;
+  color:#66736b;
 }
 
-body.locked #login{
- display:flex
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:560px;
+  background:#fff;
+  border-top:1px solid #dfe5e1;
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  z-index:30;
+  padding:5px 3px;
 }
 
-body.locked .wrap,
-body.locked nav{
- display:none
+.nav-btn{
+  border:0;
+  background:none;
+  padding:5px 1px;
+  color:#66736b;
+  font-size:9px;
+  line-height:1.25;
 }
 
-#login h1{
- color:var(--green);
- font-size:30px;
- margin:12px 0 2px
+.nav-btn span{
+  display:block;
+  font-size:17px;
+  margin-bottom:2px;
 }
 
-.err{
- min-height:20px;
- color:var(--red);
- font-size:14px;
- margin-top:8px
+.nav-btn.active{
+  color:#126b3a;
+  font-weight:800;
 }
 
-.muted{
- color:var(--mute)
+.alert{
+  background:#fff5df;
+  border:1px solid #f0d18a;
+  color:#745100;
+  border-radius:9px;
+  padding:9px;
+  font-size:12px;
+  margin-bottom:7px;
 }
 
-.notice{
- padding:9px 11px;
- border-radius:10px;
- background:var(--green2);
- font-size:13px;
- margin-top:8px
+.success{
+  background:#e9f7ee;
+  border:1px solid #bfe3ca;
+  color:#126b3a;
+  border-radius:9px;
+  padding:9px;
+  font-size:12px;
 }
 
 .danger{
- background:var(--red2);
- color:var(--red)
+  background:#fff0f0;
+  border:1px solid #efc1c1;
+  color:#a31d1d;
+  border-radius:9px;
+  padding:9px;
+  font-size:12px;
 }
 
-.report-box{
- background:var(--card);
- border:1px solid var(--line);
- border-radius:14px;
- padding:14px;
- margin-top:12px
+.empty{
+  text-align:center;
+  color:#7a857e;
+  padding:18px 5px;
+  font-size:13px;
 }
 
-@media(max-width:420px){
-
- .facts{
-  grid-template-columns:repeat(2,1fr)
- }
-
- .summary4{
-  grid-template-columns:repeat(2,1fr)
- }
-
- .grid2{
-  grid-template-columns:1fr
- }
-
- .two{
-  grid-template-columns:1fr
- }
-
+.row-between{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
 }
+
+.small{
+  font-size:11px;
+  color:#66736b;
+}
+
+.amount{
+  font-weight:800;
+}
+
+hr{
+  border:0;
+  border-top:1px solid #e6ebe8;
+  margin:10px 0;
+}
+
+@media(max-width:390px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .grid-3{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .bottom-nav{
+    font-size:8px;
+  }
+}
+
 </style>
 </head>
 
-<body class="locked">
+<body>
 
-<!-- LOGIN -->
+<!-- =====================================================
+     LOGIN
+===================================================== -->
 
-<div id="login">
+<section id="loginScreen">
 
- <div class="band"></div>
+  <div class="login-wrap">
 
- <h1>পূর্ববঙ্গ কৃষি কেন্দ্র</h1>
+    <div class="login-box">
 
- <p class="muted">
-  খামারের হিসাব দেখতে লগইন করুন
- </p>
+      <div class="login-logo">
+        <h1>🐐 পূর্ববঙ্গ কৃষি কেন্দ্র</h1>
+        <p>ছাগল ও কৃষি ব্যবস্থাপনা</p>
+      </div>
 
- <label>ইমেইল</label>
+      <div class="card">
 
- <input
-  id="email"
-  type="email"
-  autocomplete="email"
- >
+        <div class="card-title">🔐 লগইন</div>
 
- <label>পাসওয়ার্ড</label>
+        <div class="field">
+          <label>ইমেইল</label>
+          <input id="loginEmail" type="email" placeholder="আপনার ইমেইল">
+        </div>
 
- <input
-  id="password"
-  type="password"
-  autocomplete="current-password"
- >
+        <div class="field">
+          <label>পাসওয়ার্ড</label>
+          <input id="loginPassword" type="password" placeholder="পাসওয়ার্ড">
+        </div>
 
- <div id="loginErr" class="err"></div>
+        <button class="btn btn-primary" style="width:100%"
+                onclick="login()">
+          লগইন
+        </button>
 
- <button class="btn" id="loginBtn">
-  লগইন
- </button>
+        <div style="height:8px"></div>
 
- <button class="btn secondary" id="signupBtn">
-  নতুন ব্যবহারকারী তৈরি করুন
- </button>
+        <button class="btn btn-secondary" style="width:100%"
+                onclick="showSignup()">
+          নতুন ইউজার তৈরি করুন
+        </button>
 
-</div>
+        <div id="loginMsg" style="margin-top:9px"></div>
 
+      </div>
 
-<!-- MAIN APP -->
-
-<div class="wrap">
-
-<header>
-
- <h1>পূর্ববঙ্গ কৃষি কেন্দ্র</h1>
-
- <p>
-  ছাগল খামারের হিসাব ও স্বাস্থ্য খাতা
- </p>
-
- <div class="band"></div>
-
-</header>
-
-
-<!-- DASHBOARD -->
-
-<section id="dashboard" class="on">
-
- <div class="hero">
-
-  <small>
-   এই মাসের মোট খরচ
-  </small>
-
-  <div class="big" id="dashMonth">
-   ৳ ০
-  </div>
-
-  <div class="row3">
-
-   <div>
-    <b id="dashToday">৳ ০</b>
-    <span>আজ</span>
-   </div>
-
-   <div>
-    <b id="dashWeek">৳ ০</b>
-    <span>এই সপ্তাহ</span>
-   </div>
-
-   <div>
-    <b id="dashPerGoat">৳ ০</b>
-    <span>ছাগল প্রতি</span>
-   </div>
+    </div>
 
   </div>
-
- </div>
-
-
- <div class="summary4">
-
-  <div class="stat">
-   <b id="dashGoats">০</b>
-   <span>মোট ছাগল</span>
-  </div>
-
-  <div class="stat">
-   <b id="dashBought">০</b>
-   <span>ক্রয়</span>
-  </div>
-
-  <div class="stat">
-   <b id="dashBorn">০</b>
-   <span>জন্ম</span>
-  </div>
-
-  <div class="stat">
-   <b id="dashSold">০</b>
-   <span>বিক্রি</span>
-  </div>
-
- </div>
-
-
- <div id="cloud" class="notice">
-  Supabase সংযোগ পরীক্ষা হচ্ছে...
- </div>
-
-
- <h2>
-  ভ্যাকসিন সতর্কতা
- </h2>
-
- <div class="card" id="dashVaccines"></div>
-
-
- <div class="grid2">
-
-  <div>
-
-   <h2>
-    সাম্প্রতিক ক্রয়/জন্ম
-   </h2>
-
-   <div class="card" id="dashGoatActivity"></div>
-
-  </div>
-
-
-  <div>
-
-   <h2>
-    সাম্প্রতিক খরচ
-   </h2>
-
-   <div class="card" id="dashExpenses"></div>
-
-  </div>
-
- </div>
 
 </section>
 
 
-<!-- MY GOATS -->
+<!-- =====================================================
+     SIGNUP
+===================================================== -->
 
-<section id="mygoats">
+<section id="signupScreen" class="hidden">
 
- <div class="card">
+  <div class="login-wrap">
 
-  <h2 style="margin-top:0">
-   আমার ছাগল
-  </h2>
+    <div class="login-box">
 
-  <p class="muted">
-   ক্রয়, জন্ম ও বিক্রির পুরো হিসাব এক জায়গায়।
-  </p>
+      <div class="login-logo">
+        <h1>🐐 নতুন ইউজার</h1>
+        <p>পূর্ববঙ্গ কৃষি কেন্দ্র</p>
+      </div>
 
+      <div class="card">
 
-  <div class="seg">
+        <div class="field">
+          <label>ইমেইল</label>
+          <input id="signupEmail" type="email">
+        </div>
 
-   <button id="goatTabAll" class="on">
-    সব ছাগল
-   </button>
+        <div class="field">
+          <label>পাসওয়ার্ড</label>
+          <input id="signupPassword" type="password">
+        </div>
 
-   <button id="goatTabBuy">
-    ক্রয়
-   </button>
+        <button class="btn btn-primary"
+                style="width:100%"
+                onclick="signup()">
+          অ্যাকাউন্ট তৈরি করুন
+        </button>
 
-   <button id="goatTabBirth">
-    জন্ম
-   </button>
+        <div style="height:7px"></div>
 
-   <button id="goatTabSale">
-    বিক্রি
-   </button>
+        <button class="btn btn-secondary"
+                style="width:100%"
+                onclick="showLogin()">
+          লগইনে ফিরে যান
+        </button>
 
-  </div>
+        <div id="signupMsg" style="margin-top:9px"></div>
 
+      </div>
 
-  <div id="goatSummary" class="summary4"></div>
-
- </div>
-
-
- <button class="btn" id="newGoatBtn">
-  ➕ নতুন ছাগল যোগ করুন
- </button>
-
-
- <div id="newGoatPanel" style="display:none">
-
- <div class="card">
-
-  <h2 style="margin-top:0">
-   নতুন ছাগল
-  </h2>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     নাম / ID *
-    </label>
-
-    <input id="gName">
-
-   </div>
-
-
-   <div>
-
-    <label>
-     জাত
-    </label>
-
-    <input
-     id="gBreed"
-     list="breedList"
-    >
-
-    <datalist id="breedList"></datalist>
-
-   </div>
+    </div>
 
   </div>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     লিঙ্গ
-    </label>
-
-    <select id="gSex">
-
-     <option>
-      মাদি
-     </option>
-
-     <option>
-      পাঁঠা
-     </option>
-
-    </select>
-
-   </div>
-
-
-   <div>
-
-    <label>
-     ওজন (কেজি)
-    </label>
-
-    <input
-     id="gWeight"
-     type="number"
-    >
-
-   </div>
-
-  </div>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     জন্মতারিখ
-    </label>
-
-    <input
-     id="gBirth"
-     type="date"
-    >
-
-   </div>
-
-
-   <div>
-
-    <label>
-     ক্রয়ের তারিখ
-    </label>
-
-    <input
-     id="gPurchase"
-     type="date"
-    >
-
-   </div>
-
-  </div>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     ক্রয়মূল্য
-    </label>
-
-    <input
-     id="gPrice"
-     type="number"
-    >
-
-   </div>
-
-
-   <div>
-
-    <label>
-     উৎস
-    </label>
-
-    <input
-     id="gSource"
-     placeholder="হাট/খামার/অন্যান্য"
-    >
-
-   </div>
-
-  </div>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     ছাগলটি কীভাবে এসেছে? *
-    </label>
-
-    <select id="gOrigin">
-     <option value="purchase">
-      ক্রয় করা
-     </option>
-     <option value="birth">
-      উৎপাদিত / জন্ম
-     </option>
-    </select>
-
-   </div>
-
-
-   <div>
-
-    <label>
-     ছাগল যোগের সময় টিকা
-    </label>
-
-    <select id="gVaccineName">
-     <option value="">
-      টিকা নির্বাচন করুন
-     </option>
-    </select>
-
-   </div>
-
-  </div>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     সম্ভাব্য টিকার তারিখ
-    </label>
-
-    <input
-     id="gVaccineDate"
-     type="date"
-    >
-
-   </div>
-
-
-   <div>
-
-    <label>
-     টিকা কোম্পানি
-    </label>
-
-    <input
-     id="gVaccineCompany"
-     list="gVaccineCompanyList"
-    >
-
-    <datalist id="gVaccineCompanyList"></datalist>
-
-   </div>
-
-  </div>
-
-
-  <button
-   type="button"
-   class="btn secondary"
-   id="addGoatVaccineDraft"
-  >
-   + টিকা যোগ করুন
-  </button>
-
-
-  <div
-   id="goatVaccineDraftList"
-   class="s"
-  ></div>
-
-
-  <label>
-   রঙ/চিহ্ন
-  </label>
-
-  <input id="gMark">
-
-
-  <label>
-   নোট
-  </label>
-
-  <textarea id="gNote"></textarea>
-
-
-  <button class="btn" id="saveGoat">
-   ছাগল সংরক্ষণ করুন
-  </button>
-
-
-  <button
-   class="btn secondary"
-   id="cancelGoatEdit"
-   style="display:none"
-  >
-   Edit বাতিল
-  </button>
-
- </div>
-
- </div>
-
-
- <div id="goatList"></div>
 
 </section>
 
 
-<!-- EXPENSE -->
+<!-- =====================================================
+     APP
+===================================================== -->
 
-<section id="expenses">
+<section id="appScreen" class="hidden">
 
- <div class="card">
+  <div class="app">
 
-  <h2 style="margin-top:0">
-   নতুন খরচ
-  </h2>
+    <header>
+
+      <div class="header-row">
+
+        <div>
+          <div class="logo-title">
+            🐐 পূর্ববঙ্গ কৃষি কেন্দ্র
+          </div>
+
+          <div class="logo-sub">
+            Goat & Agriculture Management
+          </div>
+        </div>
+
+        <button class="logout-btn"
+                onclick="logout()">
+          Logout
+        </button>
+
+      </div>
+
+    </header>
 
 
-  <div class="two">
+    <main>
 
-   <div>
+      <!-- =================================================
+           DASHBOARD
+      ================================================= -->
 
-    <label>
-     তারিখ
-    </label>
+      <section id="page-dashboard">
 
-    <input
-     id="eDate"
-     type="date"
-    >
+        <div class="row-between" style="margin-bottom:9px">
+          <div>
+            <div style="font-size:19px;font-weight:800">
+              Dashboard
+            </div>
+            <div class="small">
+              আজকের খামারের সারাংশ
+            </div>
+          </div>
 
-   </div>
+          <button class="btn btn-primary btn-small"
+                  onclick="openPage('goats')">
+            + ছাগল
+          </button>
+        </div>
 
 
-   <div>
+        <div class="stats">
 
-    <label>
-     টাকা (৳)
-    </label>
+          <div class="stat">
+            <div class="stat-label">বর্তমান ছাগল</div>
+            <div id="dActive" class="stat-value green">0</div>
+          </div>
 
-    <input
-     id="eAmount"
-     type="number"
-    >
+          <div class="stat">
+            <div class="stat-label">এই মাসের খরচ</div>
+            <div id="dMonthExpense" class="stat-value orange">
+              ৳0
+            </div>
+          </div>
 
-   </div>
+          <div class="stat">
+            <div class="stat-label">ক্রয়</div>
+            <div id="dPurchase" class="stat-value blue">0</div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-label">জন্ম</div>
+            <div id="dBirth" class="stat-value green">0</div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-label">বিক্রি</div>
+            <div id="dSale" class="stat-value red">0</div>
+          </div>
+
+          <div class="stat">
+            <div class="stat-label">টিকা বাকি</div>
+            <div id="dVaccine" class="stat-value orange">0</div>
+          </div>
+
+        </div>
+
+
+        <div class="card" style="margin-top:10px">
+
+          <div class="card-title">
+            ⚠️ টিকার সতর্কতা
+          </div>
+
+          <div id="vaccineAlerts"></div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            🐐 সাম্প্রতিক ছাগল
+          </div>
+
+          <div id="recentGoats"></div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            💰 সাম্প্রতিক খরচ
+          </div>
+
+          <div id="recentExpenses"></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           GOATS
+      ================================================= -->
+
+      <section id="page-goats" class="hidden">
+
+        <div class="row-between">
+
+          <div>
+            <div style="font-size:19px;font-weight:800">
+              আমার ছাগল
+            </div>
+
+            <div class="small">
+              ক্রয় • জন্ম • বিক্রি
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-small"
+                  onclick="toggleGoatForm()">
+            + নতুন
+          </button>
+
+        </div>
+
+
+        <!-- SUMMARY -->
+
+        <div class="card" style="margin-top:9px">
+
+          <div class="summary">
+
+            <div class="summary-item">
+              <b id="sumPurchase">0</b>
+              <span>ক্রয় করেছি</span>
+            </div>
+
+            <div class="summary-item">
+              <b id="sumBirth">0</b>
+              <span>জন্মেছে</span>
+            </div>
+
+            <div class="summary-item">
+              <b id="sumSale">0</b>
+              <span>বিক্রি করেছি</span>
+            </div>
+
+            <div class="summary-item">
+              <b id="sumCurrent">0</b>
+              <span>বর্তমান ছাগল</span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- GOAT FORM -->
+
+        <div id="goatFormCard"
+             class="card hidden">
+
+          <div class="card-title">
+            🐐 নতুন ছাগল
+          </div>
+
+          <input type="hidden" id="editingGoatId">
+
+          <div class="grid">
+
+            <div class="field">
+              <label>ছাগলের নাম / ID *</label>
+              <input id="gName" placeholder="যেমন: ছাগল-০১">
+            </div>
+
+            <div class="field">
+              <label>জাত</label>
+              <input id="gBreed"
+                     list="breedList"
+                     placeholder="জাত লিখুন">
+              <datalist id="breedList"></datalist>
+            </div>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+              <label>লিঙ্গ</label>
+
+              <select id="gSex">
+
+                <option value="">নির্বাচন করুন</option>
+                <option value="পুরুষ">পুরুষ</option>
+                <option value="মাদি">মাদি</option>
+
+              </select>
+
+            </div>
+
+
+            <div class="field">
+
+              <label>ওজন (কেজি)</label>
+
+              <input id="gWeight"
+                     type="number"
+                     step="0.01">
+
+            </div>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>উৎপাদিত / ক্রয় করা</label>
+
+              <select id="gOrigin">
+
+                <option value="purchase">
+                  ক্রয় করা
+                </option>
+
+                <option value="birth">
+                  উৎপাদিত / জন্ম
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="field">
+
+              <label>জন্মতারিখ</label>
+
+              <input id="gBirthDate"
+                     type="date">
+
+            </div>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>ক্রয়ের তারিখ</label>
+
+              <input id="gPurchaseDate"
+                     type="date">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>ক্রয় মূল্য</label>
+
+              <input id="gPurchasePrice"
+                     type="number"
+                     step="0.01"
+                     placeholder="৳">
+
+            </div>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>উৎস / কোথা থেকে</label>
+
+              <input id="gSource"
+                     placeholder="বাজার / নিজের খামার">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>রং / চিহ্ন</label>
+
+              <input id="gColor"
+                     placeholder="চিহ্ন">
+            </div>
+
+          </div>
+
+
+          <div class="field">
+
+            <label>নোট</label>
+
+            <textarea id="gNotes"
+                      placeholder="অতিরিক্ত তথ্য"></textarea>
+
+          </div>
+
+
+          <div class="actions">
+
+            <button class="btn btn-primary"
+                    onclick="saveGoat()">
+              Save
+            </button>
+
+            <button class="btn btn-secondary"
+                    onclick="cancelGoatForm()">
+              Cancel
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- GOAT TABS -->
+
+        <div class="tabbar">
+
+          <button id="gtab-all"
+                  class="tab active"
+                  onclick="goatTab('all')">
+            🐐 সব
+          </button>
+
+          <button id="gtab-purchase"
+                  class="tab"
+                  onclick="goatTab('purchase')">
+            🛒 ক্রয়
+          </button>
+
+          <button id="gtab-birth"
+                  class="tab"
+                  onclick="goatTab('birth')">
+            🐐 জন্ম
+          </button>
+
+          <button id="gtab-sale"
+                  class="tab"
+                  onclick="goatTab('sale')">
+            💰 বিক্রি
+          </button>
+
+        </div>
+
+
+        <div id="goatList"></div>
+
+      </section>
+
+
+      <!-- =================================================
+           EXPENSES
+      ================================================= -->
+
+      <section id="page-expenses" class="hidden">
+
+        <div class="row-between">
+
+          <div>
+            <div style="font-size:19px;font-weight:800">
+              💰 খরচ
+            </div>
+
+            <div class="small">
+              দৈনিক / সাপ্তাহিক / মাসিক
+            </div>
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>তারিখ</label>
+
+              <input id="eDate"
+                     type="date">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>ক্যাটাগরি</label>
+
+              <input id="eCategory"
+                     list="expenseCategoryList"
+                     placeholder="খরচের ধরন">
+
+              <datalist id="expenseCategoryList"></datalist>
+
+            </div>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>পরিমাণ</label>
+
+              <input id="eAmount"
+                     type="number"
+                     step="0.01"
+                     placeholder="৳">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>নোট</label>
+
+              <input id="eNote"
+                     placeholder="বিস্তারিত">
+
+            </div>
+
+          </div>
+
+
+          <button class="btn btn-primary"
+                  onclick="saveExpense()">
+            + খরচ যোগ করুন
+          </button>
+
+        </div>
+
+
+        <div class="tabbar">
+
+          <button id="etab-day"
+                  class="tab active"
+                  onclick="expenseTab('day')">
+            আজ
+          </button>
+
+          <button id="etab-week"
+                  class="tab"
+                  onclick="expenseTab('week')">
+            ৭ দিন
+          </button>
+
+          <button id="etab-month"
+                  class="tab"
+                  onclick="expenseTab('month')">
+            মাসিক
+          </button>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="row-between">
+
+            <b>মোট</b>
+
+            <strong id="expenseTotal">
+              ৳0
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div id="expenseRecords"></div>
+
+      </section>
+
+
+      <!-- =================================================
+           VACCINES
+      ================================================= -->
+
+      <section id="page-vaccines" class="hidden">
+
+        <div class="row-between">
+
+          <div>
+            <div style="font-size:19px;font-weight:800">
+              💉 টিকা
+            </div>
+
+            <div class="small">
+              নতুন ছাগল স্বয়ংক্রিয়ভাবে এখানে আসবে
+            </div>
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            নতুন টিকা পরিকল্পনা
+          </div>
+
+          <div class="field">
+
+            <label>ছাগল</label>
+
+            <select id="vGoat"></select>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>টিকার নাম</label>
+
+              <input id="vName"
+                     list="vaccineList"
+                     placeholder="টিকার নাম">
+
+              <datalist id="vaccineList"></datalist>
+
+            </div>
+
+
+            <div class="field">
+
+              <label>কোম্পানি</label>
+
+              <input id="vCompany"
+                     list="companyList"
+                     placeholder="কোম্পানি">
+
+              <datalist id="companyList"></datalist>
+
+            </div>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>টিকা দেওয়ার তারিখ</label>
+
+              <input id="vDate"
+                     type="date">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>পরবর্তী তারিখ</label>
+
+              <input id="vNext"
+                     type="date">
+
+            </div>
+
+          </div>
+
+
+          <div class="field">
+
+            <label>নোট</label>
+
+            <input id="vNote">
+
+          </div>
+
+
+          <button class="btn btn-primary"
+                  onclick="addVaccine()">
+            + টিকা যোগ করুন
+          </button>
+
+        </div>
+
+
+        <div class="tabbar">
+
+          <button id="vtab-pending"
+                  class="tab active"
+                  onclick="vaccineTab('pending')">
+            বাকি
+          </button>
+
+          <button id="vtab-completed"
+                  class="tab"
+                  onclick="vaccineTab('completed')">
+            দেওয়া হয়েছে
+          </button>
+
+          <button id="vtab-all"
+                  class="tab"
+                  onclick="vaccineTab('all')">
+            সব
+          </button>
+
+        </div>
+
+
+        <div id="vaccineListBox"></div>
+
+      </section>
+
+
+      <!-- =================================================
+           LAND
+      ================================================= -->
+
+      <section id="page-land" class="hidden">
+
+        <div class="row-between">
+
+          <div>
+            <div style="font-size:19px;font-weight:800">
+              🌱 জমি
+            </div>
+
+            <div class="small">
+              জমি ও কৃষি কাজের হিসাব
+            </div>
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="field">
+
+            <label>জমির নাম</label>
+
+            <input id="lName"
+                   placeholder="জমি-১">
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>আয়তন (শতাংশ)</label>
+
+              <input id="lSize"
+                     type="number"
+                     step="0.01">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>তারিখ</label>
+
+              <input id="lDate"
+                     type="date">
+
+            </div>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>কাজ</label>
+
+              <input id="lWork"
+                     placeholder="চাষ / সার / অন্যান্য">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>ফসল</label>
+
+              <input id="lCrop"
+                     placeholder="ফসল">
+
+            </div>
+
+          </div>
+
+
+          <div class="grid">
+
+            <div class="field">
+
+              <label>খরচ</label>
+
+              <input id="lCost"
+                     type="number"
+                     step="0.01">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>নোট</label>
+
+              <input id="lNote">
+
+            </div>
+
+          </div>
+
+
+          <button class="btn btn-primary"
+                  onclick="saveLand()">
+            + জমির তথ্য যোগ করুন
+          </button>
+
+        </div>
+
+
+        <div id="landList"></div>
+
+      </section>
+
+
+      <!-- =================================================
+           REPORT
+      ================================================= -->
+
+      <section id="page-reports" class="hidden">
+
+        <div style="font-size:19px;font-weight:800">
+          📊 মাসিক বিস্তারিত রিপোর্ট
+        </div>
+
+        <div class="small" style="margin:3px 0 10px">
+          চলতি মাসের আয়-ব্যয় ও ছাগলের হিসাব
+        </div>
+
+
+        <div class="card">
+
+          <div class="grid">
+
+            <div class="stat">
+
+              <div class="stat-label">
+                মোট খরচ
+              </div>
+
+              <div id="rExpense"
+                   class="stat-value orange">
+                ৳0
+              </div>
+
+            </div>
+
+
+            <div class="stat">
+
+              <div class="stat-label">
+                ছাগল ক্রয়
+              </div>
+
+              <div id="rPurchase"
+                   class="stat-value blue">
+                ৳0
+              </div>
+
+            </div>
+
+
+            <div class="stat">
+
+              <div class="stat-label">
+                ছাগল বিক্রি
+              </div>
+
+              <div id="rSale"
+                   class="stat-value green">
+                ৳0
+              </div>
+
+            </div>
+
+
+            <div class="stat">
+
+              <div class="stat-label">
+                বর্তমান ছাগল
+              </div>
+
+              <div id="rCurrent"
+                   class="stat-value">
+                0
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div id="reportBody"></div>
+
+      </section>
+
+
+      <!-- =================================================
+           ACCOUNT
+      ================================================= -->
+
+      <section id="page-account" class="hidden">
+
+        <div style="font-size:19px;font-weight:800">
+          👤 Account
+        </div>
+
+        <div class="card" style="margin-top:10px">
+
+          <div class="small">
+            Login account
+          </div>
+
+          <div id="accountEmail"
+               style="font-weight:800;margin-top:4px">
+          </div>
+
+        </div>
+
+
+        <button class="btn btn-danger"
+                style="width:100%"
+                onclick="logout()">
+          Logout
+        </button>
+
+      </section>
+
+    </main>
+
+
+    <!-- =================================================
+         BOTTOM NAV
+    ================================================= -->
+
+    <nav class="bottom-nav">
+
+      <button id="nav-dashboard"
+              class="nav-btn active"
+              onclick="openPage('dashboard')">
+        <span>🏠</span>
+        Dashboard
+      </button>
+
+      <button id="nav-goats"
+              class="nav-btn"
+              onclick="openPage('goats')">
+        <span>🐐</span>
+        আমার ছাগল
+      </button>
+
+      <button id="nav-expenses"
+              class="nav-btn"
+              onclick="openPage('expenses')">
+        <span>💰</span>
+        খরচ
+      </button>
+
+      <button id="nav-vaccines"
+              class="nav-btn"
+              onclick="openPage('vaccines')">
+        <span>💉</span>
+        টিকা
+      </button>
+
+      <button id="nav-land"
+              class="nav-btn"
+              onclick="openPage('land')">
+        <span>🌱</span>
+        জমি
+      </button>
+
+      <button id="nav-reports"
+              class="nav-btn"
+              onclick="openPage('reports')">
+        <span>📊</span>
+        রিপোর্ট
+      </button>
+
+      <button id="nav-account"
+              class="nav-btn"
+              onclick="openPage('account')">
+        <span>👤</span>
+        Account
+      </button>
+
+    </nav>
 
   </div>
 
-
-  <label>
-   খাত
-  </label>
-
-  <input
-   id="eCategory"
-   list="expenseList"
-  >
-
-  <datalist id="expenseList"></datalist>
-
-
-  <label>
-   বিবরণ
-  </label>
-
-  <input id="eNote">
-
-
-  <button class="btn" id="saveExpense">
-   খরচ সংরক্ষণ করুন
-  </button>
-
- </div>
-
-
- <div class="seg" id="expenseRange">
-
-  <button
-   data-r="day"
-   class="on"
-  >
-   দৈনিক
-  </button>
-
-  <button data-r="week">
-   সাপ্তাহিক
-  </button>
-
-  <button data-r="month">
-   মাসিক
-  </button>
-
- </div>
-
-
- <div class="card">
-
-  <b id="expenseTotal">
-   ৳ ০
-  </b>
-
-  <div id="expenseByCat"></div>
-
- </div>
-
-
- <div
-  class="card"
-  id="expenseList"
- ></div>
-
 </section>
-
-
-<!-- VACCINES -->
-
-<section id="vaccines">
-
- <div class="card">
-
-  <h2 style="margin-top:0">
-   টিকা
-  </h2>
-
-  <p class="muted">
-   ছাগল যোগ করার সময় টিকার সম্ভাব্য তারিখ দিন।
-   পরে এখানে Pending/Complete রাখা হবে।
-  </p>
-
-
-  <div class="seg" id="vaccineRange">
-
-   <button
-    class="on"
-    data-vr="pending"
-   >
-    পেন্ডিং
-   </button>
-
-   <button data-vr="complete">
-    কমপ্লিট
-   </button>
-
-   <button data-vr="all">
-    সব
-   </button>
-
-  </div>
-
-
-  <label>
-   নতুন টিকার নাম
-  </label>
-
-  <input id="vName">
-
-
-  <label>
-   কোম্পানি
-  </label>
-
-  <input id="vCompany">
-
-
-  <button
-   class="btn"
-   id="addVaccineName"
-  >
-   টিকার তালিকায় যোগ করুন
-  </button>
-
- </div>
-
-
- <div id="vaccineList"></div>
-
-</section>
-
-
-<!-- LAND -->
-
-<section id="land">
-
- <div class="card">
-
-  <h2 style="margin-top:0">
-   জমির কাজ
-  </h2>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     জমির নাম
-    </label>
-
-    <input id="lName">
-
-   </div>
-
-
-   <div>
-
-    <label>
-     আকার (শতাংশ)
-    </label>
-
-    <input
-     id="lSize"
-     type="number"
-    >
-
-   </div>
-
-  </div>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     কাজ
-    </label>
-
-    <input id="lWork">
-
-   </div>
-
-
-   <div>
-
-    <label>
-     ফসল/ঘাস
-    </label>
-
-    <input id="lCrop">
-
-   </div>
-
-  </div>
-
-
-  <div class="two">
-
-   <div>
-
-    <label>
-     তারিখ
-    </label>
-
-    <input
-     id="lDate"
-     type="date"
-    >
-
-   </div>
-
-
-   <div>
-
-    <label>
-     খরচ
-    </label>
-
-    <input
-     id="lCost"
-     type="number"
-    >
-
-   </div>
-
-  </div>
-
-
-  <label>
-   নোট
-  </label>
-
-  <input id="lNote">
-
-
-  <button
-   class="btn"
-   id="saveLand"
-  >
-   কাজ সংরক্ষণ করুন
-  </button>
-
- </div>
-
-
- <div
-  class="card"
-  id="landList"
- ></div>
-
-</section>
-
-
-<!-- REPORT -->
-
-<section id="reports">
-
- <div class="card">
-
-  <h2 style="margin-top:0">
-   মাসিক বিস্তারিত রিপোর্ট
-  </h2>
-
-  <label>
-   মাস নির্বাচন
-  </label>
-
-  <input
-   id="reportMonth"
-   type="month"
-  >
-
- </div>
-
-
- <div
-  id="reportBody"
-  class="report-box"
- ></div>
-
-</section>
-
-
-<!-- ACCOUNT -->
-
-<section id="account">
-
- <div class="card">
-
-  <h2 style="margin-top:0">
-   অ্যাকাউন্ট
-  </h2>
-
-  <div
-   id="userEmail"
-   class="muted"
-  ></div>
-
-
-  <button
-   class="btn secondary"
-   id="logoutBtn"
-  >
-   লগআউট
-  </button>
-
- </div>
-
-</section>
-
-</div>
-
-
-<!-- BOTTOM NAV -->
-
-<nav>
-
- <button
-  data-tab="dashboard"
-  class="on"
- >
-  🏠<br>
-  ড্যাশবোর্ড
- </button>
-
-
- <button data-tab="mygoats">
-  🐐<br>
-  আমার ছাগল
- </button>
-
-
- <button data-tab="expenses">
-  💰<br>
-  খরচ
- </button>
-
-
- <button data-tab="vaccines">
-  💉<br>
-  টিকা
-  <i
-   class="nb"
-   id="vBadge"
-  >
-   0
-  </i>
- </button>
-
-
- <button data-tab="land">
-  🌾<br>
-  জমি
- </button>
-
-
- <button data-tab="reports">
-  📊<br>
-  রিপোর্ট
- </button>
-
-
- <button data-tab="account">
-  👤<br>
-  অ্যাকাউন্ট
- </button>
-
-</nav>
 
 
 <script>
 
-/* =========================================
+/* =========================================================
    SUPABASE
-========================================= */
+========================================================= */
 
 const SUPABASE_URL =
 "https://dvipyiszjnnnohynfkor.supabase.co";
@@ -1398,3602 +1550,2758 @@ const SUPABASE_PUBLISHABLE_KEY =
 
 const db =
 supabase.createClient(
- SUPABASE_URL,
- SUPABASE_PUBLISHABLE_KEY
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
 );
 
 
-/* =========================================
-   DATA
-========================================= */
+/* =========================================================
+   GLOBAL DATA
+========================================================= */
 
 let DATA = {
- goats:[],
- tx:[],
- vaccines:[],
- expenses:[],
- land:[],
- lookups:[]
+
+  goats:[],
+  tx:[],
+  vaccines:[],
+  expenses:[],
+  land:[],
+  lookups:[]
+
 };
 
-let goatFilter = "all";
+let currentUser = null;
 
-let expenseRange = "day";
-
-let editingGoatId = null;
-let goatVaccineDrafts = [];
-let vaccineFilter = "pending";
+let currentGoatTab = "all";
+let currentExpenseTab = "day";
+let currentVaccineTab = "pending";
 
 
-/* =========================================
+/* =========================================================
    HELPERS
-========================================= */
+========================================================= */
 
-const $ = id =>
-document.getElementById(id);
-
-
-const today = () =>
-new Date().toISOString().slice(0,10);
-
+const $ = id => document.getElementById(id);
 
 const money = n =>
-"৳ " +
-Number(n || 0).toLocaleString(
- "bn-BD",
- {
-  maximumFractionDigits:2
- }
-);
+"৳" + Number(n || 0).toLocaleString("en-BD");
+
+const pad = n =>
+String(n).padStart(2,"0");
 
 
-const bn = n =>
-Number(n || 0).toLocaleString(
- "bn-BD",
- {
-  maximumFractionDigits:1
- }
-);
+function localYMD(date){
 
+  const d = date || new Date();
 
-const esc = s =>
-String(s ?? "").replace(
- /[&<>"]/g,
- c => ({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;"
- }[c])
-);
-
-
-const fmt = s =>
-s
-?
-new Date(
- s+"T00:00:00"
-).toLocaleDateString(
- "bn-BD",
- {
-  day:"numeric",
-  month:"short",
-  year:"numeric"
- }
-)
-:
-"—";
-
-
-const addDays = (s,n) => {
-
- let d =
- new Date(
-  (s || today())+
-  "T00:00:00"
- );
-
- d.setDate(
-  d.getDate()+n
- );
-
- return d
- .toISOString()
- .slice(0,10);
-
-};
-
-
-const daysOld = s =>
-
-s
-?
-Math.max(
- 0,
- Math.floor(
-  (
-   Date.now() -
-   new Date(
-    s+"T00:00:00"
-   ).getTime()
-  ) /
-  86400000
- )
-)
-:
-0;
-
-
-const ageText = s => {
-
- let d = daysOld(s);
-
- let m =
- Math.floor(
-  d/30.44
- );
-
- if(d < 30)
-  return bn(d)+" দিন";
-
- if(m < 24)
-  return bn(m)+" মাস";
-
- return (
-  bn(Math.floor(m/12))+
-  " বছর"+
-  (
-   m%12
-   ?
-   " "+bn(m%12)+" মাস"
-   :
-   ""
-  )
- );
-
-};
-
-
-/* =========================================
-   NAVIGATION
-========================================= */
-
-function showTab(t){
-
- document
- .querySelectorAll("section")
- .forEach(
-  s =>
-  s.classList.toggle(
-   "on",
-   s.id===t
-  )
- );
-
- document
- .querySelectorAll("nav button")
- .forEach(
-  b =>
-  b.classList.toggle(
-   "on",
-   b.dataset.tab===t
-  )
- );
-
- if(t==="reports")
-  renderReport();
-
- window.scrollTo(
-  0,
-  0
- );
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth()+1) +
+    "-" +
+    pad(d.getDate())
+  );
 
 }
 
 
-document
- .querySelectorAll("nav button")
- .forEach(
-  b =>
-  b.onclick =
-  () =>
-  showTab(
-   b.dataset.tab
-  )
- );
+function today(){
+
+  return localYMD(new Date());
+
+}
 
 
-/* =========================================
-   AUTH
-========================================= */
+function addDays(dateString, days){
 
-async function auth(){
+  const d =
+    dateString
+      ? new Date(dateString + "T00:00:00")
+      : new Date();
 
- const {
-  data:{
-   session
+  d.setDate(d.getDate() + days);
+
+  return localYMD(d);
+
+}
+
+
+function fmt(v){
+
+  if(!v) return "-";
+
+  const d =
+    new Date(v + "T00:00:00");
+
+  return (
+    pad(d.getDate()) +
+    "/" +
+    pad(d.getMonth()+1) +
+    "/" +
+    d.getFullYear()
+  );
+
+}
+
+
+function esc(v){
+
+  return String(v ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+function showMsg(id,text,type="success"){
+
+  $(id).innerHTML =
+    `<div class="${type}">
+      ${esc(text)}
+    </div>`;
+
+}
+
+
+function clearMsg(id){
+
+  if($(id)) $(id).innerHTML = "";
+
+}
+
+
+/* =========================================================
+   LOGIN / SIGNUP
+========================================================= */
+
+function showSignup(){
+
+  $("loginScreen").classList.add("hidden");
+  $("signupScreen").classList.remove("hidden");
+
+}
+
+
+function showLogin(){
+
+  $("signupScreen").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+
+}
+
+
+async function signup(){
+
+  const email =
+    $("signupEmail").value.trim();
+
+  const password =
+    $("signupPassword").value;
+
+  if(!email || !password){
+
+    showMsg(
+      "signupMsg",
+      "ইমেইল ও পাসওয়ার্ড দিন",
+      "danger"
+    );
+
+    return;
   }
- } =
- await db.auth.getSession();
+
+  if(password.length < 6){
+
+    showMsg(
+      "signupMsg",
+      "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+      "danger"
+    );
+
+    return;
+  }
 
 
- if(session){
+  const {error} =
+    await db.auth.signUp({
+      email,
+      password
+    });
 
-  document.body
-   .classList
-   .remove("locked");
 
-  $("userEmail")
-   .textContent =
-   session.user.email || "";
+  if(error){
+
+    showMsg(
+      "signupMsg",
+      error.message,
+      "danger"
+    );
+
+    return;
+  }
+
+
+  showMsg(
+    "signupMsg",
+    "অ্যাকাউন্ট তৈরি হয়েছে। ইমেইল verification লাগলে verify করে Login করুন।"
+  );
+
+}
+
+
+async function login(){
+
+  const email =
+    $("loginEmail").value.trim();
+
+  const password =
+    $("loginPassword").value;
+
+
+  if(!email || !password){
+
+    showMsg(
+      "loginMsg",
+      "ইমেইল ও পাসওয়ার্ড দিন",
+      "danger"
+    );
+
+    return;
+  }
+
+
+  const {data,error} =
+    await db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+
+  if(error){
+
+    showMsg(
+      "loginMsg",
+      error.message,
+      "danger"
+    );
+
+    return;
+  }
+
+
+  currentUser = data.user;
+
+  await startApp();
+
+}
+
+
+async function logout(){
+
+  await db.auth.signOut();
+
+  currentUser = null;
+
+  $("appScreen").classList.add("hidden");
+  $("signupScreen").classList.add("hidden");
+  $("loginScreen").classList.remove("hidden");
+
+}
+
+
+/* =========================================================
+   START APP
+========================================================= */
+
+async function startApp(){
+
+  $("loginScreen").classList.add("hidden");
+  $("signupScreen").classList.add("hidden");
+  $("appScreen").classList.remove("hidden");
+
+  $("accountEmail").textContent =
+    currentUser?.email || "";
+
+  $("eDate").value = today();
+  $("vDate").value = today();
+  $("lDate").value = today();
 
   await loadAll();
 
-  return;
- }
-
-
- document.body
-  .classList
-  .add("locked");
+  openPage("dashboard");
 
 }
 
 
-$("loginBtn").onclick =
-async () => {
+async function checkAuth(){
 
- let {
-  error
- } =
- await db.auth.signInWithPassword({
+  const {data} =
+    await db.auth.getSession();
 
-  email:
-   $("email")
-   .value
-   .trim(),
+  if(data.session){
 
-  password:
-   $("password")
-   .value
+    currentUser =
+      data.session.user;
 
- });
+    await startApp();
 
- $("loginErr")
-  .textContent =
-  error?.message || "";
+  }
 
- if(!error)
-  auth();
-
-};
+}
 
 
-$("signupBtn").onclick =
-async () => {
+db.auth.onAuthStateChange(
+  async (event,session)=>{
 
- let email =
- $("email")
- .value
- .trim();
+    if(session && !currentUser){
 
- let password =
- $("password")
- .value;
+      currentUser = session.user;
 
+      setTimeout(
+        () => startApp(),
+        0
+      );
 
- if(
-  !email ||
-  password.length < 6
- ){
+    }
 
-  $("loginErr")
-   .textContent =
-   "ইমেইল দিন এবং পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের দিন";
-
-  return;
-
- }
+  }
+);
 
 
- let {
-  error
- } =
- await db.auth.signUp({
-  email,
-  password
- });
-
-
- $("loginErr")
-  .textContent =
-  error
-  ?
-  error.message
-  :
-  "অ্যাকাউন্ট তৈরি হয়েছে। ইমেইল confirmation চালু থাকলে inbox থেকে confirm করুন।";
-
-
- if(!error)
-  auth();
-
-};
-
-
-$("logoutBtn").onclick =
-async () => {
-
- await db.auth.signOut();
-
- location.reload();
-
-};
-
-
-/* =========================================
+/* =========================================================
    LOAD ALL DATA
-========================================= */
+========================================================= */
 
 async function loadAll(){
 
- $("cloud")
- .textContent =
- "Supabase সংযুক্ত ✓";
+  if(!currentUser) return;
+
+  const uid = currentUser.id;
 
 
- const uid =
- (
-  await db.auth.getUser()
- )
- .data.user.id;
+  const [
+    goatsRes,
+    txRes,
+    vacRes,
+    expRes,
+    landRes,
+    lookupRes
+  ] = await Promise.all([
+
+    db.from("goats")
+      .select("*")
+      .eq("user_id",uid)
+      .order("created_at",{ascending:false}),
+
+    db.from("goat_transactions")
+      .select("*")
+      .eq("user_id",uid)
+      .order("transaction_date",{ascending:false}),
+
+    db.from("vaccinations")
+      .select("*")
+      .eq("user_id",uid)
+      .order("scheduled_date",{ascending:true}),
+
+    db.from("expenses")
+      .select("*")
+      .eq("user_id",uid)
+      .order("expense_date",{ascending:false}),
+
+    db.from("land_records")
+      .select("*")
+      .eq("user_id",uid)
+      .order("record_date",{ascending:false}),
+
+    db.from("lookup_items")
+      .select("*")
+      .eq("user_id",uid)
+      .order("name",{ascending:true})
+
+  ]);
 
 
- const qs = [
-
-  db
-   .from("goats")
-   .select("*")
-   .order(
-    "created_at",
-    {
-     ascending:false
-    }
-   ),
-
-  db
-   .from("goat_transactions")
-   .select("*")
-   .order(
-    "transaction_date",
-    {
-     ascending:false
-    }
-   ),
-
-  db
-   .from("vaccinations")
-   .select("*")
-   .order(
-    "scheduled_date",
-    {
-     ascending:true
-    }
-   ),
-
-  db
-   .from("expenses")
-   .select("*")
-   .order(
-    "expense_date",
-    {
-     ascending:false
-    }
-   ),
-
-  db
-   .from("land_records")
-   .select("*")
-   .order(
-    "record_date",
-    {
-     ascending:false
-    }
-   ),
-
-  db
-   .from("lookup_items")
-   .select("*")
-   .order("name")
-
- ];
+  const errors = [
+    goatsRes.error,
+    txRes.error,
+    vacRes.error,
+    expRes.error,
+    landRes.error,
+    lookupRes.error
+  ].filter(Boolean);
 
 
- const [
-  g,
-  t,
-  v,
-  e,
-  l,
-  lk
- ] =
- await Promise.all(qs);
+  if(errors.length){
+
+    console.error(errors);
+
+    alert(
+      "Supabase data load error:\n" +
+      errors[0].message
+    );
+
+    return;
+  }
 
 
- DATA.goats =
- g.data || [];
+  DATA.goats =
+    goatsRes.data || [];
 
- DATA.tx =
- t.data || [];
+  DATA.tx =
+    txRes.data || [];
 
- DATA.vaccines =
- v.data || [];
+  DATA.vaccines =
+    vacRes.data || [];
 
- DATA.expenses =
- e.data || [];
+  DATA.expenses =
+    expRes.data || [];
 
- DATA.land =
- l.data || [];
+  DATA.land =
+    landRes.data || [];
 
- DATA.lookups =
- lk.data || [];
+  DATA.lookups =
+    lookupRes.data || [];
 
 
- renderAll();
+  renderAll();
 
 }
 
 
-/* =========================================
-   RANGE
-========================================= */
-
-function rangeOK(d,r){
-
- let x =
- new Date(
-  d+"T00:00:00"
- );
-
- let t =
- new Date(
-  today()+"T00:00:00"
- );
-
- let days =
- r==="day"
- ?
- 0
- :
- r==="week"
- ?
- 6
- :
- 29;
-
- return (
-  (t-x)/86400000 >= 0 &&
-  (t-x)/86400000 <= days
- );
-
-}
-
-
-/* =========================================
+/* =========================================================
    RENDER ALL
-========================================= */
+========================================================= */
 
 function renderAll(){
 
- renderDashboard();
+  renderDashboard();
 
- renderGoatSummary();
+  renderGoatSummary();
 
- renderGoats();
+  renderGoats();
 
- renderExpenses();
+  renderExpenses();
 
- renderVaccines();
+  renderVaccines();
 
- renderLand();
+  renderLand();
 
- fillLookups();
+  renderReport();
 
- renderReport();
+  fillLookups();
 
 }
 
 
-/* =========================================
-   DASHBOARD
-========================================= */
+/* =========================================================
+   NAVIGATION
+========================================================= */
 
-function renderDashboard(){
+function openPage(page){
 
- let month =
- today().slice(
-  0,
-  7
- );
+  const pages = [
+    "dashboard",
+    "goats",
+    "expenses",
+    "vaccines",
+    "land",
+    "reports",
+    "account"
+  ];
 
 
- let me =
- DATA.expenses
- .filter(
-  x =>
-  x.expense_date
-   .startsWith(month)
- )
- .reduce(
-  (a,x) =>
-  a+Number(x.amount),
-  0
- );
+  pages.forEach(p=>{
 
+    const el =
+      $("page-" + p);
 
- $("dashMonth")
- .textContent =
- money(me);
+    if(el)
+      el.classList.toggle(
+        "hidden",
+        p !== page
+      );
 
 
- $("dashToday")
- .textContent =
- money(
-  DATA.expenses
-  .filter(
-   x =>
-   x.expense_date===today()
-  )
-  .reduce(
-   (a,x)=>
-   a+Number(x.amount),
-   0
-  )
- );
+    const nav =
+      $("nav-" + p);
 
+    if(nav)
+      nav.classList.toggle(
+        "active",
+        p === page
+      );
 
- $("dashWeek")
- .textContent =
- money(
-  DATA.expenses
-  .filter(
-   x =>
-   rangeOK(
-    x.expense_date,
-    "week"
-   )
-  )
-  .reduce(
-   (a,x)=>
-   a+Number(x.amount),
-   0
-  )
- );
-
-
- let activeCount =
- DATA.goats
- .filter(
-  x =>
-  x.status==="active"
- )
- .length;
-
-
- $("dashPerGoat")
- .textContent =
- money(
-  activeCount
-  ?
-  me/activeCount
-  :
-  0
- );
-
-
- $("dashGoats")
- .textContent =
- bn(activeCount);
-
-
- $("dashBought")
- .textContent =
- bn(
-  DATA.tx
-  .filter(
-   x =>
-   x.type==="purchase"
-  )
-  .length
- );
-
-
- $("dashBorn")
- .textContent =
- bn(
-  DATA.tx
-  .filter(
-   x =>
-   x.type==="birth"
-  )
-  .length
- );
-
-
- $("dashSold")
- .textContent =
- bn(
-  DATA.tx
-  .filter(
-   x =>
-   x.type==="sale"
-  )
-  .length
- );
-
-
- let alerts =
- DATA.goats.flatMap(
-  g =>
-  DATA.vaccines
-  .filter(
-   v =>
-   v.goat_id===g.id &&
-   (v.status||"completed")==="pending" &&
-   v.scheduled_date &&
-   v.scheduled_date <=
-   addDays(today(),14)
-  )
-  .map(
-   v =>
-   ({
-    g,
-    v
-   })
-  )
- );
-
-
- $("dashVaccines")
- .innerHTML =
-
- alerts.length
-
- ?
-
- alerts
- .slice(0,6)
- .map(
-  a =>
-  `<div class="item">
-
-   <div>
-
-    <div class="t">
-     ${esc(a.g.name)}
-    </div>
-
-    <div class="s">
-     ${esc(a.v.vaccine_name)}
-     ·
-     ${esc(a.v.company||"কোম্পানি নেই")}
-    </div>
-
-   </div>
-
-   <span class="tag ${
-    a.v.next_date<today()
-    ?
-    "late"
-    :
-    "warn"
-   }">
-
-    ${
-     a.v.next_date<today()
-     ?
-     "দেরি"
-     :
-     "বাকি"
-    }
-
-    ·
-
-    ${fmt(a.v.next_date)}
-
-   </span>
-
-  </div>`
- )
- .join("")
-
- :
-
- `<div class=empty>
-  সব ঠিক আছে ✓
- </div>`;
-
-
- let tx =
- DATA.tx.slice(
-  0,
-  4
- );
-
-
- $("dashGoatActivity")
- .innerHTML =
-
- tx.length
-
- ?
-
- tx
- .map(
-  x =>
-  `<div class=item>
-
-   <div>
-
-    <div class=t>
-     ${
-      x.type==="purchase"
-      ?
-      "ক্রয়"
-      :
-      x.type==="birth"
-      ?
-      "জন্ম"
-      :
-      "বিক্রি"
-     }
-    </div>
-
-    <div class=s>
-     ${fmt(x.transaction_date)}
-    </div>
-
-   </div>
-
-   <span class=amt>
-    ${money(x.amount)}
-   </span>
-
-  </div>`
- )
- .join("")
-
- :
-
- `<div class=empty>
-  কোনো রেকর্ড নেই
- </div>`;
-
-
- $("dashExpenses")
- .innerHTML =
-
- DATA.expenses
- .slice(0,4)
- .map(
-  x =>
-  `<div class=item>
-
-   <div>
-
-    <div class=t>
-     ${esc(x.category)}
-    </div>
-
-    <div class=s>
-     ${fmt(x.expense_date)}
-    </div>
-
-   </div>
-
-   <span class=amt>
-    ${money(x.amount)}
-   </span>
-
-  </div>`
- )
- .join("")
-
- ||
-
- `<div class=empty>
-  কোনো খরচ নেই
- </div>`;
-
-
- $("vBadge")
- .textContent =
- alerts.length;
+  });
 
 }
 
 
-/* =========================================
-   GOAT SUMMARY
-========================================= */
-
-function renderGoatSummary(){
-
- let active =
- DATA.goats
- .filter(
-  g =>
-  g.status==="active"
- )
- .length;
-
-
- let b =
- DATA.tx
- .filter(
-  x =>
-  x.type==="purchase"
- )
- .length;
-
-
- let br =
- DATA.tx
- .filter(
-  x =>
-  x.type==="birth"
- )
- .length;
-
-
- let s =
- DATA.tx
- .filter(
-  x =>
-  x.type==="sale"
- )
- .length;
-
-
- $("goatSummary")
- .innerHTML =
-
- `<div class=stat>
-
-   <b>${bn(active)}</b>
-
-   <span>
-    বর্তমান ছাগল
-   </span>
-
-  </div>
-
-  <div class=stat>
-
-   <b>${bn(b)}</b>
-
-   <span>
-    মোট ক্রয়
-   </span>
-
-  </div>
-
-  <div class=stat>
-
-   <b>${bn(br)}</b>
-
-   <span>
-    মোট জন্ম
-   </span>
-
-  </div>
-
-  <div class=stat>
-
-   <b>${bn(s)}</b>
-
-   <span>
-    মোট বিক্রি
-   </span>
-
-  </div>`;
-
-}
-
-
-/* =========================================
-   GOAT TABS
-========================================= */
-
-$("goatTabAll").onclick =
-() => {
-
- goatFilter =
- "all";
-
- renderGoats();
-
- setGoatTab(0);
-
-};
-
-
-$("goatTabBuy").onclick =
-() => {
-
- goatFilter =
- "purchase";
-
- renderGoats();
-
- setGoatTab(1);
-
-};
-
-
-$("goatTabBirth").onclick =
-() => {
-
- goatFilter =
- "birth";
-
- renderGoats();
-
- setGoatTab(2);
-
-};
-
-
-$("goatTabSale").onclick =
-() => {
-
- goatFilter =
- "sale";
-
- renderGoats();
-
- setGoatTab(3);
-
-};
-
-
-function setGoatTab(i){
-
- document
- .querySelectorAll(
-  "#mygoats .seg button"
- )
- .forEach(
-  (b,n) =>
-  b.classList.toggle(
-   "on",
-   n===i
-  )
- );
-
-}
-
-
-/* =========================================
-   GOAT LIST
-========================================= */
-
-function renderGoats(){
-
- let rows;
-
-
- if(goatFilter==="sale"){
-
-  rows =
-  DATA.goats
-  .filter(
-   g =>
-   g.status==="sold"
-  );
-
- }
-
- else{
-
-  rows =
-  DATA.goats
-  .filter(
-   g =>
-   g.status==="active"
-  );
-
-
-  if(goatFilter!=="all"){
-
-   let ids =
-   new Set(
-    DATA.tx
-    .filter(
-     x =>
-     x.type===goatFilter
-    )
-    .map(
-     x =>
-     x.goat_id
-    )
-   );
-
-
-   rows =
-   rows.filter(
-    g =>
-    ids.has(g.id)
-   );
-
-  }
-
- }
-
-
- $("goatList")
- .innerHTML =
-
- rows
- .map(
-  g => {
-
-   let soldTx =
-   DATA.tx
-   .filter(
-    x =>
-    x.goat_id===g.id &&
-    x.type==="sale"
-   )
-   .sort(
-    (a,b) =>
-    b.transaction_date
-    .localeCompare(
-     a.transaction_date
-    )
-   )[0];
-
-
-   return `
-
-   <div class=goat>
-
-    <div class=top>
-
-     <div>
-
-      <h3>
-
-       ${esc(g.name)}
-
-       ${
-        g.goat_code
-        ?
-        `<span class="tag">
-         ${esc(g.goat_code)}
-        </span>`
-        :
-        ""
-       }
-
-       ${
-        g.status==="sold"
-        ?
-        '<span class="tag warn">বিক্রি</span>'
-        :
-        ""
-       }
-
-      </h3>
-
-
-      <div class=s>
-
-       ${esc(g.breed||"জাত নেই")}
-
-       ·
-
-       ${esc(g.sex||"")}
-
-      </div>
-
-     </div>
-
-
-     <div>
-
-      <button
-       class=x
-       onclick="editGoat('${g.id}')"
-      >
-       ✎ Edit
-      </button>
-
-      <button
-       class=x
-       onclick="deleteGoat('${g.id}')"
-      >
-       🗑 Delete
-      </button>
-
-      <button
-       class=x
-       onclick="editGoat('${g.id}')"
-      >
-       ↻ Update
-      </button>
-
-     </div>
-
-    </div>
-
-
-    <div class=facts>
-
-     <div>
-
-      <b>
-       ${
-        g.birth_date
-        ?
-        ageText(g.birth_date)
-        :
-        "—"
-       }
-      </b>
-
-      <span>
-       বয়স
-      </span>
-
-     </div>
-
-
-     <div>
-
-      <b>
-       ${bn(g.weight_kg)}
-      </b>
-
-      <span>
-       কেজি
-      </span>
-
-     </div>
-
-
-     <div>
-
-      <b>
-       ${fmt(g.purchase_date)}
-      </b>
-
-      <span>
-       ক্রয়
-      </span>
-
-     </div>
-
-
-     <div>
-
-      <b>
-       ${money(g.purchase_price)}
-      </b>
-
-      <span>
-       ক্রয়মূল্য
-      </span>
-
-     </div>
-
-    </div>
-
-
-    <div class=s>
-
-     ${
-      g.birth_date
-      ?
-      "জন্ম: "+fmt(g.birth_date)
-      :
-      ""
-     }
-
-     ${
-      g.source
-      ?
-      " · উৎস: "+esc(g.source)
-      :
-      ""
-     }
-
-     ${
-      soldTx
-      ?
-      " · বিক্রি: "+
-      fmt(soldTx.transaction_date)+
-      " · "+
-      money(soldTx.amount)
-      :
-      ""
-     }
-
-    </div>
-
-
-    ${
-     g.status==="active"
-     ?
-
-     `<div class="seg">
-
-      <button
-       onclick="sellGoat('${g.id}')"
-      >
-       💰 বিক্রি
-      </button>
-
-      <button
-       onclick="vaxGoat('${g.id}')"
-      >
-       💉 টিকা
-      </button>
-
-     </div>`
-
-     :
-     ""
-    }
-
-   </div>`;
-
-  }
- )
- .join("")
-
- ||
-
- `<div class=empty>
-  এই তালিকায় কোনো ছাগল নেই।
- </div>`;
-
-}
-
-
-/* =========================================
-   GOAT ENTRY VACCINE DRAFTS
-========================================= */
-
-function renderGoatVaccineDrafts(){
-
- const box =
- $("goatVaccineDraftList");
-
- if(!box)
-  return;
-
- box.innerHTML =
- goatVaccineDrafts.length
-
- ?
-
- goatVaccineDrafts
- .map(
-  (v,i) =>
-  `<div class="item">
-
-   <div>
-
-    <b>
-     ${esc(v.name)}
-    </b>
-
-    <div class="s">
-     সম্ভাব্য: ${fmt(v.scheduled_date)}
-     ·
-     ${esc(v.company||"কোম্পানি নেই")}
-    </div>
-
-   </div>
-
-   <button
-    class="x"
-    onclick="removeGoatVaccineDraft(${i})"
-   >
-    ×
-   </button>
-
-  </div>`
- )
- .join("")
-
- :
-
- `<div class="s" style="margin-top:8px">
-   এই ছাগলের জন্য এখনো কোনো টিকা পরিকল্পনা যোগ করা হয়নি।
-  </div>`;
-
-}
-
-
-function removeGoatVaccineDraft(i){
-
- goatVaccineDrafts.splice(
-  i,
-  1
- );
-
- renderGoatVaccineDrafts();
-
-}
-
-
-$("addGoatVaccineDraft").onclick =
-() => {
-
- let name =
- $("gVaccineName")
- .value
- .trim();
-
- if(!name){
-
-  alert("টিকা নির্বাচন করুন");
-
-  return;
-
- }
-
-
- goatVaccineDrafts.push({
-
-  name:name,
-
-  company:
-   $("gVaccineCompany")
-   .value
-   .trim(),
-
-  scheduled_date:
-   $("gVaccineDate")
-   .value
-   ||
-   addDays(
-    today(),
-    30
-   )
-
- });
-
-
- $("gVaccineName")
- .value="";
-
- $("gVaccineCompany")
- .value="";
-
- $("gVaccineDate")
- .value =
- addDays(
-  today(),
-  30
- );
-
- renderGoatVaccineDrafts();
-
-};
-
-
-/* =========================================
-   SAVE / EDIT GOAT
-========================================= */
-
-async function saveGoat(){
-
- let name =
- $("gName")
- .value
- .trim();
-
-
- if(!name){
-
-  alert(
-   "ছাগলের নাম/ID দিন"
-  );
-
-  return;
-
- }
-
-
- let user =
- (
-  await db.auth.getUser()
- )
- .data.user.id;
-
-
- let row = {
-
-  user_id:user,
-
-  tag:name,
-
-  name:name,
-
-  breed:
-   $("gBreed")
-   .value
-   .trim()
-   ||
-   null,
-
-  sex:
-   $("gSex")
-   .value,
-
-  birth_date:
-   $("gBirth")
-   .value
-   ||
-   null,
-
-  purchase_date:
-   $("gPurchase")
-   .value
-   ||
-   null,
-
-  weight_kg:
-   Number(
-    $("gWeight").value
-   )
-   ||
-   0,
-
-  purchase_price:
-   Number(
-    $("gPrice").value
-   )
-   ||
-   0,
-
-  source:
-   $("gSource")
-   .value
-   .trim()
-   ||
-   null,
-
-  color_mark:
-   $("gMark")
-   .value
-   .trim()
-   ||
-   null,
-
-  notes:
-   $("gNote")
-   .value
-   .trim()
-   ||
-   null
-
- };
-
-
- let error = null;
-
-
- /* EDIT */
-
- if(editingGoatId){
-
-  ({
-   error
-  } =
-  await db
-  .from("goats")
-  .update({
-   ...row,
-   updated_at:
-   new Date()
-   .toISOString()
-  })
-  .eq(
-   "id",
-   editingGoatId
-  ));
-
-
-  if(!error){
-
-   let tx =
-    DATA.tx.find(
-     x =>
-     x.goat_id===editingGoatId &&
-     (
-      x.type==="birth" ||
-      x.type==="purchase"
-     )
-    );
-
-   if(tx){
-
-    await db
-    .from("goat_transactions")
-    .update({
-
-     type:
-      $("gOrigin").value==="birth"
-      ?
-      "birth"
-      :
-      "purchase",
-
-     transaction_date:
-      $("gOrigin").value==="birth"
-      ?
-      (row.birth_date || today())
-      :
-      (row.purchase_date || today()),
-
-     amount:
-      row.purchase_price ||
-      0
-
-    })
-    .eq(
-     "id",
-     tx.id
-    );
-
-   }
-   else{
-
-    await db
-    .from("goat_transactions")
-    .insert({
-
-     user_id:user,
-     goat_id:editingGoatId,
-
-     type:
-      $("gOrigin").value==="birth"
-      ?
-      "birth"
-      :
-      "purchase",
-
-     transaction_date:
-      $("gOrigin").value==="birth"
-      ?
-      (row.birth_date || today())
-      :
-      (row.purchase_date || today()),
-
-     amount:
-      row.purchase_price ||
-      0,
-
-     details:
-      "ছাগল আপডেট"
-
-    });
-
-   }
-
-   if(goatVaccineDrafts.length){
-
-    await db
-    .from("vaccinations")
-    .insert(
-     goatVaccineDrafts.map(v => ({
-      user_id:user,
-      goat_id:editingGoatId,
-      vaccine_name:v.name,
-      company:v.company || null,
-      scheduled_date:v.scheduled_date || null,
-      given_date:null,
-      status:"pending",
-      next_date:null
-     }))
-    );
-
-    for(const v of goatVaccineDrafts){
-     await addLookup("vaccine",v.name);
-     if(v.company)
-      await addLookup("vaccine_company",v.company);
-    }
-
-   }
-
-  }
-
-
-  editingGoatId =
-  null;
-
-  $("saveGoat")
-   .textContent =
-   "ছাগল সংরক্ষণ করুন";
-
-  $("cancelGoatEdit")
-   .style.display =
-   "none";
-
- }
-
-
- /* NEW GOAT */
-
- else{
-
-  let result =
-  await db
-  .from("goats")
-  .insert({
-   ...row,
-   status:"active"
-  })
-  .select()
-  .single();
-
-
-  error =
-  result.error;
-
-
-  if(!error){
-
-   let type =
-   $("gOrigin").value === "birth"
-   ?
-   "birth"
-   :
-   "purchase";
-
-
-   await db
-   .from("goat_transactions")
-   .insert({
-
-    user_id:user,
-
-    goat_id:
-     result.data.id,
-
-    type:type,
-
-    transaction_date:
-     row[
-      type==="birth"
-      ?
-      "birth_date"
-      :
-      "purchase_date"
-     ]
-     ||
-     today(),
-
-    amount:
-     row.purchase_price ||
-     0,
-
-    details:
-     "নতুন ছাগল"
-
-   });
-
-
-   if(
-    type==="purchase" &&
-    row.purchase_price>0
-   ){
-
-    await db
-    .from("expenses")
-    .insert({
-
-     user_id:user,
-
-     expense_date:
-      row.purchase_date ||
-      today(),
-
-     category:
-      "ছাগল ক্রয়",
-
-     amount:
-      row.purchase_price,
-
-     note:name
-
-    });
-
-   }
-
-
-   /* ছাগল এন্ট্রির সময় টিকা পরিকল্পনা */
-   if(goatVaccineDrafts.length){
-
-    await db
-    .from("vaccinations")
-    .insert(
-     goatVaccineDrafts.map(v => ({
-      user_id:user,
-      goat_id:result.data.id,
-      vaccine_name:v.name,
-      company:v.company || null,
-      scheduled_date:v.scheduled_date || null,
-      given_date:null,
-      status:"pending",
-      next_date:null
-     }))
-    );
-
-    for(const v of goatVaccineDrafts){
-     await addLookup("vaccine",v.name);
-     if(v.company)
-      await addLookup("vaccine_company",v.company);
-    }
-
-   }
-
-  }
-
- }
-
-
- if(error){
-
-  alert(
-   error.message
-  );
-
-  return;
-
- }
-
-
- $("newGoatPanel")
- .style.display =
- "none";
-
-
- goatVaccineDrafts=[];
-
- renderGoatVaccineDrafts();
-
-
- [
-  "gName",
-  "gBreed",
-  "gWeight",
-  "gBirth",
-  "gPurchase",
-  "gPrice",
-  "gSource",
-  "gMark",
-  "gNote",
-  "gVaccineDate",
-  "gVaccineCompany"
- ]
- .forEach(
-  id =>
-  $(id).value=""
- );
-
-
- $("gVaccineName").value="";
-
-
- await loadAll();
-
-}
-
-
-/* NEW GOAT BUTTON */
-
-$("newGoatBtn")
-.onclick =
-() => {
-
- editingGoatId = null;
-
- [
-  "gName",
-  "gBreed",
-  "gWeight",
-  "gBirth",
-  "gPurchase",
-  "gPrice",
-  "gSource",
-  "gMark",
-  "gNote",
-  "gVaccineDate",
-  "gVaccineCompany"
- ]
- .forEach(
-  id =>
-  $(id).value=""
- );
-
- $("gSex").value="মাদি";
-
- $("gOrigin").value="purchase";
-
- $("gVaccineName").value="";
-
- $("gVaccineDate").value =
- addDays(
-  today(),
-  30
- );
-
- goatVaccineDrafts=[];
-
- renderGoatVaccineDrafts();
-
- $("saveGoat")
- .textContent =
- "ছাগল সংরক্ষণ করুন";
-
- $("cancelGoatEdit")
- .style.display =
- "none";
-
- $("newGoatPanel")
- .style.display =
- "block";
-
- $("gName").focus();
-
-};
-
-
-/* SAVE BUTTON */
-
-$("saveGoat")
-.onclick =
-saveGoat;
-
-
-/* CANCEL EDIT */
-
-$("cancelGoatEdit")
-.onclick =
-() => {
-
- editingGoatId =
- null;
-
- $("saveGoat")
- .textContent =
- "ছাগল সংরক্ষণ করুন";
-
- $("cancelGoatEdit")
- .style.display =
- "none";
-
- $("newGoatPanel")
- .style.display =
- "none";
-
- goatVaccineDrafts=[];
-
- renderGoatVaccineDrafts();
-
-};
-
-
-/* =========================================
-   SELL GOAT
-========================================= */
-
-async function sellGoat(id){
-
- let g =
- DATA.goats
- .find(
-  x =>
-  x.id===id
- );
-
-
- let amount =
- prompt(
-  "বিক্রয়মূল্য লিখুন",
-  g?.purchase_price || ""
- );
-
-
- if(amount===null)
-  return;
-
-
- amount =
- Number(amount) ||
- 0;
-
-
- let user =
- (
-  await db.auth.getUser()
- )
- .data.user.id;
-
-
- let {
-  error
- } =
- await db
- .from("goat_transactions")
- .insert({
-
-  user_id:user,
-
-  goat_id:id,
-
-  type:"sale",
-
-  transaction_date:
-   today(),
-
-  amount:amount,
-
-  details:
-   "ছাগল বিক্রি"
-
- });
-
-
- if(error){
-
-  alert(
-   error.message
-  );
-
-  return;
-
- }
-
-
- await db
- .from("goats")
- .update({
-
-  status:"sold",
-
-  updated_at:
-   new Date()
-   .toISOString()
-
- })
- .eq(
-  "id",
-  id
- );
-
-
- await loadAll();
-
-}
-
-
-/* =========================================
-   DELETE GOAT
-========================================= */
-
-async function deleteGoat(id){
-
- if(
-  !confirm(
-   "এই ছাগল এবং তার সংশ্লিষ্ট রেকর্ড মুছবেন?"
-  )
- )
- return;
-
-
- let {
-  error
- } =
- await db
- .from("goats")
- .delete()
- .eq(
-  "id",
-  id
- );
-
-
- if(error){
-
-  alert(
-   error.message
-  );
-
-  return;
-
- }
-
-
- await loadAll();
-
-}
-
-
-/* =========================================
-   EDIT GOAT
-========================================= */
-
-function editGoat(id){
-
- let g =
- DATA.goats
- .find(
-  x =>
-  x.id===id
- );
-
-
- if(!g)
-  return;
-
-
- editingGoatId =
- id;
-
-
- $("gName")
- .value =
- g.name || "";
-
-
- $("gBreed")
- .value =
- g.breed || "";
-
-
- $("gSex")
- .value =
- g.sex || "মাদি";
-
-
- $("gWeight")
- .value =
- g.weight_kg || "";
-
-
- $("gBirth")
- .value =
- g.birth_date || "";
-
-
- $("gPurchase")
- .value =
- g.purchase_date || "";
-
-
- $("gPrice")
- .value =
- g.purchase_price || "";
-
-
- let originTx =
- DATA.tx.find(
-  x =>
-  x.goat_id===g.id &&
-  (
-   x.type==="purchase" ||
-   x.type==="birth"
-  )
- );
-
- $("gOrigin")
- .value =
- originTx?.type==="birth"
- ?
- "birth"
- :
- "purchase";
-
- goatVaccineDrafts=[];
-
- renderGoatVaccineDrafts();
-
-
- $("gSource")
- .value =
- g.source || "";
-
-
- $("gMark")
- .value =
- g.color_mark || "";
-
-
- $("gNote")
- .value =
- g.notes || "";
-
-
- $("saveGoat")
- .textContent =
- "পরিবর্তন সংরক্ষণ করুন";
-
-
- $("cancelGoatEdit")
- .style.display =
- "block";
-
- $("newGoatPanel")
- .style.display =
- "block";
-
-
- showTab(
-  "mygoats"
- );
-
-
- window.scrollTo({
-  top:
-   document
-   .querySelector(
-    "#mygoats .card:nth-of-type(2)"
-   )
-   .offsetTop-10,
-
-  behavior:"smooth"
- });
-
-}
-
-
-/* =========================================
-   VACCINE FROM GOAT
-========================================= */
-
-async function vaxGoat(id){
-
- let name =
- prompt(
-  "টিকার নাম",
-  DATA.lookups
-  .find(
-   x =>
-   x.kind==="vaccine"
-  )
-  ?.name ||
-  "পিপিআর"
- );
-
-
- if(!name)
-  return;
-
-
- let company =
- prompt(
-  "কোম্পানির নাম",
-  ""
- );
-
-
- let next =
- prompt(
-  "পরবর্তী টিকার তারিখ (YYYY-MM-DD)",
-  addDays(
-   today(),
-   365
-  )
- );
-
-
- let user =
- (
-  await db.auth.getUser()
- )
- .data.user.id;
-
-
- let {
-  error
- } =
- await db
- .from("vaccinations")
- .insert({
-
-  user_id:user,
-
-  goat_id:id,
-
-  vaccine_name:name,
-
-  company:
-   company ||
-   null,
-
-  given_date:null,
-
-  scheduled_date:
-   next ||
-   null,
-
-  status:"pending",
-
-  next_date:null
-
- });
-
-
- if(error){
-
-  alert(
-   error.message
-  );
-
- }
-
- else{
-
-  await addLookup(
-   "vaccine",
-   name
-  );
-
-  loadAll();
-
- }
-
-}
-
-
-/* =========================================
-   EXPENSE
-========================================= */
-
-function renderExpenses(){
-
- let rows =
- DATA.expenses
- .filter(
-  x =>
-  rangeOK(
-   x.expense_date,
-   expenseRange
-  )
- );
-
-
- let tot =
- rows.reduce(
-  (a,x) =>
-  a+Number(x.amount),
-  0
- );
-
-
- $("expenseTotal")
- .textContent =
- money(tot);
-
-
- let cats = {};
-
-
- rows.forEach(
-  x =>
-  cats[x.category] =
-  (
-   cats[x.category] ||
-   0
-  )+
-  Number(x.amount)
- );
-
-
- $("expenseByCat")
- .innerHTML =
-
- Object
- .entries(cats)
- .sort(
-  (a,b) =>
-  b[1]-a[1]
- )
- .map(
-  ([k,v]) =>
-  `<div class=item>
-
-   <span>
-    ${esc(k)}
-   </span>
-
-   <b>
-    ${money(v)}
-   </b>
-
-  </div>`
- )
- .join("");
-
-
- $("expenseList")
- .innerHTML =
-
- rows
- .map(
-  x =>
-  `<div class=item>
-
-   <div>
-
-    <div class=t>
-     ${esc(x.category)}
-    </div>
-
-    <div class=s>
-
-     ${fmt(x.expense_date)}
-
-     ${
-      x.note
-      ?
-      " · "+esc(x.note)
-      :
-      ""
-     }
-
-    </div>
-
-   </div>
-
-
-   <div>
-
-    <span class=amt>
-     ${money(x.amount)}
-    </span>
-
-    <button
-     class=x
-     onclick="deleteExpense('${x.id}')"
-    >
-     ×
-    </button>
-
-   </div>
-
-  </div>`
- )
- .join("")
-
- ||
-
- `<div class=empty>
-  এই সময়ের কোনো খরচ নেই।
- </div>`;
-
-}
-
-
-document
- .querySelectorAll(
-  "#expenseRange button"
- )
- .forEach(
-  b =>
-  b.onclick =
-  () => {
-
-   expenseRange =
-   b.dataset.r;
-
-   document
-   .querySelectorAll(
-    "#expenseRange button"
-   )
-   .forEach(
-    x =>
-    x.classList.toggle(
-     "on",
-     x===b
-    )
-   );
-
-   renderExpenses();
-
-  }
- );
-
-
-$("eDate")
-.value =
-today();
-
-
-/* SAVE EXPENSE */
-
-$("saveExpense")
-.onclick =
-async () => {
-
- let amount =
- Number(
-  $("eAmount").value
- );
-
-
- if(!amount){
-
-  alert(
-   "টাকার পরিমাণ দিন"
-  );
-
-  return;
-
- }
-
-
- let user =
- (
-  await db.auth.getUser()
- )
- .data.user.id;
-
-
- let cat =
- $("eCategory")
- .value
- .trim()
- ||
- "অন্যান্য";
-
-
- let {
-  error
- } =
- await db
- .from("expenses")
- .insert({
-
-  user_id:user,
-
-  expense_date:
-   $("eDate").value ||
-   today(),
-
-  amount:amount,
-
-  category:cat,
-
-  note:
-   $("eNote")
-   .value
-   .trim()
-   ||
-   null
-
- });
-
-
- if(error){
-
-  alert(
-   error.message
-  );
-
- }
-
- else{
-
-  await addLookup(
-   "expense_category",
-   cat
-  );
-
-
-  $("eAmount")
-   .value="";
-
-
-  $("eNote")
-   .value="";
-
-
-  loadAll();
-
- }
-
-};
-
-
-/* DELETE EXPENSE */
-
-async function deleteExpense(id){
-
- if(
-  !confirm(
-   "খরচটি মুছবেন?"
-  )
- )
- return;
-
-
- await db
- .from("expenses")
- .delete()
- .eq(
-  "id",
-  id
- );
-
-
- loadAll();
-
-}
-
-
-/* =========================================
-   VACCINES
-========================================= */
-
-function renderVaccines(){
-
- let rows =
- DATA.vaccines
- .filter(
-  v => {
-
-   let st =
-    v.status ||
-    (
-     v.given_date
-     ?
-     "completed"
-     :
-     "pending"
-    );
-
-   return (
-    vaccineFilter==="all" ||
-    st===vaccineFilter
-   );
-
-  }
- );
-
-
- $("vaccineList")
- .innerHTML =
-
- rows.length
-
- ?
-
- rows
- .map(
-  v => {
-
-   let g =
-    DATA.goats.find(
-     x =>
-     x.id===v.goat_id
-    );
-
-   let st =
-    v.status ||
-    (
-     v.given_date
-     ?
-     "completed"
-     :
-     "pending"
-    );
-
-   let late =
-    st==="pending" &&
-    v.scheduled_date &&
-    v.scheduled_date < today();
-
-
-   return `
-
-   <div class="card" style="padding:10px">
-
-    <div class="top">
-
-     <div>
-
-      <b style="font-size:15px">
-       ${esc(g?.name||"অজানা ছাগল")}
-      </b>
-
-      <div class=s>
-       ${esc(g?.breed||"জাত নেই")}
-       ·
-       ${esc(v.vaccine_name)}
-      </div>
-
-     </div>
-
-
-     <span
-      class="tag ${late?"warn":""}"
-     >
-      ${
-       st==="pending"
-       ?
-       "পেন্ডিং"
-       :
-       "কমপ্লিট"
-      }
-     </span>
-
-    </div>
-
-
-    <div
-     class=s
-     style="margin-top:6px"
-    >
-
-     ${
-      st==="pending"
-      ?
-      "সম্ভাব্য তারিখ: "+
-      fmt(v.scheduled_date)
-      :
-      "দেওয়ার তারিখ: "+
-      fmt(v.given_date)
-     }
-
-     · কোম্পানি:
-     ${esc(v.company||"—")}
-
-    </div>
-
-
-    <div class=seg>
-
-     ${
-      st==="pending"
-      ?
-
-      `<button
-       onclick="completeVaccine('${v.id}')"
-      >
-       ✓ টিকা দেওয়া সম্পন্ন
-      </button>`
-
-      :
-
-      ""
-     }
-
-
-     <button
-      onclick="showVaccineHistory('${v.goat_id}')"
-     >
-      📋 এই ছাগলের সব টিকা
-     </button>
-
-    </div>
-
-   </div>`;
-
-  }
- )
- .join("")
-
- :
-
- `<div class="card">
-
-  <div class=empty>
-   এই তালিকায় কোনো টিকার রেকর্ড নেই।
-  </div>
-
- </div>`;
-
-
- document
- .querySelectorAll(
-  "#vaccineRange button"
- )
- .forEach(
-  b =>
-  b.classList.toggle(
-   "on",
-   b.dataset.vr===vaccineFilter
-  )
- );
-
-}
-
-
-document
- .querySelectorAll(
-  "#vaccineRange button"
- )
- .forEach(
-  b =>
-  b.onclick =
-  () => {
-
-   vaccineFilter =
-   b.dataset.vr;
-
-   renderVaccines();
-
-  }
- );
-
-
-async function completeVaccine(id){
-
- let {
-  error
- } =
- await db
- .from("vaccinations")
- .update({
-
-  status:"completed",
-
-  given_date:
-   today()
-
- })
- .eq(
-  "id",
-  id
- );
-
-
- if(error){
-
-  alert(
-   error.message
-  );
-
-  return;
-
- }
-
- await loadAll();
-
-}
-
-
-function showVaccineHistory(goatId){
-
- let g =
- DATA.goats.find(
-  x =>
-  x.id===goatId
- );
-
- let vs =
- DATA.vaccines
- .filter(
-  v =>
-  v.goat_id===goatId
- );
-
- if(!vs.length){
-
-  alert(
-   "এই ছাগলের কোনো টিকার রেকর্ড নেই।"
-  );
-
-  return;
-
- }
-
-
- let text =
- `${g?.name||"ছাগল"} - মোট ${vs.length}টি টিকার রেকর্ড\n\n`;
-
-
- text +=
- vs
- .map(
-  (v,i) => {
-
-   let st =
-    v.status ||
-    (
-     v.given_date
-     ?
-     "completed"
-     :
-     "pending"
-    );
-
-   return (
-    `${i+1}. ${v.vaccine_name} — `+
-    (
-     st==="completed"
-     ?
-     "কমপ্লিট"
-     :
-     "পেন্ডিং"
-    )+
-    "\n"+
-    (
-     st==="completed"
-     ?
-     `দেওয়া: ${fmt(v.given_date)}`
-     :
-     `সম্ভাব্য: ${fmt(v.scheduled_date)}`
-    )+
-    `\nকোম্পানি: ${v.company||"—"}`
-   );
-
-  }
- )
- .join("\n\n");
-
-
- alert(text);
-
-}
-
-
-/* DIRECT VACCINE */
-
-async function vaxDirect(
- id,
- name
-){
-
- let company =
- prompt(
-  "কোন কোম্পানির টিকা?",
-  ""
- );
-
-
- let next =
- prompt(
-  "পরবর্তী তারিখ (YYYY-MM-DD)",
-  addDays(
-   today(),
-   365
-  )
- );
-
-
- let user =
- (
-  await db.auth.getUser()
- )
- .data.user.id;
-
-
- let {
-  error
- } =
- await db
- .from("vaccinations")
- .insert({
-
-  user_id:user,
-
-  goat_id:id,
-
-  vaccine_name:name,
-
-  company:
-   company ||
-   null,
-
-  given_date:null,
-
-  scheduled_date:
-   next ||
-   null,
-
-  status:"pending",
-
-  next_date:null
-
- });
-
-
- if(error){
-
-  alert(
-   error.message
-  );
-
- }
-
- else{
-
-  loadAll();
-
- }
-
-}
-
-
-/* ADD VACCINE NAME */
-
-$("addVaccineName")
-.onclick =
-async () => {
-
- let n =
- $("vName")
- .value
- .trim();
-
-
- if(n){
-
-  await addLookup(
-   "vaccine",
-   n
-  );
-
-  $("vName")
-   .value="";
-
-  loadAll();
-
- }
-
-};
-
-
-/* =========================================
-   LOOKUP
-========================================= */
-
-async function addLookup(
- kind,
- name
-){
-
- let user =
- (
-  await db.auth.getUser()
- )
- .data.user.id;
-
-
- await db
- .from("lookup_items")
- .upsert(
-  {
-   user_id:user,
-   kind,
-   name
-  },
-  {
-   onConflict:
-   "user_id,kind,name"
-  }
- );
-
+/* =========================================================
+   LOOKUPS
+========================================================= */
+
+function getLookup(kind){
+
+  return DATA.lookups
+    .filter(x=>x.kind===kind)
+    .map(x=>x.name)
+    .filter(Boolean);
 }
 
 
 function fillLookups(){
 
- let b =
- DATA.lookups
- .filter(
-  x =>
-  x.kind==="breed"
- );
+  $("breedList").innerHTML =
+    getLookup("breed")
+      .map(x=>`<option value="${esc(x)}"></option>`)
+      .join("");
 
 
- let e =
- DATA.lookups
- .filter(
-  x =>
-  x.kind==="expense_category"
- );
+  $("expenseCategoryList").innerHTML =
+    getLookup("expense_category")
+      .map(x=>`<option value="${esc(x)}"></option>`)
+      .join("");
 
 
- $("breedList")
- .innerHTML =
-
- b.map(
-  x =>
-  `<option value="${esc(x.name)}">`
- )
- .join("");
+  $("vaccineList").innerHTML =
+    getLookup("vaccine")
+      .map(x=>`<option value="${esc(x)}"></option>`)
+      .join("");
 
 
- $("expenseList")
- .innerHTML =
-
- e.map(
-  x =>
-  `<option value="${esc(x.name)}">`
- )
- .join("");
-
-
- let vnames =
- DATA.lookups
- .filter(
-  x =>
-  x.kind==="vaccine"
- );
-
-
- $("gVaccineName")
- .innerHTML =
- `<option value="">টিকা নির্বাচন করুন</option>`+
- vnames
- .map(
-  x =>
-  `<option value="${esc(x.name)}">
-    ${esc(x.name)}
-   </option>`
- )
- .join("");
-
-
- let comps =
- DATA.lookups
- .filter(
-  x =>
-  x.kind==="vaccine_company"
- );
-
-
- $("gVaccineCompanyList")
- .innerHTML =
- comps
- .map(
-  x =>
-  `<option value="${esc(x.name)}">`
- )
- .join("");
+  $("companyList").innerHTML =
+    getLookup("vaccine_company")
+      .map(x=>`<option value="${esc(x)}"></option>`)
+      .join("");
 
 }
 
 
-/* =========================================
-   LAND
-========================================= */
+async function addLookup(kind,name){
 
-function renderLand(){
+  name =
+    String(name || "").trim();
 
- $("landList")
- .innerHTML =
-
- DATA.land
- .map(
-  x =>
-  `<div class=item>
-
-   <div>
-
-    <div class=t>
-
-     ${esc(x.work||"কাজ")}
-
-     ·
-
-     ${esc(x.land_name)}
-
-    </div>
-
-    <div class=s>
-
-     ${fmt(x.record_date)}
-
-     ${
-      x.crop
-      ?
-      " · "+esc(x.crop)
-      :
-      ""
-     }
-
-     ${
-      x.size_decimal
-      ?
-      " · "+
-      bn(x.size_decimal)+
-      " শতাংশ"
-      :
-      ""
-     }
-
-    </div>
-
-   </div>
+  if(!name) return;
 
 
-   <div>
-
-    <span class=amt>
-     ${money(x.cost)}
-    </span>
-
-    <button
-     class=x
-     onclick="deleteLand('${x.id}')"
-    >
-     ×
-    </button>
-
-   </div>
-
-  </div>`
- )
- .join("")
-
- ||
-
- `<div class=empty>
-  জমির কোনো কাজ নেই।
- </div>`;
-
-}
+  const exists =
+    DATA.lookups.some(
+      x =>
+        x.kind===kind &&
+        x.name.toLowerCase()===name.toLowerCase()
+    );
 
 
-$("lDate")
-.value =
-today();
+  if(exists) return;
 
 
-/* SAVE LAND */
-
-$("saveLand")
-.onclick =
-async () => {
-
- let name =
- $("lName")
- .value
- .trim();
-
-
- if(!name){
-
-  alert(
-   "জমির নাম দিন"
-  );
-
-  return;
-
- }
+  const {data,error} =
+    await db
+      .from("lookup_items")
+      .insert({
+        user_id:currentUser.id,
+        kind,
+        name
+      })
+      .select()
+      .single();
 
 
- let user =
- (
-  await db.auth.getUser()
- )
- .data.user.id;
+  if(!error && data){
 
-
- let row = {
-
-  user_id:user,
-
-  land_name:name,
-
-  size_decimal:
-   Number(
-    $("lSize").value
-   )
-   ||
-   0,
-
-  work:
-   $("lWork")
-   .value
-   .trim(),
-
-  crop:
-   $("lCrop")
-   .value
-   .trim(),
-
-  record_date:
-   $("lDate").value ||
-   today(),
-
-  cost:
-   Number(
-    $("lCost").value
-   )
-   ||
-   0,
-
-  note:
-   $("lNote")
-   .value
-   .trim()
-
- };
-
-
- let {
-  error
- } =
- await db
- .from("land_records")
- .insert(row);
-
-
- if(error){
-
-  alert(
-   error.message
-  );
-
- }
-
- else{
-
-  if(row.cost){
-
-   await db
-   .from("expenses")
-   .insert({
-
-    user_id:user,
-
-    expense_date:
-     row.record_date,
-
-    category:
-     "জমি চাষ",
-
-    amount:
-     row.cost,
-
-    note:
-     row.work+
-     " - "+
-     name
-
-   });
+    DATA.lookups.push(data);
 
   }
+
+}
+
+
+/* =========================================================
+   GOAT FORM
+========================================================= */
+
+function toggleGoatForm(){
+
+  $("goatFormCard")
+    .classList.toggle("hidden");
+
+}
+
+
+function cancelGoatForm(){
+
+  $("goatFormCard")
+    .classList.add("hidden");
+
+  clearGoatForm();
+
+}
+
+
+function clearGoatForm(){
+
+  $("editingGoatId").value = "";
+
+  $("gName").value = "";
+  $("gBreed").value = "";
+  $("gSex").value = "";
+  $("gWeight").value = "";
+  $("gOrigin").value = "purchase";
+  $("gBirthDate").value = "";
+  $("gPurchaseDate").value = "";
+  $("gPurchasePrice").value = "";
+  $("gSource").value = "";
+  $("gColor").value = "";
+  $("gNotes").value = "";
+
+}
+
+
+function editGoat(id){
+
+  const g =
+    DATA.goats.find(x=>x.id===id);
+
+  if(!g) return;
+
+
+  $("editingGoatId").value = g.id;
+
+  $("gName").value =
+    g.name || g.goat_code || "";
+
+  $("gBreed").value =
+    g.breed || "";
+
+  $("gSex").value =
+    g.sex || "";
+
+  $("gWeight").value =
+    g.weight_kg || "";
+
+  $("gBirthDate").value =
+    g.birth_date || "";
+
+  $("gPurchaseDate").value =
+    g.purchase_date || "";
+
+  $("gPurchasePrice").value =
+    g.purchase_price || "";
+
+  $("gSource").value =
+    g.source || "";
+
+  $("gColor").value =
+    g.color_mark || "";
+
+  $("gNotes").value =
+    g.notes || "";
+
+
+  const origin =
+    DATA.tx.find(
+      x =>
+        x.goat_id===id &&
+        (
+          x.type==="purchase" ||
+          x.type==="birth"
+        )
+    );
+
+
+  $("gOrigin").value =
+    origin?.type==="birth"
+      ? "birth"
+      : "purchase";
+
+
+  $("goatFormCard")
+    .classList.remove("hidden");
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+async function saveGoat(){
+
+  const name =
+    $("gName").value.trim();
+
+  if(!name){
+
+    alert("ছাগলের নাম / ID দিন");
+
+    return;
+  }
+
+
+  const origin =
+    $("gOrigin").value;
+
+  const editingId =
+    $("editingGoatId").value.trim();
+
+
+  const row = {
+
+    user_id:currentUser.id,
+
+    goat_code:name,
+
+    name:name,
+
+    breed:$("gBreed").value.trim(),
+
+    sex:$("gSex").value,
+
+    birth_date:$("gBirthDate").value || null,
+
+    purchase_date:
+      $("gPurchaseDate").value || null,
+
+    weight_kg:
+      $("gWeight").value
+        ? Number($("gWeight").value)
+        : null,
+
+    color_mark:
+      $("gColor").value.trim(),
+
+    source:
+      $("gSource").value.trim(),
+
+    purchase_price:
+      $("gPurchasePrice").value
+        ? Number($("gPurchasePrice").value)
+        : 0,
+
+    status:"active",
+
+    notes:
+      $("gNotes").value.trim(),
+
+    updated_at:new Date().toISOString()
+
+  };
+
+
+  let goatId = editingId;
+
+
+  if(editingId){
+
+    const {error} =
+      await db
+        .from("goats")
+        .update(row)
+        .eq("id",editingId)
+        .eq("user_id",currentUser.id);
+
+
+    if(error){
+
+      alert(error.message);
+
+      return;
+    }
+
+
+    /*
+      Existing origin transaction update
+    */
+
+    const originTx =
+      DATA.tx.find(
+        x =>
+          x.goat_id===editingId &&
+          (
+            x.type==="purchase" ||
+            x.type==="birth"
+          )
+      );
+
+
+    if(originTx){
+
+      await db
+        .from("goat_transactions")
+        .update({
+
+          type:origin,
+
+          transaction_date:
+            origin==="purchase"
+              ? (
+                  $("gPurchaseDate").value ||
+                  today()
+                )
+              : (
+                  $("gBirthDate").value ||
+                  today()
+                ),
+
+          amount:
+            origin==="purchase"
+              ? row.purchase_price
+              : 0,
+
+          details:
+            origin==="purchase"
+              ? "ছাগল ক্রয়"
+              : "ছাগল জন্ম"
+
+        })
+        .eq("id",originTx.id)
+        .eq("user_id",currentUser.id);
+
+    }else{
+
+      await db
+        .from("goat_transactions")
+        .insert({
+
+          user_id:currentUser.id,
+
+          goat_id:editingId,
+
+          type:origin,
+
+          transaction_date:
+            origin==="purchase"
+              ? (
+                  $("gPurchaseDate").value ||
+                  today()
+                )
+              : (
+                  $("gBirthDate").value ||
+                  today()
+                ),
+
+          amount:
+            origin==="purchase"
+              ? row.purchase_price
+              : 0,
+
+          details:
+            origin==="purchase"
+              ? "ছাগল ক্রয়"
+              : "ছাগল জন্ম"
+
+        });
+
+    }
+
+
+  }else{
+
+    const {data,error} =
+      await db
+        .from("goats")
+        .insert(row)
+        .select()
+        .single();
+
+
+    if(error){
+
+      alert(error.message);
+
+      return;
+    }
+
+
+    goatId = data.id;
+
+
+    const transactionDate =
+      origin==="purchase"
+        ? (
+            $("gPurchaseDate").value ||
+            today()
+          )
+        : (
+            $("gBirthDate").value ||
+            today()
+          );
+
+
+    const amount =
+      origin==="purchase"
+        ? row.purchase_price
+        : 0;
+
+
+    const {error:txError} =
+      await db
+        .from("goat_transactions")
+        .insert({
+
+          user_id:currentUser.id,
+
+          goat_id:goatId,
+
+          type:origin,
+
+          transaction_date:transactionDate,
+
+          amount,
+
+          details:
+            origin==="purchase"
+              ? "ছাগল ক্রয়"
+              : "ছাগল জন্ম"
+
+        });
+
+
+    if(txError){
+
+      alert(txError.message);
+
+      return;
+    }
+
+
+    /*
+      Purchase automatically appears in expenses.
+    */
+
+    if(
+      origin==="purchase" &&
+      Number(row.purchase_price)>0
+    ){
+
+      await db
+        .from("expenses")
+        .insert({
+
+          user_id:currentUser.id,
+
+          expense_date:
+            $("gPurchaseDate").value ||
+            today(),
+
+          category:"ছাগল ক্রয়",
+
+          amount:
+            Number(row.purchase_price),
+
+          note:
+            "ছাগল: " + name
+
+        });
+
+    }
+
+
+    /*
+      Auto add breed
+    */
+
+    if(row.breed){
+
+      await addLookup(
+        "breed",
+        row.breed
+      );
+
+    }
+
+  }
+
+
+  clearGoatForm();
+
+  $("goatFormCard")
+    .classList.add("hidden");
+
+  await loadAll();
+
+
+  alert(
+    editingId
+      ? "ছাগলের তথ্য আপডেট হয়েছে"
+      : "নতুন ছাগল যোগ হয়েছে"
+  );
+
+}
+
+
+/* =========================================================
+   GOAT DELETE
+========================================================= */
+
+async function deleteGoat(id){
+
+  const g =
+    DATA.goats.find(x=>x.id===id);
+
+  if(!g) return;
+
+
+  if(!confirm(
+    `"${g.name}" ছাগলটি Delete করবেন?`
+  )) return;
+
+
+  const {error} =
+    await db
+      .from("goats")
+      .delete()
+      .eq("id",id)
+      .eq("user_id",currentUser.id);
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  await loadAll();
+
+}
+
+
+/* =========================================================
+   GOAT SALE
+========================================================= */
+
+async function sellGoat(id){
+
+  const g =
+    DATA.goats.find(x=>x.id===id);
+
+  if(!g) return;
+
+
+  if(g.status==="sold"){
+
+    alert("এই ছাগল ইতিমধ্যে বিক্রি হয়েছে");
+
+    return;
+  }
+
+
+  const amount =
+    prompt(
+      "বিক্রয় মূল্য লিখুন:",
+      "0"
+    );
+
+
+  if(amount===null) return;
+
+
+  const buyer =
+    prompt(
+      "ক্রেতার নাম / তথ্য:",
+      ""
+    ) || "";
+
+
+  const saleAmount =
+    Number(amount) || 0;
+
+
+  const {error:txError} =
+    await db
+      .from("goat_transactions")
+      .insert({
+
+        user_id:currentUser.id,
+
+        goat_id:id,
+
+        type:"sale",
+
+        transaction_date:today(),
+
+        amount:saleAmount,
+
+        buyer_seller:buyer,
+
+        details:
+          "ছাগল বিক্রি"
+
+      });
+
+
+  if(txError){
+
+    alert(txError.message);
+
+    return;
+  }
+
+
+  const {error:updateError} =
+    await db
+      .from("goats")
+      .update({
+        status:"sold",
+        updated_at:new Date().toISOString()
+      })
+      .eq("id",id)
+      .eq("user_id",currentUser.id);
+
+
+  if(updateError){
+
+    alert(updateError.message);
+
+    return;
+  }
+
+
+  await loadAll();
+
+
+  alert("ছাগল বিক্রি হিসেবে সংরক্ষণ হয়েছে");
+
+}
+
+
+/* =========================================================
+   GOAT SUMMARY
+========================================================= */
+
+function renderGoatSummary(){
+
+  const purchases =
+    DATA.tx.filter(
+      x=>x.type==="purchase"
+    ).length;
+
+  const births =
+    DATA.tx.filter(
+      x=>x.type==="birth"
+    ).length;
+
+  const sales =
+    DATA.tx.filter(
+      x=>x.type==="sale"
+    ).length;
+
+  const current =
+    DATA.goats.filter(
+      x=>x.status==="active"
+    ).length;
+
+
+  $("sumPurchase").textContent =
+    purchases;
+
+  $("sumBirth").textContent =
+    births;
+
+  $("sumSale").textContent =
+    sales;
+
+  $("sumCurrent").textContent =
+    current;
+
+}
+
+
+/* =========================================================
+   GOAT TAB
+========================================================= */
+
+function goatTab(tab){
+
+  currentGoatTab = tab;
 
 
   [
-   "lName",
-   "lSize",
-   "lWork",
-   "lCrop",
-   "lCost",
-   "lNote"
-  ]
-  .forEach(
-   id =>
-   $(id).value=""
-  );
+    "all",
+    "purchase",
+    "birth",
+    "sale"
+  ].forEach(x=>{
+
+    $("gtab-"+x)
+      .classList.toggle(
+        "active",
+        x===tab
+      );
+
+  });
 
 
-  loadAll();
-
- }
-
-};
-
-
-/* DELETE LAND */
-
-async function deleteLand(id){
-
- if(
-  confirm(
-   "রেকর্ডটি মুছবেন?"
-  )
- ){
-
-  await db
-   .from("land_records")
-   .delete()
-   .eq(
-    "id",
-    id
-   );
-
-  loadAll();
-
- }
+  renderGoats();
 
 }
 
 
-/* =========================================
-   MONTHLY REPORT
-========================================= */
+/* =========================================================
+   RENDER GOATS
+========================================================= */
 
-function renderReport(){
+function renderGoats(){
 
- let m =
- $("reportMonth")
- .value ||
- today().slice(
-  0,
-  7
- );
+  let goats = [];
 
 
- $("reportMonth")
- .value =
- m;
+  if(currentGoatTab==="sale"){
 
+    goats =
+      DATA.goats.filter(
+        x=>x.status==="sold"
+      );
 
- let ex =
- DATA.expenses
- .filter(
-  x =>
-  x.expense_date
-   .startsWith(m)
- );
+  }else{
 
+    goats =
+      DATA.goats.filter(
+        x=>x.status==="active"
+      );
 
- let tx =
- DATA.tx
- .filter(
-  x =>
-  x.transaction_date
-   .startsWith(m)
- );
 
+    if(
+      currentGoatTab==="purchase" ||
+      currentGoatTab==="birth"
+    ){
 
- let ec =
- ex.reduce(
-  (a,x) =>
-  a+Number(x.amount),
-  0
- );
+      const ids =
+        DATA.tx
+          .filter(
+            x=>x.type===currentGoatTab
+          )
+          .map(
+            x=>x.goat_id
+          );
 
 
- let buy =
- tx.filter(
-  x =>
-  x.type==="purchase"
- );
+      goats =
+        goats.filter(
+          x=>ids.includes(x.id)
+        );
 
-
- let sale =
- tx.filter(
-  x =>
-  x.type==="sale"
- );
-
-
- let birth =
- tx.filter(
-  x =>
-  x.type==="birth"
- );
-
-
- let buyAmt =
- buy.reduce(
-  (a,x) =>
-  a+Number(x.amount),
-  0
- );
-
-
- let saleAmt =
- sale.reduce(
-  (a,x) =>
-  a+Number(x.amount),
-  0
- );
-
-
- $("reportBody")
- .innerHTML =
-
- `<div
-   class=summary4
-   style="margin-top:12px"
-  >
-
-   <div class=stat>
-
-    <b>
-     ${bn(buy.length)}
-    </b>
-
-    <span>
-     ক্রয়
-    </span>
-
-   </div>
-
-
-   <div class=stat>
-
-    <b>
-     ${bn(birth.length)}
-    </b>
-
-    <span>
-     জন্ম
-    </span>
-
-   </div>
-
-
-   <div class=stat>
-
-    <b>
-     ${bn(sale.length)}
-    </b>
-
-    <span>
-     বিক্রি
-    </span>
-
-   </div>
-
-
-   <div class=stat>
-
-    <b>
-     ${money(ec)}
-    </b>
-
-    <span>
-     খরচ
-    </span>
-
-   </div>
-
-  </div>
-
-
-  <div class=card>
-
-   <div class=item>
-
-    <span>
-     মোট ক্রয়মূল্য
-    </span>
-
-    <b>
-     ${money(buyAmt)}
-    </b>
-
-   </div>
-
-
-   <div class=item>
-
-    <span>
-     মোট বিক্রয়মূল্য
-    </span>
-
-    <b>
-     ${money(saleAmt)}
-    </b>
-
-   </div>
-
-
-   <div class=item>
-
-    <span>
-     বিক্রয় - ক্রয়
-    </span>
-
-    <b>
-     ${money(saleAmt-buyAmt)}
-    </b>
-
-   </div>
-
-
-   <div class=item>
-
-    <span>
-     খরচসহ নিট হিসাব
-    </span>
-
-    <b>
-     ${money(
-      saleAmt-
-      buyAmt-
-      ec
-     )}
-    </b>
-
-   </div>
-
-  </div>
-
-
-  <h3>
-   খরচের বিস্তারিত
-  </h3>
-
-
-  ${
-   ex
-   .map(
-    x =>
-    `<div class=item>
-
-     <span>
-
-      ${esc(x.category)}
-
-      <small class=s>
-       · ${fmt(x.expense_date)}
-      </small>
-
-     </span>
-
-     <b>
-      ${money(x.amount)}
-     </b>
-
-    </div>`
-   )
-   .join("")
-
-   ||
-
-   `<div class=empty>
-    এই মাসে কোনো খরচ নেই।
-   </div>`
-  }`;
-
-}
-
-
-$("reportMonth")
-.value =
-today().slice(
- 0,
- 7
-);
-
-
-$("reportMonth")
-.onchange =
-renderReport;
-
-
-/* =========================================
-   AUTH STATE
-========================================= */
-
-db.auth.onAuthStateChange(
- (event,session) => {
-
-  if(
-   session &&
-   !document.body
-    .classList
-    .contains("locked")
-  ){
+    }
 
   }
 
- }
-);
+
+  if(!goats.length){
+
+    $("goatList").innerHTML =
+      `<div class="card empty">
+        এই অংশে কোনো ছাগলের তথ্য নেই।
+      </div>`;
+
+    return;
+  }
 
 
-/* =========================================
-   START
-========================================= */
+  $("goatList").innerHTML =
+    goats.map(renderGoatCard).join("");
 
-auth();
+}
+
+
+function renderGoatCard(g){
+
+  const origin =
+    DATA.tx.find(
+      x =>
+        x.goat_id===g.id &&
+        (
+          x.type==="purchase" ||
+          x.type==="birth"
+        )
+    );
+
+
+  const originText =
+    origin?.type==="birth"
+      ? "জন্ম"
+      : "ক্রয়";
+
+
+  const vaccines =
+    DATA.vaccines.filter(
+      x=>x.goat_id===g.id
+    );
+
+
+  const pendingVax =
+    vaccines.filter(
+      x=>x.status==="pending"
+    ).length;
+
+
+  return `
+    <div class="goat-card">
+
+      <div class="goat-head">
+
+        <div>
+
+          <div class="goat-name">
+            🐐 ${esc(g.name)}
+          </div>
+
+          ${
+            g.goat_code &&
+            g.goat_code!==g.name
+              ? `<div class="goat-id">
+                  ID: ${esc(g.goat_code)}
+                </div>`
+              : ""
+          }
+
+        </div>
+
+
+        <div>
+
+          ${
+            g.status==="sold"
+              ? `<span class="badge badge-red">
+                  বিক্রি
+                </span>`
+              : `<span class="badge">
+                  সক্রিয়
+                </span>`
+          }
+
+        </div>
+
+      </div>
+
+
+      <div class="info-row">
+
+        <div>
+          জাত:
+          <strong>${esc(g.breed || "-")}</strong>
+        </div>
+
+        <div>
+          লিঙ্গ:
+          <strong>${esc(g.sex || "-")}</strong>
+        </div>
+
+        <div>
+          ওজন:
+          <strong>
+            ${g.weight_kg ? esc(g.weight_kg)+" kg" : "-"}
+          </strong>
+        </div>
+
+        <div>
+          উৎস:
+          <strong>${originText}</strong>
+        </div>
+
+        <div>
+          জন্ম:
+          <strong>${fmt(g.birth_date)}</strong>
+        </div>
+
+        <div>
+          টিকা বাকি:
+          <strong>${pendingVax}</strong>
+        </div>
+
+      </div>
+
+
+      ${
+        g.notes
+          ? `<div class="small"
+                   style="margin-top:7px">
+              📝 ${esc(g.notes)}
+            </div>`
+          : ""
+      }
+
+
+      <hr>
+
+
+      <div class="actions">
+
+        ${
+          g.status==="active"
+            ? `<button
+                 class="btn btn-secondary btn-small"
+                 onclick="editGoat('${g.id}')">
+                 ✏️ Edit
+               </button>
+
+               <button
+                 class="btn btn-warning btn-small"
+                 onclick="sellGoat('${g.id}')">
+                 💰 বিক্রি
+               </button>
+
+               <button
+                 class="btn btn-secondary btn-small"
+                 onclick="quickVaccine('${g.id}')">
+                 💉 টিকা
+               </button>`
+            : ""
+        }
+
+
+        <button
+          class="btn btn-danger btn-small"
+          onclick="deleteGoat('${g.id}')">
+          🗑 Delete
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   VACCINE
+========================================================= */
+
+function quickVaccine(goatId){
+
+  openPage("vaccines");
+
+  $("vGoat").value =
+    goatId;
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+function vaccineTab(tab){
+
+  currentVaccineTab = tab;
+
+
+  [
+    "pending",
+    "completed",
+    "all"
+  ].forEach(x=>{
+
+    $("vtab-"+x)
+      .classList.toggle(
+        "active",
+        x===tab
+      );
+
+  });
+
+
+  renderVaccines();
+
+}
+
+
+function fillVaccineGoats(){
+
+  const active =
+    DATA.goats.filter(
+      x=>x.status==="active"
+    );
+
+
+  $("vGoat").innerHTML =
+    active.length
+      ? active
+          .map(
+            g =>
+              `<option value="${g.id}">
+                ${esc(g.name)}
+              </option>`
+          )
+          .join("")
+      : `<option value="">
+           কোনো সক্রিয় ছাগল নেই
+         </option>`;
+
+}
+
+
+async function addVaccine(){
+
+  const goatId =
+    $("vGoat").value;
+
+  const vaccineName =
+    $("vName").value.trim();
+
+  const company =
+    $("vCompany").value.trim();
+
+  const scheduled =
+    $("vDate").value || today();
+
+  const nextDate =
+    $("vNext").value || null;
+
+  const note =
+    $("vNote").value.trim();
+
+
+  if(!goatId){
+
+    alert("ছাগল নির্বাচন করুন");
+
+    return;
+  }
+
+
+  if(!vaccineName){
+
+    alert("টিকার নাম দিন");
+
+    return;
+  }
+
+
+  /*
+    একই ছাগলকে একই টিকা আগে দেওয়া হয়ে থাকলে
+    আবার pending হিসেবে যোগ করতে দেওয়া হবে না।
+  */
+
+  const existing =
+    DATA.vaccines.filter(
+      x =>
+        x.goat_id===goatId &&
+        String(x.vaccine_name || "")
+          .trim()
+          .toLowerCase() ===
+        vaccineName.toLowerCase()
+    );
+
+
+  const alreadyCompleted =
+    existing.some(
+      x=>x.status==="completed"
+    );
+
+  const alreadyPending =
+    existing.some(
+      x=>x.status==="pending"
+    );
+
+
+  if(alreadyCompleted){
+
+    alert(
+      "এই ছাগলকে এই টিকা আগে দেওয়া হয়েছে।"
+    );
+
+    return;
+  }
+
+
+  if(alreadyPending){
+
+    alert(
+      "এই টিকার একটি pending record ইতিমধ্যে আছে।"
+    );
+
+    return;
+  }
+
+
+  const {error} =
+    await db
+      .from("vaccinations")
+      .insert({
+
+        user_id:currentUser.id,
+
+        goat_id:goatId,
+
+        vaccine_name:vaccineName,
+
+        company:company || null,
+
+        scheduled_date:scheduled,
+
+        given_date:null,
+
+        next_date:nextDate,
+
+        status:"pending",
+
+        notes:note || null
+
+      });
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  await addLookup(
+    "vaccine",
+    vaccineName
+  );
+
+
+  if(company){
+
+    await addLookup(
+      "vaccine_company",
+      company
+    );
+
+  }
+
+
+  $("vName").value = "";
+  $("vCompany").value = "";
+  $("vNext").value = "";
+  $("vNote").value = "";
+
+
+  await loadAll();
+
+
+  alert("টিকা পরিকল্পনা যোগ হয়েছে");
+
+}
+
+
+async function completeVaccine(id){
+
+  const v =
+    DATA.vaccines.find(
+      x=>x.id===id
+    );
+
+  if(!v) return;
+
+
+  if(!confirm(
+    "এই টিকা দেওয়া হয়েছে হিসেবে সংরক্ষণ করবেন?"
+  )) return;
+
+
+  const {error} =
+    await db
+      .from("vaccinations")
+      .update({
+
+        status:"completed",
+
+        given_date:today()
+
+      })
+      .eq("id",id)
+      .eq("user_id",currentUser.id);
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  await loadAll();
+
+}
+
+
+async function deleteVaccine(id){
+
+  if(!confirm(
+    "এই টিকার record Delete করবেন?"
+  )) return;
+
+
+  const {error} =
+    await db
+      .from("vaccinations")
+      .delete()
+      .eq("id",id)
+      .eq("user_id",currentUser.id);
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  await loadAll();
+
+}
+
+
+function renderVaccines(){
+
+  fillVaccineGoats();
+
+
+  let rows =
+    DATA.vaccines;
+
+
+  if(currentVaccineTab!=="all"){
+
+    rows =
+      rows.filter(
+        x =>
+          x.status===currentVaccineTab
+      );
+
+  }
+
+
+  if(!rows.length){
+
+    $("vaccineListBox").innerHTML =
+      `<div class="card empty">
+        কোনো টিকার record নেই।
+      </div>`;
+
+    return;
+  }
+
+
+  $("vaccineListBox").innerHTML =
+    rows.map(v=>{
+
+      const goat =
+        DATA.goats.find(
+          g=>g.id===v.goat_id
+        );
+
+
+      const overdue =
+        v.status==="pending" &&
+        v.scheduled_date &&
+        v.scheduled_date < today();
+
+
+      return `
+        <div class="card">
+
+          <div class="row-between">
+
+            <strong>
+              💉 ${esc(v.vaccine_name)}
+            </strong>
+
+            ${
+              v.status==="completed"
+                ? `<span class="badge">
+                    দেওয়া হয়েছে
+                  </span>`
+                : `<span class="badge badge-orange">
+                    বাকি
+                  </span>`
+            }
+
+          </div>
+
+
+          <div class="info-row">
+
+            <div>
+              ছাগল:
+              <strong>
+                ${esc(goat?.name || "-")}
+              </strong>
+            </div>
+
+            <div>
+              কোম্পানি:
+              <strong>
+                ${esc(v.company || "-")}
+              </strong>
+            </div>
+
+            <div>
+              তারিখ:
+              <strong>
+                ${fmt(
+                  v.status==="completed"
+                    ? v.given_date
+                    : v.scheduled_date
+                )}
+              </strong>
+            </div>
+
+            <div>
+              পরবর্তী:
+              <strong>
+                ${fmt(v.next_date)}
+              </strong>
+            </div>
+
+          </div>
+
+
+          ${
+            overdue
+              ? `<div class="alert"
+                     style="margin-top:8px">
+                   ⚠️ টিকার নির্ধারিত তারিখ পার হয়েছে
+                 </div>`
+              : ""
+          }
+
+
+          ${
+            v.notes
+              ? `<div class="small"
+                       style="margin-top:7px">
+                   📝 ${esc(v.notes)}
+                 </div>`
+              : ""
+          }
+
+
+          <div class="actions"
+               style="margin-top:8px">
+
+            ${
+              v.status==="pending"
+                ? `<button
+                     class="btn btn-primary btn-small"
+                     onclick="completeVaccine('${v.id}')">
+                     ✓ টিকা দেওয়া হয়েছে
+                   </button>`
+                : ""
+            }
+
+            <button
+              class="btn btn-danger btn-small"
+              onclick="deleteVaccine('${v.id}')">
+              🗑 Delete
+            </button>
+
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================================
+   EXPENSE
+========================================================= */
+
+function expenseTab(tab){
+
+  currentExpenseTab = tab;
+
+
+  [
+    "day",
+    "week",
+    "month"
+  ].forEach(x=>{
+
+    $("etab-"+x)
+      .classList.toggle(
+        "active",
+        x===tab
+      );
+
+  });
+
+
+  renderExpenses();
+
+}
+
+
+function rangeOK(dateString,range){
+
+  if(!dateString) return false;
+
+
+  const now =
+    new Date();
+
+  const d =
+    new Date(
+      dateString + "T00:00:00"
+    );
+
+
+  if(range==="day"){
+
+    return dateString===today();
+
+  }
+
+
+  if(range==="week"){
+
+    const start =
+      new Date();
+
+    start.setDate(
+      start.getDate()-6
+    );
+
+    start.setHours(0,0,0,0);
+
+    return d>=start;
+
+  }
+
+
+  if(range==="month"){
+
+    return dateString.startsWith(
+      today().slice(0,7)
+    );
+
+  }
+
+
+  return true;
+
+}
+
+
+async function saveExpense(){
+
+  const date =
+    $("eDate").value || today();
+
+  const category =
+    $("eCategory").value.trim();
+
+  const amount =
+    Number(
+      $("eAmount").value
+    ) || 0;
+
+  const note =
+    $("eNote").value.trim();
+
+
+  if(!category){
+
+    alert("খরচের ক্যাটাগরি দিন");
+
+    return;
+  }
+
+
+  if(amount<=0){
+
+    alert("খরচের পরিমাণ দিন");
+
+    return;
+  }
+
+
+  const {error} =
+    await db
+      .from("expenses")
+      .insert({
+
+        user_id:currentUser.id,
+
+        expense_date:date,
+
+        category,
+
+        amount,
+
+        note:note || null
+
+      });
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  await addLookup(
+    "expense_category",
+    category
+  );
+
+
+  $("eAmount").value = "";
+  $("eNote").value = "";
+
+
+  await loadAll();
+
+
+  alert("খরচ যোগ হয়েছে");
+
+}
+
+
+async function deleteExpense(id){
+
+  if(!confirm(
+    "এই খরচ Delete করবেন?"
+  )) return;
+
+
+  const {error} =
+    await db
+      .from("expenses")
+      .delete()
+      .eq("id",id)
+      .eq("user_id",currentUser.id);
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  await loadAll();
+
+}
+
+
+function renderExpenses(){
+
+  const rows =
+    DATA.expenses.filter(
+      x =>
+        rangeOK(
+          x.expense_date,
+          currentExpenseTab
+        )
+    );
+
+
+  const total =
+    rows.reduce(
+      (sum,x)=>
+        sum + Number(x.amount || 0),
+      0
+    );
+
+
+  $("expenseTotal").textContent =
+    money(total);
+
+
+  if(!rows.length){
+
+    $("expenseRecords").innerHTML =
+      `<div class="card empty">
+        এই সময়ের কোনো খরচ নেই।
+      </div>`;
+
+    return;
+  }
+
+
+  $("expenseRecords").innerHTML =
+    rows.map(x=>`
+
+      <div class="card">
+
+        <div class="row-between">
+
+          <strong>
+            ${esc(x.category)}
+          </strong>
+
+          <strong class="amount">
+            ${money(x.amount)}
+          </strong>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div>
+            তারিখ:
+            <strong>
+              ${fmt(x.expense_date)}
+            </strong>
+          </div>
+
+          <div>
+            ধরন:
+            <strong>
+              ${esc(x.category)}
+            </strong>
+          </div>
+
+        </div>
+
+
+        ${
+          x.note
+            ? `<div class="small"
+                     style="margin-top:6px">
+                📝 ${esc(x.note)}
+              </div>`
+            : ""
+        }
+
+
+        <div class="actions"
+             style="margin-top:8px">
+
+          <button
+            class="btn btn-danger btn-small"
+            onclick="deleteExpense('${x.id}')">
+            🗑 Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+}
+
+
+/* =========================================================
+   LAND
+========================================================= */
+
+async function saveLand(){
+
+  const landName =
+    $("lName").value.trim();
+
+  if(!landName){
+
+    alert("জমির নাম দিন");
+
+    return;
+  }
+
+
+  const {error} =
+    await db
+      .from("land_records")
+      .insert({
+
+        user_id:currentUser.id,
+
+        land_name:landName,
+
+        size_decimal:
+          $("lSize").value
+            ? Number($("lSize").value)
+            : null,
+
+        work:
+          $("lWork").value.trim(),
+
+        crop:
+          $("lCrop").value.trim(),
+
+        record_date:
+          $("lDate").value || today(),
+
+        cost:
+          $("lCost").value
+            ? Number($("lCost").value)
+            : 0,
+
+        note:
+          $("lNote").value.trim()
+
+      });
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  $("lName").value = "";
+  $("lSize").value = "";
+  $("lWork").value = "";
+  $("lCrop").value = "";
+  $("lCost").value = "";
+  $("lNote").value = "";
+
+
+  await loadAll();
+
+
+  alert("জমির তথ্য যোগ হয়েছে");
+
+}
+
+
+async function deleteLand(id){
+
+  if(!confirm(
+    "এই জমির record Delete করবেন?"
+  )) return;
+
+
+  const {error} =
+    await db
+      .from("land_records")
+      .delete()
+      .eq("id",id)
+      .eq("user_id",currentUser.id);
+
+
+  if(error){
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  await loadAll();
+
+}
+
+
+function renderLand(){
+
+  if(!DATA.land.length){
+
+    $("landList").innerHTML =
+      `<div class="card empty">
+        কোনো জমির তথ্য নেই।
+      </div>`;
+
+    return;
+  }
+
+
+  $("landList").innerHTML =
+    DATA.land.map(x=>`
+
+      <div class="card">
+
+        <div class="row-between">
+
+          <strong>
+            🌱 ${esc(x.land_name)}
+          </strong>
+
+          <strong>
+            ${money(x.cost)}
+          </strong>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div>
+            আয়তন:
+            <strong>
+              ${x.size_decimal || "-"}
+            </strong>
+          </div>
+
+          <div>
+            তারিখ:
+            <strong>
+              ${fmt(x.record_date)}
+            </strong>
+          </div>
+
+          <div>
+            কাজ:
+            <strong>
+              ${esc(x.work || "-")}
+            </strong>
+          </div>
+
+          <div>
+            ফসল:
+            <strong>
+              ${esc(x.crop || "-")}
+            </strong>
+          </div>
+
+        </div>
+
+
+        ${
+          x.note
+            ? `<div class="small"
+                     style="margin-top:6px">
+                📝 ${esc(x.note)}
+              </div>`
+            : ""
+        }
+
+
+        <div class="actions"
+             style="margin-top:8px">
+
+          <button
+            class="btn btn-danger btn-small"
+            onclick="deleteLand('${x.id}')">
+            🗑 Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function renderDashboard(){
+
+  const active =
+    DATA.goats.filter(
+      x=>x.status==="active"
+    ).length;
+
+
+  const purchase =
+    DATA.tx.filter(
+      x=>x.type==="purchase"
+    ).length;
+
+
+  const birth =
+    DATA.tx.filter(
+      x=>x.type==="birth"
+    ).length;
+
+
+  const sale =
+    DATA.tx.filter(
+      x=>x.type==="sale"
+    ).length;
+
+
+  const month =
+    today().slice(0,7);
+
+
+  const monthExpense =
+    DATA.expenses
+      .filter(
+        x =>
+          x.expense_date?.startsWith(month)
+      )
+      .reduce(
+        (sum,x)=>
+          sum + Number(x.amount || 0),
+        0
+      );
+
+
+  const pending =
+    DATA.vaccines.filter(
+      x=>x.status==="pending"
+    ).length;
+
+
+  $("dActive").textContent =
+    active;
+
+  $("dPurchase").textContent =
+    purchase;
+
+  $("dBirth").textContent =
+    birth;
+
+  $("dSale").textContent =
+    sale;
+
+  $("dMonthExpense").textContent =
+    money(monthExpense);
+
+  $("dVaccine").textContent =
+    pending;
+
+
+  /* Vaccine alerts */
+
+  const alerts =
+    DATA.vaccines
+      .filter(
+        v =>
+          v.status==="pending" &&
+          v.scheduled_date &&
+          v.scheduled_date <= addDays(today(),14)
+      )
+      .sort(
+        (a,b)=>
+          String(a.scheduled_date)
+            .localeCompare(
+              String(b.scheduled_date)
+            )
+      )
+      .slice(0,6);
+
+
+  if(!alerts.length){
+
+    $("vaccineAlerts").innerHTML =
+      `<div class="success">
+        আগামী ১৪ দিনের মধ্যে কোনো টিকার alert নেই।
+      </div>`;
+
+  }else{
+
+    $("vaccineAlerts").innerHTML =
+      alerts.map(a=>{
+
+        const goat =
+          DATA.goats.find(
+            g=>g.id===a.goat_id
+          );
+
+
+        const late =
+          a.scheduled_date < today();
+
+
+        return `
+          <div class="${late ? "danger" : "alert"}">
+
+            <strong>
+              ${esc(a.vaccine_name)}
+            </strong>
+
+            — ${esc(goat?.name || "-")}
+
+            <br>
+
+            তারিখ:
+            ${fmt(a.scheduled_date)}
+
+            ${
+              late
+                ? " — ⚠️ সময় পার হয়েছে"
+                : ""
+            }
+
+          </div>
+        `;
+
+      }).join("");
+
+  }
+
+
+  /* Recent goats */
+
+  const recent =
+    DATA.goats
+      .slice(0,5);
+
+
+  $("recentGoats").innerHTML =
+    recent.length
+      ? recent.map(g=>`
+
+          <div style="
+            padding:7px 0;
+            border-bottom:1px solid #edf0ee;
+          ">
+
+            <div class="row-between">
+
+              <strong>
+                🐐 ${esc(g.name)}
+              </strong>
+
+              <span class="badge">
+                ${
+                  g.status==="active"
+                    ? "সক্রিয়"
+                    : "বিক্রি"
+                }
+              </span>
+
+            </div>
+
+            <div class="small">
+              ${esc(g.breed || "জাত দেওয়া হয়নি")}
+              •
+              ${fmt(g.birth_date)}
+            </div>
+
+          </div>
+
+        `).join("")
+      : `<div class="empty">
+          এখনো ছাগল যোগ করা হয়নি।
+        </div>`;
+
+
+  /* Recent expenses */
+
+  const recentExpenses =
+    DATA.expenses
+      .slice(0,5);
+
+
+  $("recentExpenses").innerHTML =
+    recentExpenses.length
+      ? recentExpenses.map(x=>`
+
+          <div style="
+            padding:7px 0;
+            border-bottom:1px solid #edf0ee;
+          ">
+
+            <div class="row-between">
+
+              <strong>
+                ${esc(x.category)}
+              </strong>
+
+              <strong>
+                ${money(x.amount)}
+              </strong>
+
+            </div>
+
+            <div class="small">
+              ${fmt(x.expense_date)}
+              ${
+                x.note
+                  ? " • " + esc(x.note)
+                  : ""
+              }
+            </div>
+
+          </div>
+
+        `).join("")
+      : `<div class="empty">
+          এখনো কোনো খরচ নেই।
+        </div>`;
+
+}
+
+
+/* =========================================================
+   MONTHLY REPORT
+========================================================= */
+
+function renderReport(){
+
+  const month =
+    today().slice(0,7);
+
+
+  const expenses =
+    DATA.expenses.filter(
+      x =>
+        x.expense_date?.startsWith(month)
+    );
+
+
+  const purchases =
+    DATA.tx.filter(
+      x =>
+        x.type==="purchase" &&
+        x.transaction_date?.startsWith(month)
+    );
+
+
+  const sales =
+    DATA.tx.filter(
+      x =>
+        x.type==="sale" &&
+        x.transaction_date?.startsWith(month)
+    );
+
+
+  const expenseTotal =
+    expenses.reduce(
+      (s,x)=>
+        s + Number(x.amount || 0),
+      0
+    );
+
+
+  const purchaseTotal =
+    purchases.reduce(
+      (s,x)=>
+        s + Number(x.amount || 0),
+      0
+    );
+
+
+  const saleTotal =
+    sales.reduce(
+      (s,x)=>
+        s + Number(x.amount || 0),
+      0
+    );
+
+
+  $("rExpense").textContent =
+    money(expenseTotal);
+
+  $("rPurchase").textContent =
+    money(purchaseTotal);
+
+  $("rSale").textContent =
+    money(saleTotal);
+
+  $("rCurrent").textContent =
+    DATA.goats.filter(
+      x=>x.status==="active"
+    ).length;
+
+
+  let html = "";
+
+
+  html += `
+    <div class="card">
+
+      <div class="card-title">
+        📅 ${month} বিস্তারিত
+      </div>
+
+      <div class="row-between"
+           style="padding:7px 0">
+        <span>মোট খরচ</span>
+        <strong>${money(expenseTotal)}</strong>
+      </div>
+
+      <div class="row-between"
+           style="padding:7px 0">
+        <span>ছাগল ক্রয়</span>
+        <strong>${money(purchaseTotal)}</strong>
+      </div>
+
+      <div class="row-between"
+           style="padding:7px 0">
+        <span>ছাগল বিক্রি</span>
+        <strong>${money(saleTotal)}</strong>
+      </div>
+
+    </div>
+  `;
+
+
+  html += `
+    <div class="card">
+
+      <div class="card-title">
+        💰 মাসিক খরচের তালিকা
+      </div>
+  `;
+
+
+  if(!expenses.length){
+
+    html += `
+      <div class="empty">
+        এই মাসে কোনো খরচ নেই।
+      </div>
+    `;
+
+  }else{
+
+    html +=
+      expenses.map(x=>`
+
+        <div style="
+          padding:8px 0;
+          border-bottom:1px solid #edf0ee;
+        ">
+
+          <div class="row-between">
+
+            <strong>
+              ${esc(x.category)}
+            </strong>
+
+            <strong>
+              ${money(x.amount)}
+            </strong>
+
+          </div>
+
+          <div class="small">
+            ${fmt(x.expense_date)}
+            ${
+              x.note
+                ? " • " + esc(x.note)
+                : ""
+            }
+          </div>
+
+        </div>
+
+      `).join("");
+
+  }
+
+
+  html += `</div>`;
+
+
+  $("reportBody").innerHTML =
+    html;
+
+}
+
+
+/* =========================================================
+   INIT
+========================================================= */
+
+$("eDate").value = today();
+$("vDate").value = today();
+$("lDate").value = today();
+
+checkAuth();
 
 </script>
 
