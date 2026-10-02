@@ -1941,28 +1941,32 @@ async function loadAll(){
   ]);
 
 
-  const errors = [
+  const mainErrors = [
     goatsRes.error,
     txRes.error,
     vacRes.error,
     expRes.error,
-    landRes.error,
-    lookupRes.error
+    landRes.error
   ].filter(Boolean);
 
+  if(mainErrors.length){
 
-  if(errors.length){
-
-    console.error(errors);
+    console.error("Main data load error:", mainErrors);
 
     alert(
       "Supabase data load error:\n" +
-      errors[0].message
+      mainErrors[0].message
     );
 
     return;
   }
 
+  if(lookupRes.error){
+    console.warn(
+      "lookup_items load error:",
+      lookupRes.error
+    );
+  }
 
   DATA.goats =
     goatsRes.data || [];
@@ -1980,8 +1984,7 @@ async function loadAll(){
     landRes.data || [];
 
   DATA.lookups =
-    lookupRes.data || [];
-
+    lookupRes.error ? [] : (lookupRes.data || []);
 
   renderAll();
 
