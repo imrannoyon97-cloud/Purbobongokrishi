@@ -98,13 +98,16 @@ nav button{position:relative}
 </head>
 <body class="locked">
 <div id="login"><div class="band"></div>
+ <div style="text-align:center;font-size:42px;margin-bottom:4px">🐐</div>
  <h1>পূর্ববঙ্গ কৃষি কেন্দ্র</h1><p class="lead" id="lLead">খামারের হিসাব দেখতে লগইন করুন</p>
  <label>ইমেইল</label><input id="lUser" type="email" autocomplete="username" placeholder="আপনার ইমেইল">
- <label>পাসওয়ার্ড</label><input id="lPass" type="password" autocomplete="current-password">
- <div id="lConfWrap" style="display:none"><label>পাসওয়ার্ড আবার লিখুন</label><input id="lPass2" type="password" autocomplete="new-password"></div>
+ <label>পাসওয়ার্ড</label><input id="lPass" type="password" autocomplete="current-password" placeholder="কমপক্ষে ৬ অক্ষর">
+ <div id="lConfWrap" style="display:none"><label>পাসওয়ার্ড আবার লিখুন</label><input id="lPass2" type="password" autocomplete="new-password" placeholder="পাসওয়ার্ড আবার লিখুন"></div>
  <div class="err" id="lErr"></div>
  <button class="btn" id="lGo" style="margin-top:6px">লগইন</button>
- <button class="link" id="lForgot" style="align-self:center">পাসওয়ার্ড ভুলে গেছেন?</button><button class="link" id="lSignup" style="align-self:center">নতুন অ্যাকাউন্ট তৈরি করুন</button>
+ <button class="link" id="lForgot" style="align-self:center">পাসওয়ার্ড ভুলে গেছেন?</button>
+ <button class="link" id="lSignup" style="align-self:center">নতুন অ্যাকাউন্ট তৈরি করুন</button>
+ <button class="link" id="lBack" style="align-self:center;display:none">← লগইন পেজে ফিরে যান</button>
 </div>
 <div class="wrap">
 <header><h1>পূর্ববঙ্গ কৃষি কেন্দ্র</h1><p>ছাগল খামারের হিসাব ও স্বাস্থ্য খাতা</p><div class="band"></div></header>
@@ -277,20 +280,31 @@ lSave.onclick=function(){if(!lName.value.trim()){toast('জমির নাম �
 document.addEventListener('click',function(ev){var id=ev.target.dataset.ldel;if(!id)return;
  var w=S.land.filter(function(x){return x.id==id})[0];if(!w)return;
  S.land=S.land.filter(function(x){return x.id!=id});if(w.eid)S.exp=S.exp.filter(function(e){return e.id!=w.eid});save();render()});
-// login
+// login / Supabase authentication
 var SK='pkk-sb-session';
+var authMode='login';
 
 function inSess(){
   try{return sessionStorage.getItem(SK)==='1'}catch(e){return false}
 }
 
-async function loginMode(){
-  const {data:{session}}=await sb.auth.getSession();
-  lConfWrap.style.display='none';
-  lGo.textContent='লগইন';
-  lLead.textContent='Supabase account দিয়ে লগইন করুন';
-  lForgot.style.display='';
+function setAuthMode(mode){
+  authMode=mode;
+  var signup=mode==='signup';
+  lConfWrap.style.display=signup?'block':'none';
+  lGo.textContent=signup?'অ্যাকাউন্ট তৈরি করুন':'লগইন';
+  lLead.textContent=signup?'নতুন অ্যাকাউন্ট তৈরি করুন':'খামারের হিসাব দেখতে লগইন করুন';
+  lForgot.style.display=signup?'none':'';
+  lSignup.style.display=signup?'none':'';
+  lBack.style.display=signup?'':'none';
   lErr.textContent='';
+  lPass.value='';
+  lPass2.value='';
+}
+
+async function loginMode(){
+  setAuthMode('login');
+  const {data:{session}}=await sb.auth.getSession();
   return session;
 }
 
@@ -302,34 +316,57 @@ async function unlock(){
   setTimeout(notifyNow,600);
 }
 
+lSignup.onclick=function(){
+  setAuthMode('signup');
+  lUser.focus();
+};
 
-document.getElementById('lSignup').onclick=async function(){
-  var u=lUser.value.trim(),p=lPass.value;
-  if(!u||!p){lErr.textContent='নতুন অ্যাকাউন্টের জন্য ইমেইল ও পাসওয়ার্ড দিন';return}
-  if(p.length<6){lErr.textContent='পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের দিন';return}
-  lErr.textContent='অ্যাকাউন্ট তৈরি হচ্ছে...';
-  const {data,error}=await sb.auth.signUp({email:u,password:p});
-  if(error){lErr.textContent=error.message;return}
-  if(data.session){await unlock();return}
-  lErr.textContent='অ্যাকাউন্ট তৈরি হয়েছে। ইমেইল verification থাকলে আগে ইমেইল verify করুন, তারপর লগইন করুন।';
+lBack.onclick=function(){
+  setAuthMode('login');
+  lUser.focus();
 };
 
 lGo.onclick=async function(){
   var u=lUser.value.trim(),p=lPass.value;
-  if(!u||!p){lErr.textContent='ইউজার নাম/ইমেইল এবং পাসওয়ার্ড দিন';return}
+  if(!u){lErr.textContent='আপনার ইমেইল লিখুন';lUser.focus();return}
+  if(!p){lErr.textContent='পাসওয়ার্ড লিখুন';lPass.focus();return}
+  if(authMode==='signup'){
+    var p2=lPass2.value;
+    if(p.length<6){lErr.textContent='পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের দিন';lPass.focus();return}
+    if(p!==p2){lErr.textContent='দুইটি পাসওয়ার্ড একই নয়';lPass2.focus();return}
+    lErr.textContent='অ্যাকাউন্ট তৈরি হচ্ছে...';
+    lGo.disabled=true;
+    const {data,error}=await sb.auth.signUp({email:u,password:p});
+    lGo.disabled=false;
+    if(error){lErr.textContent=error.message||'অ্যাকাউন্ট তৈরি করা যায়নি';return}
+    if(data && data.session){
+      lErr.textContent='অ্যাকাউন্ট তৈরি হয়েছে ✓';
+      await unlock();
+      return;
+    }
+    lErr.textContent='অ্যাকাউন্ট তৈরি হয়েছে ✓ আপনার ইমেইলে verification link গেলে আগে সেটি verify করুন, তারপর Login করুন।';
+    setAuthMode('login');
+    lUser.value=u;
+    return;
+  }
   lErr.textContent='লগইন হচ্ছে...';
+  lGo.disabled=true;
   const {data,error}=await sb.auth.signInWithPassword({email:u,password:p});
+  lGo.disabled=false;
   if(error){lErr.textContent=error.message||'লগইন ব্যর্থ হয়েছে';return}
   lPass.value='';
   lErr.textContent='';
   await unlock();
 };
 
-lPass.onkeydown=lUser.onkeydown=function(e){if(e.key==='Enter')lGo.click()};
+lPass.onkeydown=function(e){if(e.key==='Enter')lGo.click()};
+lPass2.onkeydown=function(e){if(e.key==='Enter'&&authMode==='signup')lGo.click()};
+lUser.onkeydown=function(e){if(e.key==='Enter')lPass.focus()};
 
 lForgot.onclick=async function(){
   var u=lUser.value.trim();
-  if(!u){lErr.textContent='আগে আপনার ইমেইল লিখুন';return}
+  if(!u){lErr.textContent='আগে আপনার ইমেইল লিখুন';lUser.focus();return}
+  lErr.textContent='Reset link পাঠানো হচ্ছে...';
   const {error}=await sb.auth.resetPasswordForEmail(u,{redirectTo:location.origin+location.pathname});
   lErr.textContent=error?error.message:'পাসওয়ার্ড reset link ইমেইলে পাঠানো হয়েছে';
 };
@@ -338,7 +375,7 @@ logout.onclick=async function(){
   await sb.auth.signOut();
   try{sessionStorage.removeItem(SK)}catch(e){}
   document.body.classList.add('locked');
-  lUser.value=''; lPass.value='';
+  lUser.value=''; lPass.value=''; lPass2.value='';
   await loginMode();
 };
 
@@ -348,8 +385,10 @@ sb.auth.onAuthStateChange(async function(event,session){
   }
   if(event==='SIGNED_OUT'){
     document.body.classList.add('locked');
+    setAuthMode('login');
   }
 });
+
 
 var openV=null;
 function ageTxt(g){var o=[];
