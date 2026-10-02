@@ -21,7 +21,7 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#02271c;border-top:1px sol
 .vax{border:1px solid #316b55;border-radius:16px;padding:12px;margin:9px 0;background:#062f23}.vax-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.date{color:#9aff78;font-weight:800}
 .empty{text-align:center;padding:35px;color:var(--muted)}
 small{color:var(--muted)}.hidden{display:none!important}
-.toast{position:fixed;top:15px;left:50%;transform:translateX(-50%);background:#173f30;border:1px solid #5b987c;padding:12px 18px;border-radius:14px;z-index:99}
+.report-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #275846}.report-total{font-size:22px;color:#9aff78;font-weight:900}.month-report{border:1px solid #4c8d72;border-radius:18px;padding:15px;background:#062f23}.toast{position:fixed;top:15px;left:50%;transform:translateX(-50%);background:#173f30;border:1px solid #5b987c;padding:12px 18px;border-radius:14px;z-index:99}
 @media(max-width:560px){h1{font-size:34px}.hero-art{height:220px;font-size:90px}.grid{grid-template-columns:1fr 1fr}.card{padding:15px}.goat-title{font-size:21px}}
 </style>
 </head>
@@ -97,13 +97,26 @@ small{color:var(--muted)}.hidden{display:none!important}
   <datalist id="vaxList"></datalist>
   <label>টিকা দেওয়ার তারিখ</label><input id="vaxDate" type="date">
   <label>পরবর্তী টিকার তারিখ</label><input id="nextVaxDate" type="date">
+  <label>টিকা কোম্পানি</label>
+  <select id="vaxCompany">
+   <option value="">কোম্পানি নির্বাচন করুন</option>
+   <option>ACI Animal Health</option>
+   <option>Renata Animal Health</option>
+   <option>Square Animal Health</option>
+   <option>Opsonin Animal Health</option>
+   <option>Navana Pharmaceuticals</option>
+   <option>Incepta</option>
+   <option>অন্যান্য</option>
+  </select>
+  <label>মন্তব্য</label>
+  <textarea id="vaxComment" placeholder="কোম্পানি, ব্যাচ, ডোজ বা অন্য কোনো তথ্য লিখুন"></textarea>
   <div class="row" style="margin-top:10px">
-   <button class="secondary" onclick="addVaccine()">＋ টিকা যোগ</button>
-   <button class="primary" onclick="saveGoat()">💾 সংরক্ষণ</button>
+   <button class="secondary" onclick="addVaccine()">＋ টিকা যোগ ও সংরক্ষণ</button>
+   <button class="primary" onclick="saveGoat()">💾 ছাগল সংরক্ষণ</button>
    <button class="danger" onclick="hideGoatForm()">বন্ধ</button>
   </div>
   <div id="pendingVaccines"></div>
-  <small>প্রতিটি টিকার জন্য দেওয়া তারিখ ও পরবর্তী তারিখ রাখা যাবে। পরে আরও টিকা যোগ করা যাবে।</small>
+  <small>প্রতিটি টিকার তথ্য ছাগলের নিজের ঘরেই সংরক্ষিত থাকবে। টিকা দেওয়া হলে ✓ দিয়ে স্ট্যাটাস বদলান; দেওয়া হয়নি হলে ✕ দিন। পরে টিকার হিস্টোরিতে সেই তথ্য দেখা যাবে। চাইলে আবার “বাকি” করা যাবে।</small>
  </div>
  <div id="goatList"></div>
 </section>
@@ -119,6 +132,14 @@ small{color:var(--muted)}.hidden{display:none!important}
   <div class="row"><button class="primary" onclick="saveCost()">সংরক্ষণ</button><button class="danger" onclick="document.getElementById('costForm').classList.add('hidden')">বন্ধ</button></div>
  </div>
  <div class="grid"><div class="stat"><b id="dailyCost">৳0</b>আজ</div><div class="stat"><b id="weeklyCost">৳0</b>এই সপ্তাহ</div><div class="stat"><b id="monthlyCost">৳0</b>এই মাস</div><div class="stat"><b id="yearlyCost">৳0</b>এই বছর</div></div>
+ <div class="card">
+  <div class="row between"><div><h3>📊 মাসিক বিস্তারিত রিপোর্ট</h3><small>যে মাস নির্বাচন করবেন সেই মাসের সম্পূর্ণ খরচ দেখাবে</small></div></div>
+  <div class="row" style="margin-top:10px">
+   <select id="reportMonth" onchange="renderMonthlyReport()" style="flex:1;min-width:180px"></select>
+   <button class="primary" onclick="renderMonthlyReport()">📋 রিপোর্ট দেখুন</button>
+  </div>
+  <div id="monthlyReport" style="margin-top:12px"></div>
+ </div>
  <div id="costListView"></div>
 </section>
 
@@ -159,20 +180,134 @@ function showGoatForm(){document.getElementById("goatForm").classList.remove("hi
 function hideGoatForm(){document.getElementById("goatForm").classList.add("hidden")}
 function clearGoatForm(){["gName","gId","gBreed","gDob","gAge","gWeight","vaxName","vaxDate","nextVaxDate"].forEach(id=>document.getElementById(id).value="");document.getElementById("gCondition").value="সুস্থ"}
 function calcAge(){let d=document.getElementById("gDob").value;if(!d)return;let dob=new Date(d),now=new Date();let m=(now.getFullYear()-dob.getFullYear())*12+now.getMonth()-dob.getMonth();if(now.getDate()<dob.getDate())m--;document.getElementById("gAge").value=m<12?m+" মাস":Math.floor(m/12)+" বছর "+m%12+" মাস"}
-function addVaccine(){let name=document.getElementById("vaxName").value.trim(),date=document.getElementById("vaxDate").value,next=document.getElementById("nextVaxDate").value;if(!name||!next){toast("টিকার নাম ও পরবর্তী তারিখ দিন");return}tempVaccines.push({name,date,next,status:"বাকি"});if(!data.vaxNames.includes(name))data.vaxNames.push(name);document.getElementById("vaxName").value="";document.getElementById("vaxDate").value="";document.getElementById("nextVaxDate").value="";renderTempVax();fillVaxList()}
-function renderTempVax(){let el=document.getElementById("pendingVaccines");el.innerHTML=tempVaccines.map((v,i)=>`<div class="vax"><div class="vax-head"><b>💉 ${v.name}</b><button class="danger" onclick="tempVaccines.splice(${i},1);renderTempVax()">×</button></div><div>দেওয়া: ${v.date||"—"} • পরবর্তী: <span class="date">${v.next}</span> • <span class="status soon">বাকি</span></div></div>`).join("")}
+function addVaccine(){
+ let name=document.getElementById("vaxName").value.trim();
+ let date=document.getElementById("vaxDate").value;
+ let next=document.getElementById("nextVaxDate").value;
+ let company=document.getElementById("vaxCompany").value;
+ let comment=document.getElementById("vaxComment").value.trim();
+ if(!name){toast("টিকার নাম দিন");document.getElementById("vaxName").focus();return}
+ if(!next){toast("পরবর্তী টিকার তারিখ দিন");document.getElementById("nextVaxDate").focus();return}
+ let vaccine={name,date,next,status:"বাকি",givenDate:"",company,comment};
+ let edit=document.getElementById("editId").value;
+ if(edit){
+   let g=data.goats.find(x=>x.id===edit);
+   if(!g){toast("ছাগলের তথ্য পাওয়া যায়নি");return}
+   if(!g.vaccines)g.vaccines=[];
+   g.vaccines.push(vaccine);
+   if(!data.vaxNames.includes(name))data.vaxNames.push(name);
+   localStorage.setItem(KEY,JSON.stringify(data));
+   clearVaccineEntry();
+   tempVaccines=JSON.parse(JSON.stringify(g.vaccines));
+   renderTempVax();renderGoats();refresh();
+   toast("টিকা সফলভাবে এই ছাগলের ঘরে যোগ হয়েছে");
+   return;
+ }
+ tempVaccines.push(vaccine);
+ if(!data.vaxNames.includes(name))data.vaxNames.push(name);
+ clearVaccineEntry();
+ renderTempVax();fillVaxList();
+ toast("টিকা যোগ হয়েছে — ছাগলটি সংরক্ষণ করুন");
+}
+function clearVaccineEntry(){
+ document.getElementById("vaxName").value="";
+ document.getElementById("vaxDate").value="";
+ document.getElementById("nextVaxDate").value="";
+ if(document.getElementById("vaxCompany"))document.getElementById("vaxCompany").value="";
+ if(document.getElementById("vaxComment"))document.getElementById("vaxComment").value="";
+}
+
+function renderTempVax(){
+ let el=document.getElementById("pendingVaccines");
+ el.innerHTML=tempVaccines.map((v,i)=>`<div class="vax">
+  <div class="vax-head"><b>💉 ${v.name}</b><button class="danger" onclick="tempVaccines.splice(${i},1);renderTempVax()">×</button></div>
+  <div>দেওয়া: ${v.date||"—"} • পরবর্তী: <span class="date">${v.next}</span> • <span class="status soon">বাকি</span></div>
+  ${v.company?`<div>🏭 কোম্পানি: <b>${v.company}</b></div>`:""}
+  ${v.comment?`<div>📝 মন্তব্য: ${v.comment}</div>`:""}
+ </div>`).join("");
+}
+
 function saveGoat(){let name=gName.value.trim(),id=gId.value.trim(),breed=gBreed.value.trim(),dob=gDob.value;if(!name||!id||!breed||!dob){toast("নাম, ID, জাত ও জন্মতারিখ দিন");return}let edit=editId.value;if(edit){let g=data.goats.find(x=>x.id===edit);Object.assign(g,{name,breed,dob,age:gAge.value,weight:gWeight.value,condition:gCondition.value,vaccines:tempVaccines})}else{if(data.goats.some(x=>x.id===id)){toast("এই ID আগে আছে");return}data.goats.unshift({id,name,breed,dob,age:gAge.value,weight:gWeight.value,condition:gCondition.value,vaccines:tempVaccines})}saveData();hideGoatForm();toast("ছাগলের তথ্য সংরক্ষণ হয়েছে")}
-function editGoat(id){let g=data.goats.find(x=>x.id===id);if(!g)return;showGoatForm();editId.value=id;formTitle.textContent="✏️ ছাগল তথ্য পরিবর্তন";gName.value=g.name;gId.value=g.id;gBreed.value=g.breed;gDob.value=g.dob;gAge.value=g.age;gWeight.value=g.weight||"";gCondition.value=g.condition||"সুস্থ";tempVaccines=JSON.parse(JSON.stringify(g.vaccines||[]));renderTempVax();window.scrollTo({top:0,behavior:"smooth"})}
+function editGoat(id){
+ let g=data.goats.find(x=>x.id===id);
+ if(!g)return;
+ document.getElementById("goatForm").classList.remove("hidden");
+ document.getElementById("formTitle").textContent="✏️ ছাগল তথ্য পরিবর্তন";
+ document.getElementById("editId").value=id;
+ document.getElementById("gName").value=g.name||"";
+ document.getElementById("gId").value=g.id||"";
+ document.getElementById("gBreed").value=g.breed||"";
+ document.getElementById("gDob").value=g.dob||"";
+ document.getElementById("gAge").value=g.age||"";
+ document.getElementById("gWeight").value=g.weight||"";
+ document.getElementById("gCondition").value=g.condition||"সুস্থ";
+ document.getElementById("vaxName").value="";
+ document.getElementById("vaxDate").value="";
+ document.getElementById("nextVaxDate").value="";
+ tempVaccines=JSON.parse(JSON.stringify(g.vaccines||[]));
+ renderTempVax();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
 function deleteGoat(id){if(confirm("এই ছাগলটি মুছে ফেলবেন?")){data.goats=data.goats.filter(x=>x.id!==id);saveData()}}
-function toggleVax(gid,i,status){let g=data.goats.find(x=>x.id===gid);if(!g)return;g.vaccines[i].status=status;saveData();toast(status==="দেওয়া"?"টিকা দেওয়া হয়েছে":"টিকা দেওয়া হয়নি")}
-function renderGoats(){let q=(document.getElementById("search").value||"").toLowerCase();let list=data.goats.filter(g=>(g.name+" "+g.id+" "+g.breed).toLowerCase().includes(q));let el=document.getElementById("goatList");if(!list.length){el.innerHTML='<div class="empty">🐐 এখনো কোনো ছাগল এন্ট্রি নেই</div>';return}el.innerHTML=list.map(g=>{let v=(g.vaccines||[]).map((x,i)=>`<div class="vax"><div class="vax-head"><b>💉 ${x.name}</b><span class="status ${x.status==="দেওয়া"?"ok":x.status==="না দেওয়া"?"no":"soon"}">${x.status}</span></div><div>টিকা দেওয়া: ${x.date||"—"}<br>পরবর্তী: <span class="date">${x.next||"—"}</span></div><div class="row" style="margin-top:8px"><button class="primary" onclick="toggleVax('${g.id}',${i},'দেওয়া')">✓ দেওয়া</button><button class="danger" onclick="toggleVax('${g.id}',${i},'না দেওয়া')">✕ দেওয়া হয়নি</button></div></div>`).join("");return `<div class="card"><div class="row between"><div class="goat-title">🐐 ${g.name}</div><span class="status soon">${v?nextDue(g):"টিকা নেই"}</span></div><p>ID: ${g.id} • জাত: ${g.breed}</p><p>জন্ম: ${g.dob} • বয়স: ${g.age||"—"} • ওজন: ${g.weight||"—"} কেজি • অবস্থা: ${g.condition}</p><div>${v}</div><div class="row" style="margin-top:10px"><button class="secondary" onclick="editGoat('${g.id}')">✏️ Edit</button><button class="danger" onclick="deleteGoat('${g.id}')">বাদ</button></div></div>`}).join("")}
+function toggleVax(gid,i,status){
+ let g=data.goats.find(x=>x.id===gid);
+ if(!g||!g.vaccines||!g.vaccines[i])return;
+ let v=g.vaccines[i];
+ if(v.status==="দেওয়া"){toast("এই টিকা ইতোমধ্যে দেওয়া হয়েছে");return}
+ v.status=status;
+ if(status==="দেওয়া")v.givenDate=new Date().toISOString().slice(0,10);
+ saveData();
+ toast(status==="দেওয়া"?"টিকা দেওয়া হয়েছে":"টিকার স্ট্যাটাস পরিবর্তন হয়েছে");
+}
+
+function renderGoats(){
+ let q=(document.getElementById("search").value||"").toLowerCase();
+ let list=data.goats.filter(g=>(g.name+" "+g.id+" "+g.breed).toLowerCase().includes(q));
+ let el=document.getElementById("goatList");
+ if(!list.length){el.innerHTML='<div class="empty">🐐 এখনো কোনো ছাগল এন্ট্রি নেই</div>';return}
+ el.innerHTML=list.map(g=>{
+  let vaccines=g.vaccines||[];
+  let active=vaccines.filter(x=>x.status!=="দেওয়া");
+  let history=vaccines.filter(x=>x.status==="দেওয়া"||x.status==="না দেওয়া");
+  let vaccineRows=vaccines.map((x,i)=>`
+   <div class="vax">
+    <div class="vax-head"><b>💉 ${x.name}</b><span class="status ${x.status==="দেওয়া"?"ok":x.status==="না দেওয়া"?"no":"soon"}">${x.status}</span></div>
+    <div style="margin-top:6px">নির্ধারিত/দেওয়া: <span class="date">${x.date||"—"}</span><br>পরবর্তী টিকা: <span class="date">${x.next||"—"}</span>${x.givenDate?`<br>বাস্তবে দেওয়া হয়েছে: <span class="date">${x.givenDate}</span>`:""}</div>
+    ${x.company?`<div style="margin-top:7px">🏭 টিকা কোম্পানি: <b>${x.company}</b></div>`:""}
+    ${x.comment?`<div style="margin-top:4px">📝 মন্তব্য: ${x.comment}</div>`:""}
+    ${x.status==="দেওয়া"?`<div class="tag" style="margin-top:8px">🔒 টিকা দেওয়া সম্পন্ন — স্ট্যাটাস আর পরিবর্তন করা যাবে না</div>`:`<div class="row" style="margin-top:9px"><button class="primary" onclick="toggleVax('${g.id}',${i},'দেওয়া')">✓ টিকা দেওয়া</button><button class="danger" onclick="toggleVax('${g.id}',${i},'না দেওয়া')">✕ দেওয়া হয়নি</button></div>`}
+   </div>`).join("");
+  let historyRows=history.length?history.map(x=>`<div class="tag">💉 ${x.name} — ${x.status==="দেওয়া"?"✓ দেওয়া":"✕ দেওয়া হয়নি"}${x.givenDate?" • "+x.givenDate:""}${x.company?" • "+x.company:""}</div>`).join(""):'<small>এখনো কোনো টিকার ইতিহাস নেই।</small>';
+  return `<div class="card"><div class="row between"><div class="goat-title">🐐 ${g.name}</div><span class="status ${active.length?"soon":"ok"}">${active.length?nextDue(g):"সব টিকা সম্পন্ন"}</span></div>
+   <p>ID: ${g.id} • জাত: ${g.breed}</p><p>জন্ম: ${g.dob} • বয়স: ${g.age||"—"} • ওজন: ${g.weight||"—"} কেজি • অবস্থা: ${g.condition}</p>
+   <h3>💉 এই ছাগলের টিকা ও সময়সূচি</h3>${vaccineRows||'<p class="muted">কোনো টিকা এন্ট্রি নেই। Edit করে নতুন টিকা যোগ করুন।</p>'}
+   <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:800;color:#9aff78">📜 টিকা হিস্টোরি দেখুন</summary><div style="padding-top:10px">${historyRows}</div></details>
+   <div class="row" style="margin-top:14px"><button class="secondary" onclick="editGoat('${g.id}')">✏️ Edit / টিকা যোগ</button><button class="danger" onclick="deleteGoat('${g.id}')">বাদ</button></div>
+  </div>`;
+ }).join("");
+}
+
 function nextDue(g){let arr=(g.vaccines||[]).filter(v=>v.status!=="দেওয়া"&&v.next).sort((a,b)=>a.next.localeCompare(b.next));return arr.length?daysLabel(arr[0].next):"সব টিকা দেওয়া"}
 function daysLabel(d){let a=new Date(d),b=new Date();a.setHours(0,0,0,0);b.setHours(0,0,0,0);let n=Math.ceil((a-b)/86400000);return n<0?"সময় পেরিয়েছে":n+" দিনের মধ্যে"}
 function showCostForm(){document.getElementById("costForm").classList.remove("hidden");cDate.value=new Date().toISOString().slice(0,10)}
 function saveCost(){let amount=Number(cAmount.value);if(!amount||!cDate.value||!cType.value){toast("তারিখ, ধরন ও পরিমাণ দিন");return}data.costs.unshift({date:cDate.value,type:cType.value,amount,note:cNote.value});saveData();document.getElementById("costForm").classList.add("hidden");toast("খরচ যোগ হয়েছে")}
 function costSum(fn){return data.costs.filter(x=>fn(new Date(x.date+"T00:00:00"))).reduce((a,x)=>a+Number(x.amount||0),0)}
 function startWeek(d){let x=new Date(d);let day=x.getDay();x.setDate(x.getDate()-(day||7)+1);x.setHours(0,0,0,0);return x}
-function renderCosts(){let now=new Date(),day=costSum(d=>d.toDateString()===now.toDateString()),week=costSum(d=>d>=startWeek(now)),month=costSum(d=>d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()),year=costSum(d=>d.getFullYear()===now.getFullYear());dailyCost.textContent="৳"+day;weeklyCost.textContent="৳"+week;monthlyCost.textContent="৳"+month;yearlyCost.textContent="৳"+year;sCost.textContent="৳"+month;document.getElementById("costListView").innerHTML=data.costs.map((x,i)=>`<div class="card"><div class="row between"><b>💰 ${x.type}</b><b>৳${x.amount}</b></div><small>${x.date}</small><p>${x.note||""}</p><button class="danger" onclick="data.costs.splice(${i},1);saveData()">বাদ</button></div>`).join("")||'<div class="empty">কোনো খরচ নেই</div>'}
+function renderCosts(){
+ let now=new Date(),day=costSum(d=>d.toDateString()===now.toDateString()),week=costSum(d=>d>=startWeek(now)),month=costSum(d=>d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()),year=costSum(d=>d.getFullYear()===now.getFullYear());
+ dailyCost.textContent="৳"+day;weeklyCost.textContent="৳"+week;monthlyCost.textContent="৳"+month;yearlyCost.textContent="৳"+year;sCost.textContent="৳"+month;
+ let months=[...new Set(data.costs.map(x=>x.date.slice(0,7)))];let current=now.toISOString().slice(0,7);if(!months.includes(current))months.unshift(current);months.sort((a,b)=>b.localeCompare(a));
+ let sel=document.getElementById("reportMonth");let previous=sel?sel.value:"";if(sel){sel.innerHTML=months.map(m=>`<option value="${m}">${monthName(m)}</option>`).join("");if(months.includes(previous))sel.value=previous;renderMonthlyReport();}
+ document.getElementById("costListView").innerHTML=data.costs.map((x,i)=>`<div class="card"><div class="row between"><b>💰 ${x.type}</b><b>৳${x.amount}</b></div><small>${x.date}</small><p>${x.note||""}</p><button class="danger" onclick="data.costs.splice(${i},1);saveData()">বাদ</button></div>`).join("")||'<div class="empty">কোনো খরচ নেই</div>'
+}
+function monthName(ym){let [y,m]=ym.split("-");let names=["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];return names[Number(m)-1]+" "+y}
+function renderMonthlyReport(){
+ let sel=document.getElementById("reportMonth");if(!sel)return;let ym=sel.value||new Date().toISOString().slice(0,7);let rows=data.costs.filter(x=>x.date.startsWith(ym)).sort((a,b)=>a.date.localeCompare(b.date));
+ let total=rows.reduce((a,x)=>a+Number(x.amount||0),0);let byType={};rows.forEach(x=>byType[x.type]=(byType[x.type]||0)+Number(x.amount||0));
+ let typeHtml=Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="report-row"><span>💰 ${k}</span><b>৳${v}</b></div>`).join("")||'<p class="muted">এই মাসে কোনো খরচ নেই।</p>';
+ let detailHtml=rows.map(x=>`<div class="report-row"><div><b>${x.date}</b><br><small>${x.type}${x.note?" • "+x.note:""}</small></div><b>৳${x.amount}</b></div>`).join("")||'<p class="muted">কোনো বিস্তারিত এন্ট্রি নেই।</p>';
+ document.getElementById("monthlyReport").innerHTML=`<div class="month-report"><div class="row between"><b>${monthName(ym)} মোট খরচ</b><span class="report-total">৳${total}</span></div><h4>📌 খরচের ধরন অনুযায়ী</h4>${typeHtml}<h4 style="margin-top:16px">🧾 দৈনিক বিস্তারিত</h4>${detailHtml}</div>`;
+}
 function showLandForm(){document.getElementById("landForm").classList.remove("hidden");lDate.value=new Date().toISOString().slice(0,10)}
 function saveLand(){if(!lName.value||!lArea.value){toast("জমির নাম ও পরিমাণ দিন");return}data.lands.unshift({name:lName.value,area:lArea.value,crop:lCrop.value,date:lDate.value,note:lNote.value});saveData();document.getElementById("landForm").classList.add("hidden");toast("জমির তথ্য যোগ হয়েছে")}
 function renderLands(){document.getElementById("landList").innerHTML=data.lands.map((x,i)=>`<div class="card"><h3>🌾 ${x.name}</h3><p>পরিমাণ: ${x.area}</p><p>ফসল: ${x.crop||"—"} • চাষের তারিখ: ${x.date||"—"}</p><p>${x.note||""}</p><button class="danger" onclick="data.lands.splice(${i},1);saveData()">বাদ</button></div>`).join("")||'<div class="empty">কোনো জমির তথ্য নেই</div>'}
