@@ -3,46 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#063d24">
-
 <title>পূর্ববঙ্গ কৃষি কেন্দ্র</title>
 
 <style>
 :root{
-  --bg:#061b12;
-  --bg2:#0b2d1d;
-  --card:#0b3825;
-  --line:#315b49;
-  --green:#42d879;
-  --green2:#8eea43;
-  --yellow:#ffd34d;
+  --bg:#04170e;
+  --card:#083822;
+  --card2:#0b4228;
+  --green:#35dc72;
+  --lime:#9bea45;
+  --yellow:#ffd33d;
   --text:#f4f8f5;
-  --muted:#b9c9c0;
-  --danger:#ff766d;
-  --shadow:0 20px 55px #0008;
+  --muted:#afc4b7;
+  --line:#35634d;
+  --danger:#ff7168;
+  --orange:#ffae45;
 }
 
 *{
   box-sizing:border-box;
 }
 
-body{
+html,body{
   margin:0;
-  font-family:"Noto Sans Bengali","Hind Siliguri",system-ui,sans-serif;
-  background:
-    radial-gradient(
-      circle at 50% 0,
-      #185b35 0,
-      #082b1c 35%,
-      #03130c 100%
-    );
+  padding:0;
+  background:#03130c;
   color:var(--text);
+  font-family:"Noto Sans Bengali","Hind Siliguri",Arial,sans-serif;
+}
+
+body{
   min-height:100vh;
 }
 
-button,
-input,
-select{
+button,input,select,textarea{
   font:inherit;
 }
 
@@ -51,170 +45,167 @@ button{
 }
 
 .app{
-  max-width:520px;
+  max-width:540px;
   margin:auto;
   min-height:100vh;
-  padding:18px 18px 35px;
+  background:
+    radial-gradient(circle at 50% 0,#145a35 0,#07301d 35%,#03130c 80%);
+  padding:12px 16px 86px;
 }
 
-/* =========================
-   TOP
-========================= */
-
-.top{
+/* TOP */
+.topbar{
+  height:34px;
   display:flex;
+  align-items:center;
   justify-content:space-between;
-  align-items:center;
-  color:#dcebe2;
-  font-size:13px;
-  margin-bottom:8px;
+  color:#e7efe9;
+  font-size:14px;
 }
 
-/* =========================
-   HERO / LOGO
-========================= */
-
-.hero{
+/* LOGO */
+.logoArea{
   text-align:center;
-  padding:8px 0 16px;
+  padding-top:4px;
 }
 
-.logo{
-  height:210px;
+.logoScene{
+  height:245px;
   position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
   overflow:hidden;
 }
 
 .sun{
   position:absolute;
-  right:17%;
-  top:33px;
-  width:68px;
-  height:68px;
-  background:#ffd22f;
+  width:86px;
+  height:86px;
   border-radius:50%;
-  box-shadow:0 0 35px #ffd22f99;
+  background:#ffd334;
+  right:20%;
+  top:58px;
+  box-shadow:0 0 35px #ffd33488;
 }
 
 .sun:before{
   content:"☀";
   position:absolute;
-  inset:-28px;
-  color:#ffd22f;
-  font-size:30px;
+  left:21px;
+  top:-35px;
+  font-size:28px;
+  color:#ffd334;
 }
 
 .hill{
   position:absolute;
-  bottom:5px;
-  width:100%;
-  height:75px;
-  background:linear-gradient(160deg,#63b93b,#238c38);
-  border-radius:50% 50% 0 0/100% 100% 0 0;
+  left:0;
+  right:0;
+  bottom:0;
+  height:125px;
+  background:linear-gradient(#58bf3a,#2d9c3a);
+  border-radius:50% 50% 0 0/75% 75% 0 0;
+}
+
+.goat{
+  position:absolute;
+  z-index:2;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:44px;
+  font-size:132px;
+  line-height:1;
+  filter:drop-shadow(0 12px 7px #0007);
 }
 
 .grass{
   position:absolute;
+  z-index:3;
   bottom:0;
-  font-size:45px;
-  letter-spacing:-10px;
-  color:#73d63f;
-}
-
-.goat{
-  position:relative;
-  z-index:2;
-  font-size:130px;
-  filter:drop-shadow(0 12px 8px #0007);
-  line-height:1;
+  left:0;
+  right:0;
+  font-size:42px;
+  letter-spacing:5px;
 }
 
 h1{
-  font-size:36px;
-  line-height:1.15;
-  margin:3px 0 7px;
+  margin:0;
+  font-size:34px;
   font-weight:900;
-  letter-spacing:-1px;
 }
 
-h1 span{
-  color:var(--green2);
+h1 .green{
+  color:var(--lime);
 }
 
 .tag{
+  margin:7px 0 15px;
   font-size:18px;
-  color:#edf6f0;
-  margin:0 0 22px;
+  color:#e7f0ea;
 }
 
 .decor{
   display:flex;
   align-items:center;
-  gap:12px;
   justify-content:center;
-  color:#77e446;
+  gap:14px;
+  color:var(--lime);
+  font-size:25px;
 }
 
 .decor i{
-  height:2px;
-  width:65px;
-  background:#77e446;
+  display:block;
+  width:68px;
+  height:3px;
+  background:var(--lime);
+  border-radius:9px;
 }
 
-/* =========================
-   CARD
-========================= */
-
+/* CARD */
 .card{
-  background:
-    linear-gradient(
-      145deg,
-      #0b3a26dd,
-      #062519ee
-    );
-
-  border:1px solid #47735d;
-  border-radius:24px;
+  background:linear-gradient(145deg,#0a3b25ee,#062719f2);
+  border:1px solid #4d7a63;
+  border-radius:25px;
   padding:18px;
-  box-shadow:var(--shadow);
-  backdrop-filter:blur(10px);
+  box-shadow:0 20px 60px #0009;
 }
-
-/* =========================
-   FORM
-========================= */
 
 .field{
-  margin:12px 0;
+  margin:11px 0;
 }
 
 .label{
   display:block;
-  font-weight:700;
-  color:#d9e7df;
-  margin:0 0 7px;
-  font-size:15px;
+  margin-bottom:7px;
+  font-weight:800;
+  color:#dfece5;
+}
+
+.input,
+.select,
+.textarea{
+  width:100%;
+  border:1px solid #426653;
+  background:#061d13;
+  color:#fff;
+  border-radius:15px;
+  padding:13px 14px;
+  outline:none;
 }
 
 .input,
 .select{
-  width:100%;
-  height:54px;
-  border:1px solid #456858;
-  background:#061d14;
-  color:#fff;
-  border-radius:15px;
-  padding:0 15px;
-  outline:none;
+  height:52px;
+}
+
+.textarea{
+  min-height:90px;
+  resize:vertical;
 }
 
 .input:focus,
-.select:focus{
+.select:focus,
+.textarea:focus{
   border-color:var(--green);
-  box-shadow:0 0 0 3px #42d87922;
+  box-shadow:0 0 0 3px #35dc7220;
 }
 
 .row{
@@ -223,54 +214,54 @@ h1 span{
   gap:10px;
 }
 
-/* =========================
-   BUTTONS
-========================= */
-
+/* BUTTON */
 .btn{
   border:0;
-  border-radius:17px;
-  min-height:54px;
-  padding:0 18px;
+  border-radius:16px;
+  min-height:52px;
+  padding:0 16px;
   font-weight:900;
-  color:#062313;
 }
 
 .btn-main{
   width:100%;
-  background:linear-gradient(
-    135deg,
-    #49dc78,
-    #1fc75d
-  );
-  font-size:19px;
-  margin-top:8px;
+  background:linear-gradient(135deg,#4ae47b,#1bc75e);
+  color:#052313;
+  font-size:18px;
 }
 
-.btn-outline{
-  width:100%;
-  background:transparent;
-  border:1px solid #73a58c;
+.btn-soft{
+  background:#123f29;
+  border:1px solid #4b755f;
   color:#fff;
 }
 
-/* =========================
-   LINKS
-========================= */
+.btn-danger{
+  background:#4a2522;
+  border:1px solid #8a4942;
+  color:#ffb2ab;
+}
+
+.btn-small{
+  min-height:38px;
+  border-radius:11px;
+  padding:0 11px;
+  font-size:13px;
+}
 
 .links{
   display:flex;
   justify-content:space-between;
-  gap:12px;
-  margin:15px 2px;
+  gap:10px;
+  margin:14px 1px;
   font-size:14px;
 }
 
 .link{
-  color:#7fe84a;
-  text-decoration:underline;
   background:none;
   border:0;
+  color:#8de94d;
+  text-decoration:underline;
   padding:0;
 }
 
@@ -278,7 +269,7 @@ h1 span{
   display:flex;
   align-items:center;
   gap:12px;
-  color:#91a69b;
+  color:#93aaa0;
   margin:18px 0;
 }
 
@@ -286,137 +277,459 @@ h1 span{
 .divider:after{
   content:"";
   height:1px;
-  background:#416050;
+  background:#416151;
   flex:1;
-}
-
-.small{
-  font-size:12px;
-  color:#9db1a7;
 }
 
 .hidden{
   display:none!important;
 }
 
-/* =========================
-   DASHBOARD NAV
-========================= */
-
-.nav{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin:12px 0;
-}
-
-.nav button{
-  padding:10px 4px;
-  border-radius:13px;
-  border:1px solid #345d4b;
-  background:#092c1d;
-  color:#cfe1d8;
-}
-
-.nav button.active{
-  background:#1b7545;
-  color:#fff;
-  border-color:#55d47f;
-}
-
-.section{
+.page{
   display:none;
 }
 
-.section.active{
+.page.active{
   display:block;
 }
 
-/* =========================
-   ITEMS
-========================= */
+.appPage{
+  padding-top:8px;
+}
+
+.pageTitle{
+  font-size:25px;
+  margin:5px 0 2px;
+}
+
+.sub{
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:14px;
+}
+
+/* DASHBOARD */
+.dashboardHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.grid4{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.stat{
+  background:#0b4027;
+  border:1px solid #3c6c53;
+  border-radius:17px;
+  padding:14px;
+}
+
+.stat .emoji{
+  font-size:24px;
+}
+
+.stat b{
+  display:block;
+  font-size:23px;
+  margin-top:4px;
+}
+
+.stat span{
+  color:#b5c9be;
+  font-size:12px;
+}
+
+.alert{
+  margin-top:12px;
+  background:#241c0c;
+  border:1px solid #8b6a27;
+  border-radius:17px;
+  padding:13px;
+}
+
+.alert b{
+  color:#ffd76a;
+}
+
+.alertItem{
+  padding:7px 0;
+  border-bottom:1px solid #5b4820;
+  font-size:13px;
+}
+
+.alertItem:last-child{
+  border:0;
+}
+
+.quick{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+
+.quick button{
+  padding:13px;
+  border-radius:15px;
+  border:1px solid #426a53;
+  background:#0a3522;
+  color:#fff;
+  font-weight:800;
+}
+
+/* NAV */
+.nav{
+  position:fixed;
+  z-index:20;
+  left:50%;
+  bottom:0;
+  transform:translateX(-50%);
+  width:min(540px,100%);
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding:8px 10px;
+  background:#04180ff5;
+  border-top:1px solid #315a46;
+  backdrop-filter:blur(12px);
+}
+
+.nav button{
+  background:none;
+  border:0;
+  color:#9fb5a9;
+  font-size:12px;
+  padding:5px 0;
+}
+
+.nav button b{
+  display:block;
+  font-size:21px;
+}
+
+.nav button.active{
+  color:var(--lime);
+}
+
+/* SECTIONS */
+.sectionCard{
+  background:#082f1e;
+  border:1px solid #355e4a;
+  border-radius:18px;
+  padding:14px;
+  margin:10px 0;
+}
+
+.sectionCard h3{
+  margin:0 0 5px;
+  font-size:17px;
+}
+
+.search{
+  margin:12px 0;
+}
+
+.toolbar{
+  display:flex;
+  gap:8px;
+  margin:10px 0;
+}
+
+.toolbar>*{
+  flex:1;
+}
+
+.goatCard{
+  background:#092f1e;
+  border:1px solid #3c6650;
+  border-radius:17px;
+  padding:13px;
+  margin:10px 0;
+}
+
+.goatHead{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:flex-start;
+}
 
 .badge{
   display:inline-block;
   padding:4px 9px;
   border-radius:20px;
-  background:#173f2b;
-  color:#a9ee79;
+  font-size:11px;
+  background:#153f29;
+  color:#a9ee78;
+  border:1px solid #39624b;
+}
+
+.badge.red{
+  background:#49231f;
+  color:#ffaaa1;
+  border-color:#84453e;
+}
+
+.badge.orange{
+  background:#493018;
+  color:#ffc478;
+  border-color:#80552a;
+}
+
+.badge.green{
+  background:#173f2a;
+  color:#a9ee78;
+}
+
+.meta{
+  color:#b5c9be;
   font-size:12px;
+  line-height:1.8;
 }
 
-.item{
-  border:1px solid #365b49;
-  background:#08271a;
-  border-radius:16px;
-  padding:12px;
-  margin:8px 0;
-}
-
-.item-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:8px;
-}
-
-.x{
-  border:0;
-  background:#512622;
-  color:#ffaaa3;
-  border-radius:9px;
-  padding:6px 9px;
+.pills{
+  margin-top:7px;
 }
 
 .pill{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  background:#123b28;
-  border:1px solid #315d49;
+  display:inline-block;
+  padding:4px 8px;
+  margin:2px;
   border-radius:20px;
-  padding:5px 9px;
-  margin:3px;
-  color:#cfe5d9;
+  background:#123c27;
+  border:1px solid #315d49;
+  color:#cfe4d8;
+  font-size:11px;
+}
+
+.tabbar{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:12px 0;
+}
+
+.tabbar button{
+  background:#092d1d;
+  border:1px solid #355d49;
+  color:#b8cbbf;
+  border-radius:13px;
+  padding:10px;
+}
+
+.tabbar button.active{
+  background:#176f41;
+  color:#fff;
+}
+
+.summaryRow{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+}
+
+.mini{
+  padding:12px;
+  border-radius:14px;
+  background:#0a3823;
+  border:1px solid #345e4a;
+}
+
+.mini b{
+  display:block;
+  font-size:18px;
+}
+
+.mini span{
+  font-size:11px;
+  color:#9fb5a9;
+}
+
+.expenseLine{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:11px 0;
+  border-bottom:1px solid #294c3c;
+  font-size:13px;
+}
+
+.expenseLine:last-child{
+  border:0;
+}
+
+.landCard{
+  border:1px solid #3a684f;
+  background:#092f1e;
+  border-radius:17px;
+  padding:14px;
+  margin:10px 0;
+}
+
+.landHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.landHead h3{
+  margin:0;
+}
+
+.progress{
+  height:7px;
+  background:#163d2a;
+  border-radius:10px;
+  overflow:hidden;
+  margin-top:9px;
+}
+
+.progress span{
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,#35dc72,#a4ec46);
+}
+
+.timeline{
+  border-left:2px solid #4e8a63;
+  margin:13px 0 4px 8px;
+  padding-left:15px;
+}
+
+.timeItem{
+  position:relative;
+  margin:12px 0;
+  color:#d5e5dc;
+}
+
+.timeItem:before{
+  content:"";
+  position:absolute;
+  left:-22px;
+  top:4px;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#74df4a;
+}
+
+.empty{
+  text-align:center;
+  padding:25px 10px;
+  color:#91a99c;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  z-index:40;
+  inset:0;
+  background:#0009;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.sheet{
+  width:min(540px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:#072719;
+  border:1px solid #426953;
+  border-radius:25px 25px 0 0;
+  padding:18px;
+}
+
+.sheetTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.close{
+  border:0;
+  background:#193e2b;
+  color:#fff;
+  border-radius:10px;
+  width:38px;
+  height:38px;
+}
+
+.checkList{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.check{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:#0b3522;
+  border:1px solid #345e4a;
+  padding:7px 9px;
+  border-radius:12px;
+  font-size:12px;
+}
+
+.smallNote{
+  font-size:11px;
+  color:#8fa89b;
 }
 
 .toast{
   position:fixed;
+  z-index:50;
   left:50%;
-  bottom:20px;
+  bottom:85px;
   transform:translateX(-50%);
-  background:#102d20;
-  border:1px solid #56d67e;
-  padding:11px 17px;
+  background:#123b27;
+  border:1px solid #55d67d;
+  color:#fff;
+  padding:11px 16px;
   border-radius:14px;
   display:none;
-  z-index:10;
+  max-width:90%;
+  text-align:center;
 }
 
-/* =========================
-   MOBILE
-========================= */
-
 @media(max-width:390px){
-
-  h1{
-    font-size:30px;
+  .app{
+    padding-left:12px;
+    padding-right:12px;
   }
 
-  .logo{
-    height:180px;
+  .logoScene{
+    height:215px;
   }
 
   .goat{
-    font-size:105px;
+    font-size:112px;
+  }
+
+  .sun{
+    width:72px;
+    height:72px;
+  }
+
+  h1{
+    font-size:29px;
+  }
+
+  .tag{
+    font-size:16px;
   }
 
   .row{
     grid-template-columns:1fr;
-  }
-
-  .links{
-    font-size:13px;
   }
 }
 </style>
@@ -426,42 +739,39 @@ h1 span{
 
 <div class="app">
 
-<!-- ==================================================
-     LOGIN PAGE
-================================================== -->
+<!-- ================= LOGIN ================= -->
 
-<section id="loginPage">
+<section id="loginPage" class="page active">
 
-  <div class="top">
-    <span id="clock">11:40</span>
-    <span>4G • 🔋 46%</span>
+  <div class="topbar">
+    <span id="clock">00:00</span>
+    <span>পূর্ববঙ্গ কৃষি কেন্দ্র</span>
   </div>
 
-  <div class="hero">
+  <div class="logoArea">
 
-    <div class="logo">
+    <div class="logoScene">
 
       <div class="sun"></div>
 
       <div class="hill"></div>
 
-      <div class="grass">
-        🌱🌿🌱🌿🌱
-      </div>
+      <div class="goat">🐐</div>
 
-      <div class="goat">
-        🐐
+      <div class="grass">
+        🌱 🌿 🌱 🌿 🌱
       </div>
 
     </div>
 
     <h1>
-      <span>পূর্ববঙ্গ</span> কৃষি কেন্দ্র
+      <span class="green">পূর্ববঙ্গ</span>
+      কৃষি কেন্দ্র
     </h1>
 
-    <p class="tag">
+    <div class="tag">
       খামারের হিসাব দেখতে লগইন করুন
-    </p>
+    </div>
 
     <div class="decor">
       <i></i>
@@ -472,7 +782,7 @@ h1 span{
   </div>
 
 
-  <div class="card">
+  <div class="card" style="margin-top:18px">
 
     <div class="field">
 
@@ -481,10 +791,10 @@ h1 span{
       </label>
 
       <input
-        id="email"
+        id="loginEmail"
         class="input"
         type="email"
-        placeholder="আপনার ইমেইল লিখুন"
+        placeholder="আপনার ইমেইল"
       >
 
     </div>
@@ -497,10 +807,10 @@ h1 span{
       </label>
 
       <input
-        id="password"
+        id="loginPassword"
         class="input"
         type="password"
-        placeholder="পাসওয়ার্ড লিখুন"
+        placeholder="পাসওয়ার্ড"
       >
 
     </div>
@@ -519,7 +829,7 @@ h1 span{
 
       <button
         class="link"
-        onclick="forgot()"
+        onclick="toast('Password reset পরে Supabase Auth-এর সাথে যুক্ত হবে')"
       >
         পাসওয়ার্ড ভুলে গেছেন?
       </button>
@@ -541,38 +851,23 @@ h1 span{
 
 
     <button
-      class="btn btn-outline"
-      onclick="register()"
+      class="btn btn-soft"
+      style="width:100%"
+      onclick="toast('নতুন ব্যবহারকারী তৈরির পেজ পরে যুক্ত হবে')"
     >
-      👤 &nbsp; নতুন ব্যবহারকারী তৈরি করুন
+      👤 নতুন ব্যবহারকারী তৈরি করুন
     </button>
-
-
-    <div
-      style="text-align:center;margin-top:17px"
-    >
-
-      <button
-        class="link"
-        onclick="help()"
-      >
-        ❓ &nbsp; সহায়তা প্রয়োজন?
-      </button>
-
-    </div>
 
   </div>
 
 </section>
 
 
-<!-- ==================================================
-     DASHBOARD
-================================================== -->
+<!-- ================= MAIN APP ================= -->
 
-<section id="dashboard" class="hidden">
+<section id="mainApp" class="page">
 
-  <div class="top">
+  <div class="topbar">
 
     <b>
       🐐 পূর্ববঙ্গ কৃষি কেন্দ্র
@@ -588,253 +883,140 @@ h1 span{
   </div>
 
 
-  <div class="card">
+<!-- ================= DASHBOARD ================= -->
 
-    <h2 style="margin:3px 0 4px">
-      খামার ড্যাশবোর্ড
-    </h2>
+<section id="dashboardPage" class="appPage">
 
-    <div class="small">
-      ছাগল, টিকা, জাত ও খরচ এক জায়গায় পরিচালনা করুন
-    </div>
+  <div class="dashboardHeader">
 
+    <div>
 
-    <!-- NAV -->
-
-    <div class="nav">
-
-      <button
-        class="active"
-        onclick="showTab('goatTab',this)"
-      >
-        🐐 ছাগল
-      </button>
-
-      <button
-        onclick="showTab('vaccineTab',this)"
-      >
-        💉 টিকা
-      </button>
-
-      <button
-        onclick="showTab('expenseTab',this)"
-      >
-        ৳ খরচ
-      </button>
-
-    </div>
-
-
-    <!-- ==================================================
-         GOAT TAB
-    ================================================== -->
-
-    <div
-      id="goatTab"
-      class="section active"
-    >
-
-      <h3>
-        নতুন ছাগল এন্ট্রি
-      </h3>
-
-
-      <div class="row">
-
-        <div class="field">
-
-          <label class="label">
-            ছাগল ID *
-          </label>
-
-          <input
-            id="goatId"
-            class="input"
-            placeholder="যেমন G-001"
-          >
-
-        </div>
-
-
-        <div class="field">
-
-          <label class="label">
-            বয়স
-          </label>
-
-          <input
-            id="age"
-            class="input"
-            placeholder="যেমন ৮ মাস"
-          >
-
-        </div>
-
+      <div class="pageTitle">
+        🏠 Dashboard
       </div>
 
-
-      <div class="field">
-
-        <label class="label">
-          ছাগলের নাম
-        </label>
-
-        <input
-          id="goatName"
-          class="input"
-          placeholder="নাম"
-        >
-
-      </div>
-
-
-      <div class="field">
-
-        <label class="label">
-          জাত
-          <span class="badge">
-            Auto Suggest
-          </span>
-        </label>
-
-        <input
-          id="breed"
-          class="input"
-          list="breedList"
-          placeholder="জাত লিখুন বা নির্বাচন করুন"
-        >
-
-        <datalist id="breedList"></datalist>
-
-      </div>
-
-
-      <div class="field">
-
-        <label class="label">
-          ওজন (কেজি)
-        </label>
-
-        <input
-          id="weight"
-          class="input"
-          type="number"
-          placeholder="যেমন ২৫"
-        >
-
-      </div>
-
-
-      <button
-        class="btn btn-main"
-        onclick="addGoat()"
-      >
-        ➕ ছাগল সংরক্ষণ করুন
-      </button>
-
-
-      <div
-        id="goatList"
-        style="margin-top:14px"
-      ></div>
-
-    </div>
-
-
-    <!-- ==================================================
-         VACCINE TAB
-    ================================================== -->
-
-    <div
-      id="vaccineTab"
-      class="section"
-    >
-
-      <h3>
-        💉 টিকা ব্যবস্থাপনা
-      </h3>
-
-      <p class="small">
-        প্রয়োজনীয় টিকাগুলো আগে থেকেই আছে।
-        আপনি চাইলে নতুন টিকা যোগ বা যেকোনো টিকা বাদ দিতে পারবেন।
-      </p>
-
-
-      <div id="vaccineList"></div>
-
-
-      <div class="field">
-
-        <label class="label">
-          নতুন টিকার নাম
-        </label>
-
-        <div class="row">
-
-          <input
-            id="newVaccine"
-            class="input"
-            placeholder="যেমন: PPR"
-          >
-
-          <button
-            class="btn btn-main"
-            onclick="addVaccine()"
-          >
-            ＋ যোগ করুন
-          </button>
-
-        </div>
-
+      <div class="sub">
+        খামারের সব গুরুত্বপূর্ণ তথ্য এক নজরে
       </div>
 
     </div>
 
-
-    <!-- ==================================================
-         EXPENSE TAB
-    ================================================== -->
-
-    <div
-      id="expenseTab"
-      class="section"
-    >
-
-      <h3>
-        💰 খরচ ব্যবস্থাপনা
-      </h3>
-
-      <p class="small">
-        সাধারণ খরচের ধরনগুলো Auto Suggest হবে।
-        আপনি নিজের খরচের ধরনও যোগ করতে পারবেন।
-      </p>
+  </div>
 
 
-      <div id="expenseList"></div>
+  <div class="grid4">
+
+    <div class="stat">
+
+      <div class="emoji">
+        🐐
+      </div>
+
+      <b id="statGoats">
+        0
+      </b>
+
+      <span>
+        মোট ছাগল
+      </span>
+
+    </div>
 
 
-      <div class="field">
+    <div class="stat">
 
-        <label class="label">
-          নতুন খরচের ধরন
-        </label>
+      <div class="emoji">
+        💉
+      </div>
 
-        <div class="row">
+      <b id="statDue">
+        0
+      </b>
 
-          <input
-            id="newExpense"
-            class="input"
-            placeholder="যেমন: চিকিৎসা"
-          >
+      <span>
+        টিকা বাকি
+      </span>
 
-          <button
-            class="btn btn-main"
-            onclick="addExpense()"
-          >
-            ＋ যোগ করুন
-          </button>
+    </div>
 
-        </div>
+
+    <div class="stat">
+
+      <div class="emoji">
+        💰
+      </div>
+
+      <b id="statToday">
+        ৳0
+      </b>
+
+      <span>
+        আজকের খরচ
+      </span>
+
+    </div>
+
+
+    <div class="stat">
+
+      <div class="emoji">
+        🌾
+      </div>
+
+      <b id="statLand">
+        0
+      </b>
+
+      <span>
+        জমি
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="alert">
+
+    <b>
+      ⚠️ জরুরি / আসন্ন বিষয়
+    </b>
+
+    <div id="alerts"></div>
+
+  </div>
+
+
+  <div class="sectionCard">
+
+    <h3>
+      📊 খরচের সারাংশ
+    </h3>
+
+    <div class="summaryRow">
+
+      <div class="mini">
+
+        <b id="weekTotal">
+          ৳0
+        </b>
+
+        <span>
+          এই সপ্তাহ
+        </span>
+
+      </div>
+
+
+      <div class="mini">
+
+        <b id="monthTotal">
+          ৳0
+        </b>
+
+        <span>
+          এই মাস
+        </span>
 
       </div>
 
@@ -842,7 +1024,331 @@ h1 span{
 
   </div>
 
+
+  <div class="quick">
+
+    <button onclick="openGoatForm()">
+      ➕ নতুন ছাগল
+    </button>
+
+    <button onclick="openExpenseForm()">
+      💰 নতুন খরচ
+    </button>
+
+    <button onclick="openLandForm()">
+      🌾 নতুন জমি
+    </button>
+
+    <button onclick="goTab('goatPage')">
+      💉 টিকা দেখুন
+    </button>
+
+  </div>
+
 </section>
+
+
+<!-- ================= GOAT ================= -->
+
+<section id="goatPage" class="appPage hidden">
+
+  <div class="pageTitle">
+    🐐 ছাগল সমগ্র
+  </div>
+
+  <div class="sub">
+    পুরাতন ছাগল, অবস্থা ও টিকার সময়সূচি
+  </div>
+
+
+  <div class="summaryRow">
+
+    <div class="mini">
+
+      <b id="goatCount">
+        0
+      </b>
+
+      <span>
+        মোট
+      </span>
+
+    </div>
+
+
+    <div class="mini">
+
+      <b id="goatDue">
+        0
+      </b>
+
+      <span>
+        টিকা বাকি
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="toolbar">
+
+    <input
+      id="goatSearch"
+      class="input"
+      placeholder="🔍 নাম / ID / জাত খুঁজুন"
+      oninput="renderGoats()"
+    >
+
+    <button
+      class="btn btn-main btn-small"
+      onclick="openGoatForm()"
+    >
+      ＋ 新
+    </button>
+
+  </div>
+
+
+  <div id="goatList"></div>
+
+</section>
+
+
+<!-- ================= EXPENSE ================= -->
+
+<section id="expensePage" class="appPage hidden">
+
+  <div class="pageTitle">
+    💰 খরচ
+  </div>
+
+  <div class="sub">
+    দৈনিক, সাপ্তাহিক, মাসিক ও বাৎসরিক হিসাব
+  </div>
+
+
+  <div class="tabbar">
+
+    <button
+      class="active"
+      onclick="setExpenseView('daily',this)"
+    >
+      দৈনিক
+    </button>
+
+    <button
+      onclick="setExpenseView('weekly',this)"
+    >
+      সাপ্তাহিক
+    </button>
+
+    <button
+      onclick="setExpenseView('monthly',this)"
+    >
+      মাসিক
+    </button>
+
+    <button
+      onclick="setExpenseView('yearly',this)"
+    >
+      বাৎসরিক
+    </button>
+
+  </div>
+
+
+  <div class="grid4">
+
+    <div class="stat">
+      <b id="eDaily">৳0</b>
+      <span>আজ</span>
+    </div>
+
+    <div class="stat">
+      <b id="eWeekly">৳0</b>
+      <span>সপ্তাহ</span>
+    </div>
+
+    <div class="stat">
+      <b id="eMonthly">৳0</b>
+      <span>মাস</span>
+    </div>
+
+    <div class="stat">
+      <b id="eYearly">৳0</b>
+      <span>বছর</span>
+    </div>
+
+  </div>
+
+
+  <button
+    class="btn btn-main"
+    style="margin-top:12px"
+    onclick="openExpenseForm()"
+  >
+    ＋ নতুন খরচ যোগ করুন
+  </button>
+
+
+  <div class="sectionCard">
+
+    <h3>
+      খরচের তালিকা
+    </h3>
+
+    <div id="expenseList"></div>
+
+  </div>
+
+</section>
+
+
+<!-- ================= LAND ================= -->
+
+<section id="landPage" class="appPage hidden">
+
+  <div class="pageTitle">
+    🌾 জমি
+  </div>
+
+  <div class="sub">
+    চাষ, সেচ, সার, কীটনাশক, উৎপাদন ও খরচ
+  </div>
+
+
+  <div class="grid4">
+
+    <div class="stat">
+
+      <b id="landCount">
+        0
+      </b>
+
+      <span>
+        জমি
+      </span>
+
+    </div>
+
+
+    <div class="stat">
+
+      <b id="landArea">
+        0
+      </b>
+
+      <span>
+        মোট পরিমাণ
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <button
+    class="btn btn-main"
+    style="margin-top:12px"
+    onclick="openLandForm()"
+  >
+    ＋ নতুন জমি যোগ করুন
+  </button>
+
+
+  <div id="landList"></div>
+
+</section>
+
+</section>
+
+</div>
+
+
+<!-- ================= BOTTOM NAV ================= -->
+
+<nav
+  id="bottomNav"
+  class="nav hidden"
+>
+
+  <button
+    class="active"
+    onclick="goTab('dashboardPage',this)"
+  >
+
+    <b>🏠</b>
+
+    হোম
+
+  </button>
+
+
+  <button
+    onclick="goTab('goatPage',this)"
+  >
+
+    <b>🐐</b>
+
+    ছাগল
+
+  </button>
+
+
+  <button
+    onclick="goTab('expensePage',this)"
+  >
+
+    <b>💰</b>
+
+    খরচ
+
+  </button>
+
+
+  <button
+    onclick="goTab('landPage',this)"
+  >
+
+    <b>🌾</b>
+
+    জমি
+
+  </button>
+
+</nav>
+
+
+<!-- ================= MODAL ================= -->
+
+<div
+  id="modal"
+  class="modal"
+>
+
+  <div class="sheet">
+
+    <div class="sheetTop">
+
+      <h2
+        id="modalTitle"
+        style="margin:0"
+      ></h2>
+
+      <button
+        class="close"
+        onclick="closeModal()"
+      >
+        ✕
+      </button>
+
+    </div>
+
+
+    <div id="modalBody"></div>
+
+  </div>
 
 </div>
 
@@ -855,695 +1361,214 @@ h1 span{
 
 <script>
 
-/* =========================================================
-   MASTER SETTINGS
+/* =====================================================
+   DEFAULT DATA
+===================================================== */
 
-   এখান থেকেই Default জাত / টিকা / খরচ পরিবর্তন করা যাবে।
+const DEFAULT_BREEDS = [
 
-   চাইলে পরে আরও item যোগ করতে পারবে।
-========================================================= */
+  "ব্ল্যাক বেঙ্গল",
+  "জামুনাপাড়ি",
+  "বোয়ার",
+  "সিরোহী",
+  "ক্রস ব্রিড"
 
-const DEFAULTS = {
-
-  vaccines: [
-
-    "PPR টিকা",
-
-    "এন্টারোটক্সিমিয়া (ETV)",
-
-    "গোট পক্স টিকা",
-
-    "ক্ষুরা রোগ (FMD) টিকা",
-
-    "কৃমিনাশক"
-
-  ],
+];
 
 
-  breeds: [
+const DEFAULT_VACCINES = [
 
-    "ব্ল্যাক বেঙ্গল",
+  "PPR টিকা",
+  "গোট পক্স টিকা",
+  "এন্টারোটক্সিমিয়া (ETV)",
+  "ক্ষুরা রোগ (FMD)",
+  "কৃমিনাশক"
 
-    "জামুনাপাড়ি",
-
-    "বোয়ার",
-
-    "সিরোহী",
-
-    "ক্রস ব্রিড"
-
-  ],
+];
 
 
-  expenses: [
+const DEFAULT_EXPENSES = [
 
-    "খাদ্য",
+  "খাদ্য",
+  "ঘাস",
+  "ভুসি/দানাদার খাদ্য",
+  "ওষুধ",
+  "টিকা",
+  "কৃমিনাশক",
+  "ছাগল ক্রয়",
+  "শ্রমিক",
+  "পরিবহন",
+  "পানি",
+  "বিদ্যুৎ",
+  "খামার",
+  "জমি",
+  "অন্যান্য"
 
-    "ঘাস",
-
-    "কাঁচা ঘাস",
-
-    "ভুসি/দানাদার খাদ্য",
-
-    "ওষুধ",
-
-    "টিকা",
-
-    "কৃমিনাশক",
-
-    "শ্রমিক",
-
-    "অন্যান্য"
-
-  ]
-
-};
+];
 
 
-/* =========================================================
+/* =====================================================
    LOCAL DATABASE
-========================================================= */
+===================================================== */
 
-let data =
+let db =
 JSON.parse(
-  localStorage.getItem("pbFarmData")
-) || {
+  localStorage.getItem("pbFarmDB") || "null"
+)
+||
+{
+  breeds:[...DEFAULT_BREEDS],
 
-  vaccines:[
-    ...DEFAULTS.vaccines
-  ],
+  vaccines:[...DEFAULT_VACCINES],
 
-  breeds:[
-    ...DEFAULTS.breeds
-  ],
+  expenseTypes:[...DEFAULT_EXPENSES],
 
-  expenses:[
-    ...DEFAULTS.expenses
-  ],
+  goats:[],
 
-  goats:[]
+  expenses:[],
 
+  lands:[]
 };
 
-
-/* =========================================================
-   SAVE
-========================================================= */
 
 function save(){
 
   localStorage.setItem(
-    "pbFarmData",
-    JSON.stringify(data)
+    "pbFarmDB",
+    JSON.stringify(db)
   );
 
 }
 
 
-/* =========================================================
-   TOAST
-========================================================= */
+function esc(s){
 
-function toast(message){
+  return String(s ?? "")
+    .replace(/[&<>"']/g,m=>({
 
-  const box =
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+
+    }[m]));
+
+}
+
+
+function toast(msg){
+
+  const t =
     document.getElementById("toast");
 
-  box.textContent = message;
+  t.textContent=msg;
 
-  box.style.display = "block";
+  t.style.display="block";
 
-  setTimeout(
-    ()=>{
-      box.style.display = "none";
-    },
-    1800
-  );
+  clearTimeout(window.tt);
 
-}
-
-
-/* =========================================================
-   HTML SECURITY
-========================================================= */
-
-function esc(value){
-
-  return String(value).replace(
-    /[&<>"']/g,
-    function(m){
-
-      return {
-
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#39;"
-
-      }[m];
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   RENDER
-========================================================= */
-
-function renderAll(){
-
-  /* Breed Auto Suggest */
-
-  document.getElementById(
-    "breedList"
-  ).innerHTML =
-    data.breeds
-    .map(
-      x =>
-      `<option value="${esc(x)}">`
-    )
-    .join("");
-
-
-  /* Vaccine List */
-
-  document.getElementById(
-    "vaccineList"
-  ).innerHTML =
-    data.vaccines
-    .map(
-      (x,i)=>`
-
-        <div class="item">
-
-          <div class="item-head">
-
-            <b>
-              💉 ${esc(x)}
-            </b>
-
-            <button
-              class="x"
-              onclick="removeVaccine(${i})"
-            >
-              বাদ দিন
-            </button>
-
-          </div>
-
-        </div>
-
-      `
-    )
-    .join("");
-
-
-  /* Expense List */
-
-  document.getElementById(
-    "expenseList"
-  ).innerHTML =
-    data.expenses
-    .map(
-      (x,i)=>`
-
-        <div class="item">
-
-          <div class="item-head">
-
-            <b>
-              ৳ ${esc(x)}
-            </b>
-
-            <button
-              class="x"
-              onclick="removeExpense(${i})"
-            >
-              বাদ দিন
-            </button>
-
-          </div>
-
-        </div>
-
-      `
-    )
-    .join("");
-
-
-  /* Goat List */
-
-  document.getElementById(
-    "goatList"
-  ).innerHTML =
-    data.goats
-    .map(
-      g=>`
-
-        <div class="item">
-
-          <div class="item-head">
-
-            <b>
-              🐐
-              ${esc(g.id)}
-              —
-              ${esc(g.name || "নাম নেই")}
-            </b>
-
-            <span class="badge">
-              ${esc(g.breed || "জাত নেই")}
-            </span>
-
-          </div>
-
-
-          <div
-            class="small"
-            style="margin-top:7px"
-          >
-
-            বয়স:
-            ${esc(g.age || "-")}
-
-            •
-
-            ওজন:
-            ${esc(g.weight || "-")}
-            কেজি
-
-          </div>
-
-
-          <div
-            style="margin-top:8px"
-          >
-
-            ${data.vaccines
-              .map(
-                v=>`
-
-                <span class="pill">
-                  💉 ${esc(v)}
-                </span>
-
-                `
-              )
-              .join("")
-            }
-
-          </div>
-
-        </div>
-
-      `
-    )
-    .join("");
-
-}
-
-
-/* =========================================================
-   ADD GOAT
-========================================================= */
-
-function addGoat(){
-
-  const id =
-    document
-      .getElementById("goatId")
-      .value
-      .trim();
-
-
-  if(!id){
-
-    toast("ছাগল ID দিন");
-
-    return;
-
-  }
-
-
-  data.goats.push({
-
-    id:id,
-
-    name:
-      document
-      .getElementById("goatName")
-      .value
-      .trim(),
-
-    age:
-      document
-      .getElementById("age")
-      .value
-      .trim(),
-
-    breed:
-      document
-      .getElementById("breed")
-      .value
-      .trim(),
-
-    weight:
-      document
-      .getElementById("weight")
-      .value
-      .trim()
-
-  });
-
-
-  save();
-
-  renderAll();
-
-  toast(
-    "ছাগল সফলভাবে যোগ হয়েছে"
-  );
-
-
-  document.getElementById(
-    "goatId"
-  ).value = "";
-
-  document.getElementById(
-    "goatName"
-  ).value = "";
-
-  document.getElementById(
-    "age"
-  ).value = "";
-
-  document.getElementById(
-    "breed"
-  ).value = "";
-
-  document.getElementById(
-    "weight"
-  ).value = "";
-
-}
-
-
-/* =========================================================
-   ADD VACCINE
-========================================================= */
-
-function addVaccine(){
-
-  const input =
-    document.getElementById(
-      "newVaccine"
+  window.tt =
+    setTimeout(
+      ()=>{
+        t.style.display="none";
+      },
+      2200
     );
 
-  const value =
-    input.value.trim();
+}
 
 
-  if(!value){
+function money(n){
 
-    toast(
-      "টিকার নাম লিখুন"
-    );
+  return "৳" +
+    Number(n || 0)
+    .toLocaleString("bn-BD");
 
-    return;
+}
 
-  }
 
+function dateStr(d=new Date()){
+
+  return d.toISOString().slice(0,10);
+
+}
+
+
+function daysBetween(a,b){
+
+  return Math.ceil(
+    (new Date(b)-new Date(a))
+    /86400000
+  );
+
+}
+
+
+function ageFromBirth(d){
+
+  if(!d)return "";
+
+  const b=new Date(d);
+
+  const n=new Date();
+
+  let y=
+    n.getFullYear()
+    -
+    b.getFullYear();
+
+  let m=
+    n.getMonth()
+    -
+    b.getMonth();
 
   if(
-    !data.vaccines.includes(value)
+    m<0 ||
+    (m===0 &&
+     n.getDate()<b.getDate())
   ){
 
-    data.vaccines.push(value);
+    y--;
 
   }
 
 
-  save();
+  if(y>0){
 
-  renderAll();
-
-  input.value = "";
-
-  toast(
-    "নতুন টিকা যোগ হয়েছে"
-  );
-
-}
-
-
-/* =========================================================
-   REMOVE VACCINE
-========================================================= */
-
-function removeVaccine(index){
-
-  data.vaccines.splice(
-    index,
-    1
-  );
-
-  save();
-
-  renderAll();
-
-  toast(
-    "টিকা বাদ দেওয়া হয়েছে"
-  );
-
-}
-
-
-/* =========================================================
-   ADD EXPENSE
-========================================================= */
-
-function addExpense(){
-
-  const input =
-    document.getElementById(
-      "newExpense"
-    );
-
-  const value =
-    input.value.trim();
-
-
-  if(!value){
-
-    toast(
-      "খরচের ধরন লিখুন"
-    );
-
-    return;
+    return y+" বছর";
 
   }
 
 
-  if(
-    !data.expenses.includes(value)
-  ){
-
-    data.expenses.push(value);
-
-  }
+  let months=
+    (n.getFullYear()-b.getFullYear())*12
+    +
+    n.getMonth()-b.getMonth();
 
 
-  save();
+  if(n.getDate()<b.getDate()){
 
-  renderAll();
-
-  input.value = "";
-
-  toast(
-    "নতুন খরচের ধরন যোগ হয়েছে"
-  );
-
-}
-
-
-/* =========================================================
-   REMOVE EXPENSE
-========================================================= */
-
-function removeExpense(index){
-
-  data.expenses.splice(
-    index,
-    1
-  );
-
-  save();
-
-  renderAll();
-
-  toast(
-    "খরচের ধরন বাদ দেওয়া হয়েছে"
-  );
-
-}
-
-
-/* =========================================================
-   TAB
-========================================================= */
-
-function showTab(
-  id,
-  button
-){
-
-  document
-    .querySelectorAll(".section")
-    .forEach(
-      x =>
-      x.classList.remove("active")
-    );
-
-
-  document
-    .querySelectorAll(".nav button")
-    .forEach(
-      x =>
-      x.classList.remove("active")
-    );
-
-
-  document
-    .getElementById(id)
-    .classList.add("active");
-
-
-  button.classList.add(
-    "active"
-  );
-
-}
-
-
-/* =========================================================
-   LOGIN
-========================================================= */
-
-function login(){
-
-  const email =
-    document
-      .getElementById("email")
-      .value
-      .trim();
-
-
-  const password =
-    document
-      .getElementById("password")
-      .value;
-
-
-  if(!email || !password){
-
-    toast(
-      "ইমেইল ও পাসওয়ার্ড দিন"
-    );
-
-    return;
+    months--;
 
   }
 
 
-  document
-    .getElementById("loginPage")
-    .classList.add("hidden");
-
-
-  document
-    .getElementById("dashboard")
-    .classList.remove("hidden");
-
-
-  renderAll();
-
-  toast(
-    "লগইন সফল"
-  );
+  return Math.max(0,months)+" মাস";
 
 }
 
 
-/* =========================================================
-   LOGOUT
-========================================================= */
-
-function logout(){
-
-  document
-    .getElementById("dashboard")
-    .classList.add("hidden");
-
-
-  document
-    .getElementById("loginPage")
-    .classList.remove("hidden");
-
-}
-
-
-/* =========================================================
-   REGISTER
-========================================================= */
-
-function register(){
-
-  toast(
-    "নতুন ব্যবহারকারী তৈরির পেজ Supabase Auth-এর সাথে যুক্ত হবে"
-  );
-
-}
-
-
-/* =========================================================
-   FORGOT PASSWORD
-========================================================= */
-
-function forgot(){
-
-  toast(
-    "Password Reset Supabase Auth-এর সাথে যুক্ত হবে"
-  );
-
-}
-
-
-/* =========================================================
-   HELP
-========================================================= */
-
-function help(){
-
-  toast(
-    "সহায়তা: পূর্ববঙ্গ কৃষি কেন্দ্র"
-  );
-
-}
-
-
-/* =========================================================
+/* =====================================================
    CLOCK
-========================================================= */
+===================================================== */
 
 function updateClock(){
 
-  document.getElementById(
-    "clock"
-  ).textContent =
-    new Date().toLocaleTimeString(
+  document.getElementById("clock")
+  .textContent=
+    new Date()
+    .toLocaleTimeString(
       "bn-BD",
       {
         hour:"2-digit",
@@ -1554,20 +1579,2333 @@ function updateClock(){
 
 }
 
-
-setInterval(
-  updateClock,
-  1000
-);
-
-
-/* =========================================================
-   START
-========================================================= */
+setInterval(updateClock,1000);
 
 updateClock();
 
-renderAll();
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+function login(){
+
+  const e =
+    document
+    .getElementById("loginEmail")
+    .value
+    .trim();
+
+  const p =
+    document
+    .getElementById("loginPassword")
+    .value;
+
+
+  if(!e || !p){
+
+    return toast(
+      "ইমেইল ও পাসওয়ার্ড দিন"
+    );
+
+  }
+
+
+  document
+    .getElementById("loginPage")
+    .classList.remove("active");
+
+
+  document
+    .getElementById("mainApp")
+    .classList.add("active");
+
+
+  document
+    .getElementById("bottomNav")
+    .classList.remove("hidden");
+
+
+  renderAll();
+
+  toast("লগইন সফল");
+
+}
+
+
+function logout(){
+
+  document
+    .getElementById("mainApp")
+    .classList.remove("active");
+
+
+  document
+    .getElementById("loginPage")
+    .classList.add("active");
+
+
+  document
+    .getElementById("bottomNav")
+    .classList.add("hidden");
+
+}
+
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
+
+function goTab(id,btn){
+
+  document
+    .querySelectorAll(".appPage")
+    .forEach(
+      x=>x.classList.add("hidden")
+    );
+
+
+  document
+    .getElementById(id)
+    .classList.remove("hidden");
+
+
+  document
+    .querySelectorAll(".nav button")
+    .forEach(
+      x=>x.classList.remove("active")
+    );
+
+
+  if(btn){
+
+    btn.classList.add("active");
+
+  }
+
+  else{
+
+    const map={
+
+      dashboardPage:0,
+      goatPage:1,
+      expensePage:2,
+      landPage:3
+
+    };
+
+
+    document
+      .querySelectorAll(".nav button")
+      [map[id]]
+      .classList
+      .add("active");
+
+  }
+
+
+  renderAll();
+
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+function openModal(title,body){
+
+  document
+    .getElementById("modalTitle")
+    .textContent=title;
+
+
+  document
+    .getElementById("modalBody")
+    .innerHTML=body;
+
+
+  document
+    .getElementById("modal")
+    .classList
+    .add("show");
+
+}
+
+
+function closeModal(){
+
+  document
+    .getElementById("modal")
+    .classList
+    .remove("show");
+
+}
+
+
+/* =====================================================
+   GOAT FORM
+===================================================== */
+
+function openGoatForm(){
+
+  const breedOptions =
+    db.breeds
+    .map(
+      x=>
+      `<option>${esc(x)}</option>`
+    )
+    .join("");
+
+
+  const vacChecks =
+    db.vaccines
+    .map(
+      x=>
+      `<label class="check">
+        <input
+          type="checkbox"
+          name="vaccine"
+          value="${esc(x)}"
+        >
+        ${esc(x)}
+      </label>`
+    )
+    .join("");
+
+
+  openModal(
+    "🐐 নতুন ছাগল এন্ট্রি",
+
+`
+<div class="field">
+
+<label class="label">
+ছাগলের নাম *
+</label>
+
+<input
+id="fName"
+class="input"
+>
+
+</div>
+
+
+<div class="row">
+
+<div class="field">
+
+<label class="label">
+ছাগল ID *
+</label>
+
+<input
+id="fId"
+class="input"
+placeholder="G-001"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+লিঙ্গ
+</label>
+
+<select
+id="fSex"
+class="select"
+>
+
+<option>মাদি</option>
+
+<option>পাঠা</option>
+
+<option>খাসি</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+জাত *
+</label>
+
+<input
+id="fBreed"
+class="input"
+list="breedSuggestions"
+placeholder="জাত লিখুন/নির্বাচন করুন"
+>
+
+
+<datalist
+id="breedSuggestions"
+>
+
+${breedOptions}
+
+</datalist>
+
+</div>
+
+
+<div class="row">
+
+<div class="field">
+
+<label class="label">
+জন্ম তারিখ
+</label>
+
+<input
+id="fBirth"
+type="date"
+class="input"
+onchange="
+document.getElementById('fAge').value=
+ageFromBirth(this.value)
+"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+বয়স Auto
+</label>
+
+<input
+id="fAge"
+class="input"
+readonly
+>
+
+</div>
+
+</div>
+
+
+<div class="row">
+
+<div class="field">
+
+<label class="label">
+ওজন কেজি
+</label>
+
+<input
+id="fWeight"
+type="number"
+class="input"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+ক্রয়ের মূল্য
+</label>
+
+<input
+id="fPrice"
+type="number"
+class="input"
+placeholder="৳"
+>
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+রঙ / চিহ্ন
+</label>
+
+<input
+id="fMark"
+class="input"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+ক্রয়ের তারিখ
+</label>
+
+<input
+id="fBuyDate"
+type="date"
+class="input"
+value="${dateStr()}"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+
+প্রাপ্ত টিকা
+
+<span class="badge">
+Auto Suggestion
+</span>
+
+</label>
+
+
+<div class="checkList">
+
+${vacChecks}
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+পরবর্তী টিকা দেওয়ার তারিখ
+</label>
+
+<input
+id="fNextVaccine"
+type="date"
+class="input"
+>
+
+</div>
+
+
+<div class="field">
+
+<button
+class="btn btn-soft"
+style="width:100%"
+onclick="quickAddVaccine()"
+>
+
+＋ নতুন টিকা যোগ করুন
+
+</button>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+বর্তমান অবস্থা
+</label>
+
+<select
+id="fStatus"
+class="select"
+>
+
+<option>সুস্থ</option>
+
+<option>চিকিৎসাধীন</option>
+
+<option>গর্ভবতী</option>
+
+<option>অন্যান্য</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+অতিরিক্ত তথ্য
+</label>
+
+<textarea
+id="fNote"
+class="textarea"
+></textarea>
+
+</div>
+
+
+<button
+class="btn btn-main"
+onclick="saveGoat()"
+>
+
+🐐 ছাগল সংরক্ষণ করুন
+
+</button>
+
+`
+  );
+
+}
+
+
+/* =====================================================
+   ADD NEW VACCINE
+===================================================== */
+
+function quickAddVaccine(){
+
+  const n =
+    prompt(
+      "নতুন টিকার নাম লিখুন"
+    );
+
+
+  if(!n)return;
+
+
+  if(
+    !db.vaccines
+    .includes(n.trim())
+  ){
+
+    db.vaccines.push(
+      n.trim()
+    );
+
+  }
+
+
+  save();
+
+  closeModal();
+
+  openGoatForm();
+
+  toast(
+    "নতুন টিকা যোগ হয়েছে"
+  );
+
+}
+
+
+/* =====================================================
+   SAVE GOAT
+===================================================== */
+
+function saveGoat(){
+
+  const name =
+    document
+    .getElementById("fName")
+    .value
+    .trim();
+
+
+  const id =
+    document
+    .getElementById("fId")
+    .value
+    .trim();
+
+
+  if(!name || !id){
+
+    return toast(
+      "নাম ও ID দিন"
+    );
+
+  }
+
+
+  if(
+    db.goats.some(
+      g=>
+      g.id.toLowerCase()
+      ===
+      id.toLowerCase()
+    )
+  ){
+
+    return toast(
+      "এই ID আগে থেকেই আছে"
+    );
+
+  }
+
+
+  const vaccines =
+    [
+      ...document
+      .querySelectorAll(
+        'input[name="vaccine"]:checked'
+      )
+    ]
+    .map(x=>x.value);
+
+
+  const birth =
+    document
+    .getElementById("fBirth")
+    .value;
+
+
+  db.goats.push({
+
+    id:id,
+
+    name:name,
+
+    breed:
+      document
+      .getElementById("fBreed")
+      .value
+      .trim(),
+
+    birth:birth,
+
+    age:ageFromBirth(birth),
+
+    sex:
+      document
+      .getElementById("fSex")
+      .value,
+
+    weight:
+      document
+      .getElementById("fWeight")
+      .value,
+
+    price:
+      document
+      .getElementById("fPrice")
+      .value,
+
+    mark:
+      document
+      .getElementById("fMark")
+      .value,
+
+    buyDate:
+      document
+      .getElementById("fBuyDate")
+      .value,
+
+    vaccines:vaccines,
+
+    nextVaccine:
+      document
+      .getElementById("fNextVaccine")
+      .value,
+
+    status:
+      document
+      .getElementById("fStatus")
+      .value,
+
+    note:
+      document
+      .getElementById("fNote")
+      .value
+
+  });
+
+
+  save();
+
+  closeModal();
+
+  renderAll();
+
+  toast(
+    "ছাগল সফলভাবে সংরক্ষণ হয়েছে"
+  );
+
+}
+
+
+/* =====================================================
+   VACCINE STATUS
+===================================================== */
+
+function goatDueLevel(g){
+
+  if(!g.nextVaccine){
+
+    return {
+      label:"তারিখ নেই",
+      cls:""
+    };
+
+  }
+
+
+  const d =
+    daysBetween(
+      dateStr(),
+      g.nextVaccine
+    );
+
+
+  if(d<=0){
+
+    return {
+      label:"🔴 টিকা দেওয়া দরকার",
+      cls:"red"
+    };
+
+  }
+
+
+  if(d<=7){
+
+    return {
+      label:"🟠 ৭ দিনের মধ্যে",
+      cls:"orange"
+    };
+
+  }
+
+
+  return {
+    label:"🟢 পরে",
+    cls:"green"
+  };
+
+}
+
+
+/* =====================================================
+   RENDER GOATS
+===================================================== */
+
+function renderGoats(){
+
+  const q =
+    (
+      document
+      .getElementById("goatSearch")
+      ?.value || ""
+    )
+    .toLowerCase();
+
+
+  const arr =
+    db.goats
+    .filter(
+      g=>
+      (
+        g.name+" "
+        +
+        g.id+" "
+        +
+        g.breed
+      )
+      .toLowerCase()
+      .includes(q)
+    )
+    .sort(
+      (a,b)=>
+      (a.nextVaccine||"9999")
+      .localeCompare(
+        b.nextVaccine||"9999"
+      )
+    );
+
+
+  const box =
+    document
+    .getElementById("goatList");
+
+
+  if(!box)return;
+
+
+  if(!arr.length){
+
+    box.innerHTML=
+      `
+      <div class="empty">
+
+      এখনো কোনো ছাগল যোগ করা হয়নি।
+
+      <br><br>
+
+      ＋ নতুন দিয়ে শুরু করুন।
+
+      </div>
+      `;
+
+    return;
+
+  }
+
+
+  box.innerHTML =
+    arr
+    .map(
+      g=>{
+
+        const lv=
+          goatDueLevel(g);
+
+
+        return `
+
+<div class="goatCard">
+
+<div class="goatHead">
+
+<div>
+
+<h3 style="margin:0">
+
+🐐 ${esc(g.name)}
+
+</h3>
+
+<div class="meta">
+
+ID: ${esc(g.id)}
+
+•
+
+${esc(g.breed||"জাত নেই")}
+
+</div>
+
+</div>
+
+
+<span class="badge ${lv.cls}">
+
+${lv.label}
+
+</span>
+
+</div>
+
+
+<div class="meta">
+
+জন্ম:
+${esc(g.birth||"-")}
+
+•
+
+বয়স:
+${esc(g.age||"-")}
+
+•
+
+ওজন:
+${esc(g.weight||"-")}
+কেজি
+
+•
+
+অবস্থা:
+${esc(g.status||"-")}
+
+</div>
+
+
+<div class="meta">
+
+পরবর্তী টিকা:
+
+<b>
+${esc(g.nextVaccine||"নির্ধারিত নয়")}
+</b>
+
+</div>
+
+
+<div class="pills">
+
+${
+  (g.vaccines||[])
+  .map(
+    v=>
+    `
+    <span class="pill">
+    💉 ${esc(v)}
+    </span>
+    `
+  )
+  .join("")
+  ||
+  `
+  <span class="smallNote">
+  এখনো টিকা যোগ করা হয়নি
+  </span>
+  `
+}
+
+</div>
+
+
+<div
+style="
+display:flex;
+gap:7px;
+margin-top:9px
+"
+>
+
+<button
+class="btn btn-soft btn-small"
+onclick="
+viewGoat('${esc(g.id)}')
+"
+>
+
+বিস্তারিত
+
+</button>
+
+
+<button
+class="btn btn-danger btn-small"
+onclick="
+deleteGoat('${esc(g.id)}')
+"
+>
+
+বাদ
+
+</button>
+
+</div>
+
+</div>
+
+`;
+
+      }
+    )
+    .join("");
+
+}
+
+
+/* =====================================================
+   VIEW GOAT
+===================================================== */
+
+function viewGoat(id){
+
+  const g =
+    db.goats.find(
+      x=>x.id===id
+    );
+
+
+  if(!g)return;
+
+
+  openModal(
+    "🐐 "+g.name,
+
+`
+<div class="sectionCard">
+
+<b>ID:</b>
+${esc(g.id)}
+
+<br>
+
+<b>জাত:</b>
+${esc(g.breed)}
+
+<br>
+
+<b>জন্ম:</b>
+${esc(g.birth||"-")}
+
+<br>
+
+<b>বয়স:</b>
+${esc(g.age||"-")}
+
+<br>
+
+<b>ওজন:</b>
+${esc(g.weight||"-")}
+কেজি
+
+<br>
+
+<b>লিঙ্গ:</b>
+${esc(g.sex||"-")}
+
+<br>
+
+<b>ক্রয় মূল্য:</b>
+${money(g.price)}
+
+<br>
+
+<b>পরবর্তী টিকা:</b>
+${esc(g.nextVaccine||"-")}
+
+<br>
+
+<b>অবস্থা:</b>
+${esc(g.status||"-")}
+
+<br>
+
+<b>নোট:</b>
+${esc(g.note||"-")}
+
+</div>
+
+
+<button
+class="btn btn-danger"
+style="width:100%"
+onclick="
+deleteGoat('${esc(g.id)}');
+closeModal()
+"
+>
+
+ছাগল বাদ দিন
+
+</button>
+
+`
+  );
+
+}
+
+
+/* =====================================================
+   DELETE GOAT
+===================================================== */
+
+function deleteGoat(id){
+
+  if(
+    !confirm(
+      "এই ছাগলটি বাদ দিতে চান?"
+    )
+  )return;
+
+
+  db.goats =
+    db.goats.filter(
+      g=>g.id!==id
+    );
+
+
+  save();
+
+  renderAll();
+
+  toast(
+    "ছাগল বাদ দেওয়া হয়েছে"
+  );
+
+}
+
+
+/* =====================================================
+   EXPENSE FORM
+===================================================== */
+
+function openExpenseForm(){
+
+  const options =
+    db.expenseTypes
+    .map(
+      x=>
+      `<option>${esc(x)}</option>`
+    )
+    .join("");
+
+
+  openModal(
+    "💰 নতুন খরচ",
+
+`
+<div class="field">
+
+<label class="label">
+তারিখ
+</label>
+
+<input
+id="xDate"
+type="date"
+class="input"
+value="${dateStr()}"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+খরচের ধরন
+</label>
+
+<input
+id="xType"
+class="input"
+list="expenseSuggestions"
+placeholder="খরচের ধরন"
+>
+
+
+<datalist
+id="expenseSuggestions"
+>
+
+${options}
+
+</datalist>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+পরিমাণ
+</label>
+
+<input
+id="xAmount"
+type="number"
+class="input"
+placeholder="৳"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+বিবরণ
+</label>
+
+<textarea
+id="xNote"
+class="textarea"
+></textarea>
+
+</div>
+
+
+<button
+class="btn btn-soft"
+style="
+width:100%;
+margin-bottom:9px
+"
+onclick="
+quickAddExpenseType()
+"
+>
+
+＋ নতুন খরচের ধরন যোগ করুন
+
+</button>
+
+
+<button
+class="btn btn-main"
+onclick="saveExpense()"
+>
+
+💰 খরচ সংরক্ষণ করুন
+
+</button>
+
+`
+  );
+
+}
+
+
+/* =====================================================
+   ADD EXPENSE TYPE
+===================================================== */
+
+function quickAddExpenseType(){
+
+  const n =
+    prompt(
+      "নতুন খরচের ধরন লিখুন"
+    );
+
+
+  if(!n)return;
+
+
+  if(
+    !db.expenseTypes
+    .includes(n.trim())
+  ){
+
+    db.expenseTypes.push(
+      n.trim()
+    );
+
+  }
+
+
+  save();
+
+  closeModal();
+
+  openExpenseForm();
+
+}
+
+
+/* =====================================================
+   SAVE EXPENSE
+===================================================== */
+
+function saveExpense(){
+
+  const date =
+    document
+    .getElementById("xDate")
+    .value;
+
+
+  const type =
+    document
+    .getElementById("xType")
+    .value
+    .trim();
+
+
+  const amount =
+    Number(
+      document
+      .getElementById("xAmount")
+      .value
+    );
+
+
+  if(
+    !date ||
+    !type ||
+    !amount
+  ){
+
+    return toast(
+      "তারিখ, ধরন ও পরিমাণ দিন"
+    );
+
+  }
+
+
+  if(
+    !db.expenseTypes
+    .includes(type)
+  ){
+
+    db.expenseTypes.push(type);
+
+  }
+
+
+  db.expenses.push({
+
+    date:date,
+
+    type:type,
+
+    amount:amount,
+
+    note:
+      document
+      .getElementById("xNote")
+      .value
+
+  });
+
+
+  save();
+
+  closeModal();
+
+  renderAll();
+
+  toast(
+    "খরচ সংরক্ষণ হয়েছে"
+  );
+
+}
+
+
+/* =====================================================
+   EXPENSE CALCULATION
+===================================================== */
+
+function sumBetween(start,end){
+
+  return db.expenses
+    .filter(
+      x=>
+      x.date>=start &&
+      x.date<=end
+    )
+    .reduce(
+      (s,x)=>
+      s+Number(x.amount),
+      0
+    );
+
+}
+
+
+function startOfWeek(d){
+
+  const x=
+    new Date(d);
+
+
+  const day=
+    (x.getDay()+6)%7;
+
+
+  x.setDate(
+    x.getDate()-day
+  );
+
+
+  return dateStr(x);
+
+}
+
+
+function setExpenseView(){
+
+  renderExpenses();
+
+}
+
+
+/* =====================================================
+   RENDER EXPENSE
+===================================================== */
+
+function renderExpenses(){
+
+  const today=
+    new Date();
+
+
+  const td=
+    dateStr(today);
+
+
+  const ws=
+    startOfWeek(today);
+
+
+  const ms=
+    new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1
+    );
+
+
+  const ys=
+    new Date(
+      today.getFullYear(),
+      0,
+      1
+    );
+
+
+  document
+    .getElementById("eDaily")
+    .textContent=
+    money(
+      sumBetween(td,td)
+    );
+
+
+  document
+    .getElementById("eWeekly")
+    .textContent=
+    money(
+      sumBetween(ws,td)
+    );
+
+
+  document
+    .getElementById("eMonthly")
+    .textContent=
+    money(
+      sumBetween(
+        dateStr(ms),
+        td
+      )
+    );
+
+
+  document
+    .getElementById("eYearly")
+    .textContent=
+    money(
+      sumBetween(
+        dateStr(ys),
+        td
+      )
+    );
+
+
+  const box =
+    document
+    .getElementById("expenseList");
+
+
+  if(!box)return;
+
+
+  const arr =
+    [...db.expenses]
+    .sort(
+      (a,b)=>
+      b.date.localeCompare(a.date)
+    );
+
+
+  box.innerHTML =
+    arr.length
+
+    ?
+
+    arr
+    .map(
+      (x,i)=>
+      `
+
+<div class="expenseLine">
+
+<span>
+
+💰
+
+<b>
+${esc(x.type)}
+</b>
+
+<br>
+
+<small>
+
+${esc(x.date)}
+
+${x.note
+ ? " • "+esc(x.note)
+ : ""
+}
+
+</small>
+
+</span>
+
+
+<span>
+
+${money(x.amount)}
+
+<br>
+
+<button
+class="link"
+onclick="
+deleteExpense(${i})
+"
+>
+
+বাদ
+
+</button>
+
+</span>
+
+</div>
+
+`
+    )
+    .join("")
+
+    :
+
+    `
+    <div class="empty">
+    কোনো খরচ নেই।
+    </div>
+    `;
+
+}
+
+
+/* =====================================================
+   DELETE EXPENSE
+===================================================== */
+
+function deleteExpense(i){
+
+  if(
+    !confirm(
+      "খরচটি বাদ দেবেন?"
+    )
+  )return;
+
+
+  db.expenses.splice(i,1);
+
+  save();
+
+  renderAll();
+
+  toast(
+    "খরচ বাদ দেওয়া হয়েছে"
+  );
+
+}
+
+
+/* =====================================================
+   LAND FORM
+===================================================== */
+
+function openLandForm(){
+
+  openModal(
+    "🌾 নতুন জমি",
+
+`
+<div class="field">
+
+<label class="label">
+জমির নাম / ID *
+</label>
+
+<input
+id="lName"
+class="input"
+placeholder="জমি-০১"
+>
+
+</div>
+
+
+<div class="row">
+
+<div class="field">
+
+<label class="label">
+পরিমাণ *
+</label>
+
+<input
+id="lArea"
+type="number"
+class="input"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+একক
+</label>
+
+<select
+id="lUnit"
+class="select"
+>
+
+<option>
+বিঘা
+</option>
+
+<option>
+শতাংশ
+</option>
+
+<option>
+একর
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+জমির অবস্থান
+</label>
+
+<input
+id="lLocation"
+class="input"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+মালিকানা
+</label>
+
+<select
+id="lOwner"
+class="select"
+>
+
+<option>
+নিজস্ব
+</option>
+
+<option>
+লিজ
+</option>
+
+<option>
+অন্যান্য
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+বর্তমানে কী চাষ হচ্ছে?
+</label>
+
+<input
+id="lCrop"
+class="input"
+placeholder="ধান / সবজি"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+ফসলের জাত
+</label>
+
+<input
+id="lVariety"
+class="input"
+>
+
+</div>
+
+
+<div class="row">
+
+<div class="field">
+
+<label class="label">
+চাষের তারিখ
+</label>
+
+<input
+id="lStart"
+type="date"
+class="input"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+সম্ভাব্য কাটার তারিখ
+</label>
+
+<input
+id="lHarvest"
+type="date"
+class="input"
+>
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+সেচের ধরন
+</label>
+
+<input
+id="lIrrigation"
+class="input"
+placeholder="মোটর / নলকূপ / অন্যান্য"
+>
+
+</div>
+
+
+<div class="row">
+
+<div class="field">
+
+<label class="label">
+শেষ সেচ
+</label>
+
+<input
+id="lLastWater"
+type="date"
+class="input"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+পরবর্তী সেচ
+</label>
+
+<input
+id="lNextWater"
+type="date"
+class="input"
+>
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+সার / প্রয়োগ
+</label>
+
+<input
+id="lFertilizer"
+class="input"
+placeholder="ইউরিয়া, DAP..."
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+কীটনাশক / রোগ
+</label>
+
+<input
+id="lPesticide"
+class="input"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+শ্রমিক / শ্রম খরচ
+</label>
+
+<input
+id="lLabor"
+type="number"
+class="input"
+placeholder="৳"
+>
+
+</div>
+
+
+<div class="field">
+
+<label class="label">
+অন্যান্য নোট
+</label>
+
+<textarea
+id="lNote"
+class="textarea"
+></textarea>
+
+</div>
+
+
+<button
+class="btn btn-main"
+onclick="saveLand()"
+>
+
+🌾 জমি সংরক্ষণ করুন
+
+</button>
+
+`
+  );
+
+}
+
+
+/* =====================================================
+   SAVE LAND
+===================================================== */
+
+function saveLand(){
+
+  const name =
+    document
+    .getElementById("lName")
+    .value
+    .trim();
+
+
+  const area =
+    Number(
+      document
+      .getElementById("lArea")
+      .value
+    );
+
+
+  if(!name || !area){
+
+    return toast(
+      "জমির নাম ও পরিমাণ দিন"
+    );
+
+  }
+
+
+  db.lands.push({
+
+    name:name,
+
+    area:area,
+
+    unit:
+      document
+      .getElementById("lUnit")
+      .value,
+
+    location:
+      document
+      .getElementById("lLocation")
+      .value,
+
+    owner:
+      document
+      .getElementById("lOwner")
+      .value,
+
+    crop:
+      document
+      .getElementById("lCrop")
+      .value,
+
+    variety:
+      document
+      .getElementById("lVariety")
+      .value,
+
+    start:
+      document
+      .getElementById("lStart")
+      .value,
+
+    harvest:
+      document
+      .getElementById("lHarvest")
+      .value,
+
+    irrigation:
+      document
+      .getElementById("lIrrigation")
+      .value,
+
+    lastWater:
+      document
+      .getElementById("lLastWater")
+      .value,
+
+    nextWater:
+      document
+      .getElementById("lNextWater")
+      .value,
+
+    fertilizer:
+      document
+      .getElementById("lFertilizer")
+      .value,
+
+    pesticide:
+      document
+      .getElementById("lPesticide")
+      .value,
+
+    labor:
+      document
+      .getElementById("lLabor")
+      .value,
+
+    note:
+      document
+      .getElementById("lNote")
+      .value
+
+  });
+
+
+  save();
+
+  closeModal();
+
+  renderAll();
+
+  toast(
+    "জমি সংরক্ষণ হয়েছে"
+  );
+
+}
+
+
+/* =====================================================
+   RENDER LAND
+===================================================== */
+
+function renderLands(){
+
+  const box =
+    document
+    .getElementById("landList");
+
+
+  if(!box)return;
+
+
+  box.innerHTML =
+    db.lands.length
+
+    ?
+
+    db.lands
+    .map(
+      (l,i)=>
+      `
+
+<div class="landCard">
+
+<div class="landHead">
+
+<div>
+
+<h3>
+🌾 ${esc(l.name)}
+</h3>
+
+<div class="meta">
+
+${esc(l.area)}
+${esc(l.unit)}
+
+•
+
+${esc(l.owner)}
+
+</div>
+
+</div>
+
+
+<span class="badge green">
+
+${esc(
+  l.crop ||
+  "চাষ নির্ধারিত নয়"
+)}
+
+</span>
+
+</div>
+
+
+<div class="meta">
+
+অবস্থান:
+
+${esc(l.location||"-")}
+
+•
+
+জাত:
+
+${esc(l.variety||"-")}
+
+</div>
+
+
+<div class="progress">
+
+<span
+style="
+width:35%
+"
+></span>
+
+</div>
+
+
+<div class="timeline">
+
+<div class="timeItem">
+
+🌱 জমি/চাষ:
+
+${esc(l.start||"-")}
+
+</div>
+
+
+<div class="timeItem">
+
+💧 পরবর্তী সেচ:
+
+${esc(l.nextWater||"-")}
+
+</div>
+
+
+<div class="timeItem">
+
+🌿 সার:
+
+${esc(l.fertilizer||"-")}
+
+</div>
+
+
+<div class="timeItem">
+
+🐛 কীটনাশক/রোগ:
+
+${esc(l.pesticide||"-")}
+
+</div>
+
+
+<div class="timeItem">
+
+🌾 সম্ভাব্য সংগ্রহ:
+
+${esc(l.harvest||"-")}
+
+</div>
+
+</div>
+
+
+<button
+class="btn btn-danger btn-small"
+onclick="
+deleteLand(${i})
+"
+>
+
+জমি বাদ
+
+</button>
+
+</div>
+
+`
+    )
+    .join("")
+
+    :
+
+    `
+    <div class="empty">
+    এখনো কোনো জমি যোগ করা হয়নি।
+    </div>
+    `;
+
+}
+
+
+/* =====================================================
+   DELETE LAND
+===================================================== */
+
+function deleteLand(i){
+
+  if(
+    !confirm(
+      "এই জমিটি বাদ দেবেন?"
+    )
+  )return;
+
+
+  db.lands.splice(i,1);
+
+  save();
+
+  renderAll();
+
+  toast(
+    "জমি বাদ দেওয়া হয়েছে"
+  );
+
+}
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+function renderDashboard(){
+
+  const due =
+    db.goats.filter(
+      g=>
+      g.nextVaccine &&
+      daysBetween(
+        dateStr(),
+        g.nextVaccine
+      )<=7
+    ).length;
+
+
+  const td=
+    dateStr();
+
+
+  const ws=
+    startOfWeek(
+      new Date()
+    );
+
+
+  const ms=
+    dateStr(
+      new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        1
+      )
+    );
+
+
+  document
+    .getElementById("statGoats")
+    .textContent=
+    db.goats.length;
+
+
+  document
+    .getElementById("statDue")
+    .textContent=
+    due;
+
+
+  document
+    .getElementById("statToday")
+    .textContent=
+    money(
+      sumBetween(td,td)
+    );
+
+
+  document
+    .getElementById("statLand")
+    .textContent=
+    db.lands.length;
+
+
+  document
+    .getElementById("weekTotal")
+    .textContent=
+    money(
+      sumBetween(ws,td)
+    );
+
+
+  document
+    .getElementById("monthTotal")
+    .textContent=
+    money(
+      sumBetween(ms,td)
+    );
+
+
+  const urgent =
+    db.goats
+    .filter(
+      g=>
+      g.nextVaccine &&
+      daysBetween(
+        td,
+        g.nextVaccine
+      )<=7
+    )
+    .sort(
+      (a,b)=>
+      a.nextVaccine
+      .localeCompare(
+        b.nextVaccine
+      )
+    )
+    .slice(0,4);
+
+
+  document
+    .getElementById("alerts")
+    .innerHTML=
+
+    urgent.length
+
+    ?
+
+    urgent
+    .map(
+      g=>
+      `
+
+<div class="alertItem">
+
+💉
+
+${esc(g.name)}
+
+(${esc(g.id)})
+
+—
+
+${esc(g.nextVaccine)}
+
+</div>
+
+`
+    )
+    .join("")
+
+    :
+
+    `
+
+<div class="alertItem">
+
+সব ঠিক আছে — এখন কোনো জরুরি টিকা নেই।
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================================
+   RENDER ALL
+===================================================== */
+
+function renderAll(){
+
+  renderDashboard();
+
+  renderGoats();
+
+  renderExpenses();
+
+  renderLands();
+
+
+  document
+    .getElementById("goatCount")
+    .textContent=
+    db.goats.length;
+
+
+  document
+    .getElementById("goatDue")
+    .textContent=
+    db.goats.filter(
+      g=>
+      g.nextVaccine &&
+      daysBetween(
+        dateStr(),
+        g.nextVaccine
+      )<=7
+    ).length;
+
+
+  document
+    .getElementById("landCount")
+    .textContent=
+    db.lands.length;
+
+
+  document
+    .getElementById("landArea")
+    .textContent=
+    db.lands
+    .reduce(
+      (s,x)=>
+      s+Number(x.area||0),
+      0
+    )
+    .toLocaleString("bn-BD");
+
+}
 
 </script>
 
