@@ -1,1918 +1,1837 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Goat Farm Manager</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    body {
-      background: #f3f6f4;
-      color: #1f2937;
-      min-height: 100vh;
-    }
-
-    button,
-    input,
-    select,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* =========================
-       LOGIN
-    ========================= */
-
-    #authScreen {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background:
-        linear-gradient(
-          135deg,
-          #0f5132 0%,
-          #198754 50%,
-          #5cb85c 100%
-        );
-    }
-
-    .auth-card {
-      width: 100%;
-      max-width: 430px;
-      background: white;
-      border-radius: 24px;
-      padding: 32px 25px;
-      box-shadow: 0 20px 50px rgba(0,0,0,.18);
-    }
-
-    .logo {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 15px;
-      border-radius: 50%;
-      background: #e8f5e9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 42px;
-    }
-
-    .auth-title {
-      text-align: center;
-      color: #0f5132;
-      font-size: 28px;
-      font-weight: 800;
-      margin-bottom: 5px;
-    }
-
-    .auth-subtitle {
-      text-align: center;
-      color: #6b7280;
-      margin-bottom: 25px;
-      font-size: 14px;
-    }
-
-    .auth-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .auth-tab {
-      flex: 1;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      background: #edf2ef;
-      color: #315442;
-      font-weight: 700;
-    }
-
-    .auth-tab.active {
-      background: #198754;
-      color: white;
-    }
-
-    /* =========================
-       FORM
-    ========================= */
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 7px;
-      color: #374151;
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 12px 13px;
-      outline: none;
-      background: white;
-      color: #111827;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: #198754;
-      box-shadow: 0 0 0 3px rgba(25,135,84,.10);
-    }
-
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    .primary-btn {
-      width: 100%;
-      border: none;
-      background: #198754;
-      color: white;
-      padding: 13px;
-      border-radius: 10px;
-      font-weight: 800;
-      margin-top: 5px;
-    }
-
-    .primary-btn:hover {
-      background: #146c43;
-    }
-
-    .secondary-btn {
-      border: none;
-      background: #e9f5ee;
-      color: #146c43;
-      padding: 10px 14px;
-      border-radius: 9px;
-      font-weight: 700;
-    }
-
-    .danger-btn {
-      border: none;
-      background: #fee2e2;
-      color: #b91c1c;
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-weight: 700;
-    }
-
-    .message {
-      margin-top: 12px;
-      padding: 10px;
-      border-radius: 9px;
-      font-size: 13px;
-      display: none;
-    }
-
-    .message.success {
-      display: block;
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .message.error {
-      display: block;
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    /* =========================
-       APP
-    ========================= */
-
-    #app {
-      min-height: 100vh;
-    }
-
-    .topbar {
-      background: #0f5132;
-      color: white;
-      min-height: 68px;
-      padding: 0 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .brand {
-      font-weight: 900;
-      font-size: 20px;
-    }
-
-    .user-area {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .user-email {
-      font-size: 12px;
-      opacity: .85;
-    }
-
-    .logout-btn {
-      border: none;
-      background: #dc3545;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-weight: 700;
-    }
-
-    .layout {
-      display: flex;
-      min-height: calc(100vh - 68px);
-    }
-
-    .sidebar {
-      width: 245px;
-      background: white;
-      border-right: 1px solid #e5e7eb;
-      padding: 18px 12px;
-      flex-shrink: 0;
-    }
-
-    .nav-btn {
-      width: 100%;
-      text-align: left;
-      border: none;
-      background: transparent;
-      color: #374151;
-      padding: 12px 14px;
-      margin-bottom: 6px;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-
-    .nav-btn:hover,
-    .nav-btn.active {
-      background: #e8f5e9;
-      color: #146c43;
-    }
-
-    .content {
-      flex: 1;
-      padding: 22px;
-      overflow-x: hidden;
-    }
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .page-title {
-      font-size: 25px;
-      font-weight: 900;
-      color: #0f5132;
-      margin-bottom: 5px;
-    }
-
-    .page-subtitle {
-      color: #6b7280;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    /* =========================
-       CARDS
-    ========================= */
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: 15px;
-      padding: 18px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.05);
-    }
-
-    .stat-icon {
-      font-size: 25px;
-      margin-bottom: 10px;
-    }
-
-    .stat-label {
-      color: #6b7280;
-      font-size: 13px;
-    }
-
-    .stat-value {
-      font-size: 27px;
-      font-weight: 900;
-      color: #0f5132;
-      margin-top: 5px;
-    }
-
-    .section-card {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.05);
-      margin-bottom: 20px;
-    }
-
-    .section-title {
-      font-size: 18px;
-      font-weight: 900;
-      color: #0f5132;
-      margin-bottom: 15px;
-    }
-
-    /* =========================
-       GRID FORM
-    ========================= */
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-    }
-
-    .full {
-      grid-column: 1 / -1;
-    }
-
-    /* =========================
-       TABLE
-    ========================= */
-
-    .table-wrapper {
-      width: 100%;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 700px;
-    }
-
-    th,
-    td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-      font-size: 13px;
-    }
-
-    th {
-      background: #f0fdf4;
-      color: #166534;
-      font-weight: 900;
-    }
-
-    tr:hover td {
-      background: #fafafa;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 8px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .badge-green {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .badge-red {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .badge-yellow {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    /* =========================
-       VACCINE
-    ========================= */
-
-    .vaccine-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-
-    .vaccine-card {
-      border: 1px solid #e5e7eb;
-      border-radius: 13px;
-      padding: 15px;
-      background: #fff;
-    }
-
-    .vaccine-card h4 {
-      color: #0f5132;
-      margin-bottom: 8px;
-    }
-
-    .vaccine-card p {
-      color: #6b7280;
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-
-    .vaccine-card button {
-      width: 100%;
-      border: none;
-      background: #198754;
-      color: white;
-      border-radius: 8px;
-      padding: 9px;
-      font-weight: 700;
-      margin-top: 8px;
-    }
-
-    /* =========================
-       REPORT
-    ========================= */
-
-    .report-controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .report-controls select,
-    .report-controls input {
-      width: auto;
-      min-width: 150px;
-    }
-
-    .total-box {
-      background: #0f5132;
-      color: white;
-      padding: 20px;
-      border-radius: 15px;
-      margin-bottom: 20px;
-    }
-
-    .total-box small {
-      opacity: .8;
-    }
-
-    .total-box strong {
-      display: block;
-      font-size: 32px;
-      margin-top: 5px;
-    }
-
-    /* =========================
-       MODAL
-    ========================= */
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 999;
-    }
-
-    .modal-overlay.show {
-      display: flex;
-    }
-
-    .modal {
-      width: 100%;
-      max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-      background: white;
-      border-radius: 18px;
-      padding: 22px;
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-    }
-
-    .close-btn {
-      border: none;
-      background: #f3f4f6;
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-      font-size: 20px;
-    }
-
-    /* =========================
-       EMPTY
-    ========================= */
-
-    .empty {
-      text-align: center;
-      padding: 35px 15px;
-      color: #6b7280;
-    }
-
-    .empty-icon {
-      font-size: 40px;
-      margin-bottom: 10px;
-    }
-
-    /* =========================
-       LOADING
-    ========================= */
-
-    #loading {
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,.85);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-    }
-
-    #loading.show {
-      display: flex;
-    }
-
-    .loader-box {
-      background: white;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.15);
-      text-align: center;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #d1fae5;
-      border-top-color: #198754;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-      margin: 0 auto 12px;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* =========================
-       MOBILE
-    ========================= */
-
-    @media(max-width: 900px) {
-
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .vaccine-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .sidebar {
-        width: 205px;
-      }
-    }
-
-    @media(max-width: 650px) {
-
-      .topbar {
-        padding: 10px 12px;
-      }
-
-      .user-email {
-        display: none;
-      }
-
-      .layout {
-        display: block;
-      }
-
-      .sidebar {
-        width: 100%;
-        display: flex;
-        overflow-x: auto;
-        padding: 8px;
-        border-right: none;
-        border-bottom: 1px solid #e5e7eb;
-        position: sticky;
-        top: 68px;
-        z-index: 90;
-      }
-
-      .nav-btn {
-        width: auto;
-        min-width: max-content;
-        margin: 0 4px;
-      }
-
-      .content {
-        padding: 14px;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-
-      .stat-card {
-        padding: 14px;
-      }
-
-      .stat-value {
-        font-size: 22px;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .full {
-        grid-column: auto;
-      }
-
-      .vaccine-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .page-title {
-        font-size: 22px;
-      }
-
-      .section-card {
-        padding: 15px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>পূর্ববঙ্গ কৃষি কেন্দ্র</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:
+    "Noto Sans Bengali",
+    "Noto Sans",
+    Arial,
+    sans-serif;
+    background:#f4f8f4;
+    color:#26352c;
+}
+
+button,
+input,
+select,
+textarea{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+.hidden{
+    display:none!important;
+}
+
+
+/* =========================
+   LOGIN
+========================= */
+
+.login-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:
+    linear-gradient(145deg,#075b38,#0b7748,#eaf7ee);
+}
+
+.login-card{
+    width:100%;
+    max-width:430px;
+    background:white;
+    border-radius:28px;
+    padding:30px 24px;
+    box-shadow:0 20px 60px rgba(0,0,0,.18);
+}
+
+.logo{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.logo-icon{
+    font-size:62px;
+}
+
+.logo h1{
+    color:#08783f;
+    font-size:28px;
+    margin-top:5px;
+}
+
+.logo p{
+    color:#777;
+    margin-top:6px;
+}
+
+.tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+}
+
+.tabs button{
+    flex:1;
+    border:0;
+    padding:12px;
+    border-radius:12px;
+    background:#edf4ef;
+    color:#36503f;
+}
+
+.tabs button.active{
+    background:#11834b;
+    color:white;
+}
+
+.form-group{
+    margin-bottom:15px;
+}
+
+.form-group label{
+    display:block;
+    font-weight:700;
+    margin-bottom:7px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+    width:100%;
+    border:1px solid #d5ddd7;
+    border-radius:13px;
+    padding:13px;
+    outline:none;
+    background:#fff;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+    border-color:#16834d;
+    box-shadow:0 0 0 3px rgba(22,131,77,.10);
+}
+
+.primary-btn{
+    width:100%;
+    border:0;
+    border-radius:13px;
+    padding:14px;
+    background:#11834b;
+    color:white;
+    font-weight:800;
+    margin-top:5px;
+}
+
+.secondary-btn{
+    width:100%;
+    border:1px solid #16834d;
+    border-radius:13px;
+    padding:12px;
+    background:white;
+    color:#16834d;
+    font-weight:700;
+}
+
+.small-link{
+    text-align:center;
+    margin-top:14px;
+    color:#08783f;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.message{
+    padding:11px;
+    border-radius:10px;
+    margin-bottom:12px;
+    font-size:14px;
+}
+
+.message.error{
+    background:#ffe8e8;
+    color:#9d1e1e;
+}
+
+.message.success{
+    background:#e5f8eb;
+    color:#176b37;
+}
+
+
+/* =========================
+   APP
+========================= */
+
+.app{
+    min-height:100vh;
+}
+
+.topbar{
+    background:#075b38;
+    color:white;
+    padding:15px 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:20;
+    box-shadow:0 3px 15px rgba(0,0,0,.15);
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.brand-icon{
+    font-size:35px;
+}
+
+.brand-text h1{
+    font-size:20px;
+}
+
+.brand-text small{
+    opacity:.8;
+}
+
+.notification-btn{
+    position:relative;
+    background:#ffffff18;
+    border:1px solid #ffffff30;
+    color:white;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    font-size:22px;
+}
+
+.notification-count{
+    position:absolute;
+    right:-2px;
+    top:-3px;
+    background:#e53935;
+    color:white;
+    font-size:11px;
+    min-width:19px;
+    height:19px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:18px;
+}
+
+
+/* =========================
+   NAV
+========================= */
+
+.nav{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+    margin-bottom:18px;
+}
+
+.nav button{
+    border:0;
+    padding:12px 6px;
+    border-radius:12px;
+    background:white;
+    color:#31523e;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    font-size:13px;
+}
+
+.nav button.active{
+    background:#11834b;
+    color:white;
+}
+
+
+/* =========================
+   DASHBOARD
+========================= */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.stat{
+    background:white;
+    padding:18px;
+    border-radius:16px;
+    box-shadow:0 3px 12px rgba(0,0,0,.06);
+}
+
+.stat-icon{
+    font-size:28px;
+}
+
+.stat-value{
+    font-size:24px;
+    font-weight:900;
+    margin-top:5px;
+    color:#0b6d3e;
+}
+
+.stat-label{
+    color:#777;
+    font-size:13px;
+}
+
+
+/* =========================
+   CARD
+========================= */
+
+.card{
+    background:white;
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:18px;
+    box-shadow:0 3px 12px rgba(0,0,0,.06);
+}
+
+.card h2{
+    font-size:20px;
+    margin-bottom:15px;
+    color:#17482f;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+}
+
+.grid-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+}
+
+.full{
+    grid-column:1/-1;
+}
+
+
+/* =========================
+   GOAT LIST
+========================= */
+
+.goat-list{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.goat-card{
+    border:1px solid #e0e8e2;
+    border-radius:15px;
+    padding:15px;
+}
+
+.goat-title{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:8px;
+}
+
+.goat-title strong{
+    color:#126b40;
+}
+
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:20px;
+    font-size:11px;
+    background:#eaf7ee;
+    color:#11733f;
+}
+
+.danger-badge{
+    background:#ffe8e8;
+    color:#a52424;
+}
+
+.warning-badge{
+    background:#fff4d6;
+    color:#856100;
+}
+
+
+/* =========================
+   VACCINE SCHEDULE
+========================= */
+
+.schedule-row{
+    display:grid;
+    grid-template-columns:1.5fr 1fr 1fr auto;
+    gap:10px;
+    align-items:end;
+    margin-bottom:10px;
+}
+
+.remove-row{
+    border:0;
+    background:#ffe7e7;
+    color:#b32626;
+    padding:11px;
+    border-radius:10px;
+}
+
+.vaccine-card{
+    border:1px solid #dce9df;
+    border-left:5px solid #11834b;
+    border-radius:14px;
+    padding:15px;
+    margin-bottom:10px;
+    background:#fbfefb;
+}
+
+.vaccine-card.due{
+    border-left-color:#e5a400;
+    background:#fffaf0;
+}
+
+.vaccine-card.overdue{
+    border-left-color:#d62f2f;
+    background:#fff5f5;
+}
+
+.vaccine-head{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.vaccine-head strong{
+    color:#155c38;
+}
+
+.vaccine-meta{
+    color:#666;
+    font-size:14px;
+    margin-top:7px;
+    line-height:1.7;
+}
+
+.vaccine-action{
+    margin-top:12px;
+    display:flex;
+    gap:8px;
+}
+
+.btn{
+    border:0;
+    border-radius:10px;
+    padding:10px 14px;
+    font-weight:700;
+}
+
+.btn-green{
+    background:#11834b;
+    color:white;
+}
+
+.btn-red{
+    background:#ffe8e8;
+    color:#a52323;
+}
+
+.btn-gray{
+    background:#edf1ee;
+    color:#38503f;
+}
+
+
+/* =========================
+   NOTIFICATION
+========================= */
+
+.notification-panel{
+    position:fixed;
+    top:70px;
+    right:15px;
+    width:min(390px,calc(100% - 30px));
+    background:white;
+    border-radius:18px;
+    box-shadow:0 15px 45px rgba(0,0,0,.22);
+    z-index:100;
+    overflow:hidden;
+}
+
+.notification-header{
+    background:#075b38;
+    color:white;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.notification-item{
+    padding:14px;
+    border-bottom:1px solid #edf0ed;
+    cursor:pointer;
+}
+
+.notification-item:hover{
+    background:#f4faf5;
+}
+
+.notification-item strong{
+    color:#126b40;
+}
+
+.notification-item small{
+    display:block;
+    color:#777;
+    margin-top:4px;
+}
+
+
+/* =========================
+   REPORT
+========================= */
+
+.report-total{
+    font-size:30px;
+    font-weight:900;
+    color:#0b733f;
+    margin:8px 0 18px;
+}
+
+.report-row{
+    display:flex;
+    justify-content:space-between;
+    padding:11px 0;
+    border-bottom:1px solid #edf0ed;
+}
+
+.table-wrap{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,
+td{
+    padding:10px;
+    text-align:left;
+    border-bottom:1px solid #e7ece8;
+    white-space:nowrap;
+}
+
+th{
+    background:#f1f7f2;
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:200;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+}
+
+.modal-card{
+    background:white;
+    width:100%;
+    max-width:560px;
+    max-height:90vh;
+    overflow:auto;
+    border-radius:22px;
+    padding:22px;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.close-btn{
+    border:0;
+    background:#edf1ee;
+    width:35px;
+    height:35px;
+    border-radius:50%;
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+.logout-area{
+    text-align:center;
+    padding:30px 0 15px;
+}
+
+.logout-btn{
+    border:0;
+    background:transparent;
+    color:#8b8b8b;
+    font-size:12px;
+    padding:5px 10px;
+}
+
+.logout-btn:hover{
+    color:#c62828;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:800px){
+
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .grid,
+    .grid-3,
+    .goat-list{
+        grid-template-columns:1fr;
+    }
+
+    .nav{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .schedule-row{
+        grid-template-columns:1fr;
+    }
+
+    .full{
+        grid-column:auto;
+    }
+}
+
+@media(max-width:480px){
+
+    .container{
+        padding:12px;
+    }
+
+    .topbar{
+        padding:12px;
+    }
+
+    .brand-text h1{
+        font-size:16px;
+    }
+
+    .stats{
+        gap:8px;
+    }
+
+    .stat{
+        padding:13px;
+    }
+
+    .stat-value{
+        font-size:20px;
+    }
+
+    .nav{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .card{
+        padding:15px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-<!-- =========================================================
-     LOADING
-========================================================= -->
 
-<div id="loading">
-  <div class="loader-box">
-    <div class="spinner"></div>
-    <div>Loading...</div>
-  </div>
-</div>
+<!-- =====================================================
+     LOGIN PAGE
+===================================================== -->
 
+<section id="loginPage" class="login-page">
 
-<!-- =========================================================
-     AUTH SCREEN
-========================================================= -->
+    <div class="login-card">
 
-<div id="authScreen">
-
-  <div class="auth-card">
-
-    <div class="logo">🐐</div>
-
-    <div class="auth-title">
-      Goat Farm Manager
-    </div>
-
-    <div class="auth-subtitle">
-      ছাগল, টিকা ও খরচ ব্যবস্থাপনা
-    </div>
-
-    <div class="auth-tabs">
-
-      <button
-        class="auth-tab active"
-        id="loginTab"
-        onclick="showAuthMode('login')">
-        Login
-      </button>
-
-      <button
-        class="auth-tab"
-        id="signupTab"
-        onclick="showAuthMode('signup')">
-        Create Account
-      </button>
-
-    </div>
-
-
-    <!-- LOGIN -->
-
-    <form id="loginForm">
-
-      <div class="form-group">
-        <label>Email</label>
-        <input
-          type="email"
-          id="loginEmail"
-          placeholder="আপনার email"
-          required>
-      </div>
-
-      <div class="form-group">
-        <label>Password</label>
-        <input
-          type="password"
-          id="loginPassword"
-          placeholder="Password"
-          required>
-      </div>
-
-      <button class="primary-btn" type="submit">
-        Login
-      </button>
-
-    </form>
-
-
-    <!-- SIGN UP -->
-
-    <form id="signupForm" class="hidden">
-
-      <div class="form-group">
-        <label>Email</label>
-        <input
-          type="email"
-          id="signupEmail"
-          placeholder="Email"
-          required>
-      </div>
-
-      <div class="form-group">
-        <label>Password</label>
-        <input
-          type="password"
-          id="signupPassword"
-          placeholder="কমপক্ষে ৬ অক্ষর"
-          minlength="6"
-          required>
-      </div>
-
-      <button class="primary-btn" type="submit">
-        Create Account
-      </button>
-
-    </form>
-
-    <div id="authMessage" class="message"></div>
-
-  </div>
-
-</div>
-
-
-<!-- =========================================================
-     APP
-========================================================= -->
-
-<div id="app" class="hidden">
-
-  <header class="topbar">
-
-    <div class="brand">
-      🐐 Goat Farm Manager
-    </div>
-
-    <div class="user-area">
-
-      <span
-        class="user-email"
-        id="userEmail">
-      </span>
-
-      <button
-        class="logout-btn"
-        onclick="logout()">
-        Logout
-      </button>
-
-    </div>
-
-  </header>
-
-
-  <div class="layout">
-
-    <!-- SIDEBAR -->
-
-    <aside class="sidebar">
-
-      <button
-        class="nav-btn active"
-        onclick="showPage('dashboard', this)">
-        🏠 Dashboard
-      </button>
-
-      <button
-        class="nav-btn"
-        onclick="showPage('goats', this)">
-        🐐 আমার ছাগল
-      </button>
-
-      <button
-        class="nav-btn"
-        onclick="showPage('addGoat', this)">
-        ➕ নতুন ছাগল
-      </button>
-
-      <button
-        class="nav-btn"
-        onclick="showPage('vaccines', this)">
-        💉 টিকা
-      </button>
-
-      <button
-        class="nav-btn"
-        onclick="showPage('expenses', this)">
-        💰 খরচ
-      </button>
-
-      <button
-        class="nav-btn"
-        onclick="showPage('reports', this)">
-        📊 মাসিক রিপোর্ট
-      </button>
-
-    </aside>
-
-
-    <!-- CONTENT -->
-
-    <main class="content">
-
-
-      <!-- =====================================================
-           DASHBOARD
-      ====================================================== -->
-
-      <section
-        id="dashboard"
-        class="page active">
-
-        <h1 class="page-title">
-          Dashboard
-        </h1>
-
-        <p class="page-subtitle">
-          আপনার খামারের বর্তমান অবস্থা
-        </p>
-
-
-        <div class="stats-grid">
-
-          <div class="stat-card">
-            <div class="stat-icon">🐐</div>
-            <div class="stat-label">
-              মোট ছাগল
-            </div>
-            <div
-              class="stat-value"
-              id="statGoats">
-              0
-            </div>
-          </div>
-
-
-          <div class="stat-card">
-            <div class="stat-icon">💉</div>
-            <div class="stat-label">
-              সম্পন্ন টিকা
-            </div>
-            <div
-              class="stat-value"
-              id="statVaccines">
-              0
-            </div>
-          </div>
-
-
-          <div class="stat-card">
-            <div class="stat-icon">⏳</div>
-            <div class="stat-label">
-              বাকি টিকা
-            </div>
-            <div
-              class="stat-value"
-              id="statPending">
-              0
-            </div>
-          </div>
-
-
-          <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-label">
-              এই মাসের খরচ
-            </div>
-            <div
-              class="stat-value"
-              id="statExpense">
-              ৳0
-            </div>
-          </div>
-
+        <div class="logo">
+            <div class="logo-icon">🐐🌾</div>
+            <h1>পূর্ববঙ্গ কৃষি কেন্দ্র</h1>
+            <p>ছাগল ও কৃষি ব্যবস্থাপনা</p>
         </div>
 
-
-        <div class="section-card">
-
-          <div class="section-title">
-            🐐 সাম্প্রতিক ছাগল
-          </div>
-
-          <div
-            id="recentGoats"
-            class="table-wrapper">
-          </div>
-
-        </div>
-
-
-        <div class="section-card">
-
-          <div class="section-title">
-            💉 সাম্প্রতিক টিকা
-          </div>
-
-          <div
-            id="recentVaccinations"
-            class="table-wrapper">
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =====================================================
-           GOATS
-      ====================================================== -->
-
-      <section
-        id="goats"
-        class="page">
-
-        <h1 class="page-title">
-          আমার ছাগল
-        </h1>
-
-        <p class="page-subtitle">
-          আপনার সব ছাগলের তালিকা
-        </p>
-
-        <div class="section-card">
-
-          <div class="report-controls">
-
-            <input
-              type="search"
-              id="goatSearch"
-              placeholder="নাম / ID / জাত দিয়ে খুঁজুন..."
-              oninput="renderGoats()">
-
-            <button
-              class="secondary-btn"
-              onclick="showPageById('addGoat')">
-              + নতুন ছাগল
+        <div class="tabs">
+            <button id="loginTab" class="active" onclick="showLoginForm()">
+                Login
             </button>
 
-          </div>
-
-          <div
-            id="goatTable"
-            class="table-wrapper">
-          </div>
-
+            <button id="signupTab" onclick="showSignupForm()">
+                Create Account
+            </button>
         </div>
 
-      </section>
+        <div id="authMessage"></div>
 
+        <!-- LOGIN -->
 
-      <!-- =====================================================
-           ADD GOAT
-      ====================================================== -->
+        <form id="loginForm">
 
-      <section
-        id="addGoat"
-        class="page">
-
-        <h1 class="page-title">
-          নতুন ছাগল Entry
-        </h1>
-
-        <p class="page-subtitle">
-          নতুন ছাগলের তথ্য সংরক্ষণ করুন
-        </p>
-
-
-        <div class="section-card">
-
-          <form id="goatForm">
-
-            <div class="form-grid">
-
-              <div class="form-group">
-
-                <label>
-                  ছাগলের ID *
-                </label>
-
+            <div class="form-group">
+                <label>ই-মেইল</label>
                 <input
-                  type="text"
-                  id="goatTag"
-                  placeholder="যেমন: G-001"
-                  required>
+                    id="loginEmail"
+                    type="email"
+                    placeholder="আপনার ই-মেইল"
+                    required
+                >
+            </div>
 
-              </div>
-
-
-              <div class="form-group">
-
-                <label>
-                  ছাগলের নাম
-                </label>
-
+            <div class="form-group">
+                <label>পাসওয়ার্ড</label>
                 <input
-                  type="text"
-                  id="goatName"
-                  placeholder="যেমন: কালু">
+                    id="loginPassword"
+                    type="password"
+                    placeholder="পাসওয়ার্ড"
+                    required
+                >
+            </div>
 
-              </div>
+            <button class="primary-btn" type="submit">
+                🔐 Login
+            </button>
+
+            <div class="small-link" onclick="showForgotForm()">
+                পাসওয়ার্ড ভুলে গেছেন?
+            </div>
+
+        </form>
 
 
-              <div class="form-group">
+        <!-- SIGNUP -->
 
-                <label>
-                  জাত *
-                </label>
+        <form id="signupForm" class="hidden">
 
+            <div class="form-group">
+                <label>ই-মেইল</label>
                 <input
-                  type="text"
-                  id="goatBreed"
-                  list="breedSuggestions"
-                  placeholder="জাত লিখুন"
-                  required>
+                    id="signupEmail"
+                    type="email"
+                    placeholder="ই-মেইল"
+                    required
+                >
+            </div>
 
-                <datalist id="breedSuggestions">
-
-                  <option value="Black Bengal">
-                  <option value="Jamunapari">
-                  <option value="Boer">
-                  <option value="Beetal">
-                  <option value="Cross Breed">
-                  <option value="Local">
-                  <option value="Other">
-
-                </datalist>
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label>
-                  লিঙ্গ
-                </label>
-
-                <select id="goatGender">
-
-                  <option value="Male">
-                    পুরুষ
-                  </option>
-
-                  <option value="Female">
-                    স্ত্রী
-                  </option>
-
-                </select>
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label>
-                  জন্ম তারিখ
-                </label>
-
+            <div class="form-group">
+                <label>পাসওয়ার্ড</label>
                 <input
-                  type="date"
-                  id="goatBirthDate">
+                    id="signupPassword"
+                    type="password"
+                    placeholder="কমপক্ষে ৬ অক্ষর"
+                    minlength="6"
+                    required
+                >
+            </div>
 
-              </div>
-
-
-              <div class="form-group">
-
-                <label>
-                  কেনার তারিখ
-                </label>
-
+            <div class="form-group">
+                <label>Confirm Password</label>
                 <input
-                  type="date"
-                  id="goatPurchaseDate">
+                    id="signupConfirm"
+                    type="password"
+                    placeholder="আবার পাসওয়ার্ড দিন"
+                    minlength="6"
+                    required
+                >
+            </div>
 
-              </div>
+            <button class="primary-btn" type="submit">
+                👤 Create Account
+            </button>
+
+        </form>
 
 
-              <div class="form-group">
+        <!-- FORGOT -->
 
-                <label>
-                  কেনার দাম
-                </label>
+        <form id="forgotForm" class="hidden">
 
+            <div class="form-group">
+                <label>ই-মেইল</label>
                 <input
-                  type="number"
-                  id="goatPurchasePrice"
-                  min="0"
-                  placeholder="৳">
+                    id="forgotEmail"
+                    type="email"
+                    placeholder="আপনার ই-মেইল"
+                    required
+                >
+            </div>
 
-              </div>
+            <button class="primary-btn" type="submit">
+                📩 Reset Password
+            </button>
 
+            <div class="small-link" onclick="showLoginForm()">
+                ← Login-এ ফিরে যান
+            </div>
 
-              <div class="form-group">
+        </form>
 
-                <label>
-                  বর্তমান ওজন (kg)
-                </label>
+    </div>
 
-                <input
-                  type="number"
-                  step="0.1"
-                  id="goatWeight"
-                  min="0"
-                  placeholder="kg">
-
-              </div>
+</section>
 
 
-              <div class="form-group full">
 
-                <label>
-                  নোট
-                </label>
+<!-- =====================================================
+     MAIN APP
+===================================================== -->
 
-                <textarea
-                  id="goatNotes"
-                  placeholder="অতিরিক্ত তথ্য..."></textarea>
+<section id="app" class="app hidden">
 
-              </div>
+    <header class="topbar">
+
+        <div class="brand">
+            <div class="brand-icon">🐐</div>
+
+            <div class="brand-text">
+                <h1>পূর্ববঙ্গ কৃষি কেন্দ্র</h1>
+                <small>কৃষি ও ছাগল ব্যবস্থাপনা</small>
+            </div>
+        </div>
+
+        <button
+            class="notification-btn"
+            onclick="toggleNotifications()"
+        >
+            🔔
+            <span
+                id="notificationCount"
+                class="notification-count hidden"
+            >0</span>
+        </button>
+
+    </header>
+
+
+    <!-- NOTIFICATION PANEL -->
+
+    <div
+        id="notificationPanel"
+        class="notification-panel hidden"
+    >
+
+        <div class="notification-header">
+            <strong>🔔 টিকা Notification</strong>
+
+            <button
+                onclick="toggleNotifications()"
+                style="border:0;background:transparent;color:white;font-size:20px"
+            >
+                ×
+            </button>
+        </div>
+
+        <div id="notificationList"></div>
+
+    </div>
+
+
+    <main class="container">
+
+
+        <!-- NAV -->
+
+        <nav class="nav">
+
+            <button
+                id="navDashboard"
+                class="active"
+                onclick="showSection('dashboard')"
+            >
+                🏠 Dashboard
+            </button>
+
+            <button
+                id="navGoats"
+                onclick="showSection('goats')"
+            >
+                🐐 ছাগল
+            </button>
+
+            <button
+                id="navVaccines"
+                onclick="showSection('vaccines')"
+            >
+                💉 টিকা
+            </button>
+
+            <button
+                id="navExpenses"
+                onclick="showSection('expenses')"
+            >
+                💰 খরচ
+            </button>
+
+            <button
+                id="navReports"
+                onclick="showSection('reports')"
+            >
+                📊 রিপোর্ট
+            </button>
+
+            <button
+                id="navLand"
+                onclick="showSection('land')"
+            >
+                🌱 জমি
+            </button>
+
+        </nav>
+
+
+
+        <!-- =================================================
+             DASHBOARD
+        ================================================= -->
+
+        <section id="dashboardSection">
+
+            <div class="stats">
+
+                <div class="stat">
+                    <div class="stat-icon">🐐</div>
+                    <div id="statGoats" class="stat-value">0</div>
+                    <div class="stat-label">মোট ছাগল</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-icon">💉</div>
+                    <div id="statVaccines" class="stat-value">0</div>
+                    <div class="stat-label">বাকি টিকা</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-icon">💰</div>
+                    <div id="statExpense" class="stat-value">৳0</div>
+                    <div class="stat-label">এই মাসের খরচ</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-icon">🌱</div>
+                    <div id="statLand" class="stat-value">0</div>
+                    <div class="stat-label">জমি</div>
+                </div>
 
             </div>
 
 
-            <button
-              class="primary-btn"
-              type="submit">
+            <!-- NOTIFICATION -->
 
-              🐐 ছাগল Save করুন
+            <div class="card">
 
-            </button>
+                <h2>🔔 টিকার Notification</h2>
 
-          </form>
-
-          <div
-            id="goatMessage"
-            class="message">
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =====================================================
-           VACCINES
-      ====================================================== -->
-
-      <section
-        id="vaccines"
-        class="page">
-
-        <h1 class="page-title">
-          💉 টিকা ব্যবস্থাপনা
-        </h1>
-
-        <p class="page-subtitle">
-          যে ছাগলের যে টিকা দেওয়া হয়নি, সেই টিকা এখানে দেখা যাবে।
-        </p>
-
-
-        <div class="section-card">
-
-          <div class="section-title">
-            টিকা দেওয়ার জন্য ছাগল
-          </div>
-
-          <div
-            id="vaccinationCards"
-            class="vaccine-grid">
-          </div>
-
-        </div>
-
-
-        <div class="section-card">
-
-          <div class="section-title">
-            💉 টিকা History
-          </div>
-
-          <div
-            id="vaccinationHistory"
-            class="table-wrapper">
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =====================================================
-           EXPENSES
-      ====================================================== -->
-
-      <section
-        id="expenses"
-        class="page">
-
-        <h1 class="page-title">
-          💰 খরচ
-        </h1>
-
-        <p class="page-subtitle">
-          খামারের বিভিন্ন খরচ সংরক্ষণ করুন
-        </p>
-
-
-        <div class="section-card">
-
-          <form id="expenseForm">
-
-            <div class="form-grid">
-
-              <div class="form-group">
-
-                <label>
-                  তারিখ *
-                </label>
-
-                <input
-                  type="date"
-                  id="expenseDate"
-                  required>
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label>
-                  খরচের ধরন *
-                </label>
-
-                <input
-                  type="text"
-                  id="expenseCategory"
-                  list="expenseSuggestions"
-                  placeholder="যেমন: খাবার"
-                  required>
-
-                <datalist id="expenseSuggestions">
-
-                  <option value="খাবার">
-                  <option value="ঘাস">
-                  <option value="ওষুধ">
-                  <option value="টিকা">
-                  <option value="ভেটেরিনারি">
-                  <option value="শ্রমিক">
-                  <option value="পরিবহন">
-                  <option value="বিদ্যুৎ">
-                  <option value="পানি">
-                  <option value="ঘর মেরামত">
-                  <option value="অন্যান্য">
-
-                </datalist>
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label>
-                  Amount *
-                </label>
-
-                <input
-                  type="number"
-                  id="expenseAmount"
-                  min="0"
-                  step="0.01"
-                  placeholder="৳"
-                  required>
-
-              </div>
-
-
-              <div class="form-group">
-
-                <label>
-                  কোন ছাগলের জন্য
-                </label>
-
-                <select id="expenseGoat">
-
-                  <option value="">
-                    সকল / সাধারণ খরচ
-                  </option>
-
-                </select>
-
-              </div>
-
-
-              <div class="form-group full">
-
-                <label>
-                  বিবরণ
-                </label>
-
-                <textarea
-                  id="expenseDescription"
-                  placeholder="খরচের বিস্তারিত..."></textarea>
-
-              </div>
+                <div id="dashboardNotifications"></div>
 
             </div>
 
 
+            <!-- RECENT GOATS -->
+
+            <div class="card">
+
+                <h2>🐐 সাম্প্রতিক ছাগল</h2>
+
+                <div id="recentGoats"></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             GOATS
+        ================================================= -->
+
+        <section id="goatsSection" class="hidden">
+
+            <div class="card">
+
+                <h2>🐐 নতুন ছাগল Entry</h2>
+
+                <form id="goatForm">
+
+                    <div class="grid">
+
+                        <div class="form-group">
+                            <label>ছাগলের ID *</label>
+                            <input
+                                id="goatTag"
+                                required
+                                placeholder="যেমন: মদনা-০২"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label>ছাগলের নাম</label>
+                            <input
+                                id="goatName"
+                                placeholder="নাম"
+                            >
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>জাত *</label>
+
+                            <input
+                                id="goatBreed"
+                                list="breedList"
+                                required
+                                placeholder="জাত লিখুন"
+                            >
+
+                            <datalist id="breedList">
+                                <option value="Black Bengal">
+                                <option value="Jamunapari">
+                                <option value="Beetal">
+                                <option value="Sirohi">
+                                <option value="Boer">
+                                <option value="Cross Breed">
+                            </datalist>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>লিঙ্গ</label>
+
+                            <select id="goatGender">
+
+                                <option value="">
+                                    নির্বাচন করুন
+                                </option>
+
+                                <option value="Male">
+                                    পুরুষ
+                                </option>
+
+                                <option value="Female">
+                                    স্ত্রী
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>জন্ম তারিখ</label>
+
+                            <input
+                                id="birthDate"
+                                type="date"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>ক্রয়ের তারিখ</label>
+
+                            <input
+                                id="purchaseDate"
+                                type="date"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>ক্রয় মূল্য</label>
+
+                            <input
+                                id="purchasePrice"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="৳"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>ওজন (কেজি)</label>
+
+                            <input
+                                id="weight"
+                                type="number"
+                                min="0"
+                                step="0.1"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group full">
+
+                            <label>নোট</label>
+
+                            <textarea
+                                id="goatNotes"
+                                rows="3"
+                                placeholder="ছাগল সম্পর্কে নোট"
+                            ></textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    <hr style="border:0;border-top:1px solid #e6ece7;margin:20px 0">
+
+
+                    <h2 style="font-size:17px">
+                        💉 টিকার সম্ভাব্য তারিখ
+                    </h2>
+
+                    <p style="color:#777;font-size:13px;margin-bottom:12px">
+                        ছাগল Entry করার সময় যেসব টিকার সম্ভাব্য তারিখ জানা আছে,
+                        সেগুলো এখানে দিন।
+                    </p>
+
+
+                    <div id="scheduleRows"></div>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-gray"
+                        onclick="addScheduleRow()"
+                    >
+                        + আরও টিকা যোগ করুন
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        class="primary-btn"
+                        style="margin-top:18px"
+                    >
+                        🐐 ছাগল সংরক্ষণ করুন
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2>🐐 ছাগলের তালিকা</h2>
+
+                <div id="goatList" class="goat-list"></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             VACCINES
+        ================================================= -->
+
+        <section id="vaccinesSection" class="hidden">
+
+            <div class="card">
+
+                <h2>💉 টিকা দেওয়ার তালিকা</h2>
+
+                <p style="color:#777;font-size:13px;margin-bottom:15px">
+                    সম্ভাব্য তারিখের কাছাকাছি ৭ দিনের টিকা এখানে দেখা যাবে।
+                </p>
+
+                <div id="vaccineList"></div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2>📋 টিকা দেওয়ার ইতিহাস</h2>
+
+                <div id="vaccineHistory"></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             EXPENSES
+        ================================================= -->
+
+        <section id="expensesSection" class="hidden">
+
+            <div class="card">
+
+                <h2>💰 নতুন খরচ</h2>
+
+                <form id="expenseForm">
+
+                    <div class="grid">
+
+                        <div class="form-group">
+
+                            <label>খরচের ধরন *</label>
+
+                            <input
+                                id="expenseCategory"
+                                list="expenseList"
+                                required
+                                placeholder="খরচের ধরন"
+                            >
+
+                            <datalist id="expenseList">
+                                <option value="খাদ্য">
+                                <option value="ঘাস">
+                                <option value="ওষুধ">
+                                <option value="টিকা">
+                                <option value="চিকিৎসা">
+                                <option value="শ্রমিক">
+                                <option value="জমি">
+                                <option value="পরিবহন">
+                                <option value="অন্যান্য">
+                            </datalist>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>পরিমাণ *</label>
+
+                            <input
+                                id="expenseAmount"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                required
+                                placeholder="৳"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>তারিখ *</label>
+
+                            <input
+                                id="expenseDate"
+                                type="date"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>ছাগল</label>
+
+                            <select id="expenseGoat">
+
+                                <option value="">
+                                    সকল / নির্দিষ্ট নয়
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group full">
+
+                            <label>বিবরণ</label>
+
+                            <textarea
+                                id="expenseDescription"
+                                rows="3"
+                                placeholder="খরচের বিস্তারিত"
+                            ></textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        class="primary-btn"
+                        type="submit"
+                    >
+                        💰 খরচ সংরক্ষণ করুন
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2>সাম্প্রতিক খরচ</h2>
+
+                <div id="expenseHistory"></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             REPORTS
+        ================================================= -->
+
+        <section id="reportsSection" class="hidden">
+
+            <div class="card">
+
+                <h2>📊 মাসিক বিস্তারিত রিপোর্ট</h2>
+
+                <div class="form-group">
+
+                    <label>মাস নির্বাচন করুন</label>
+
+                    <input
+                        id="reportMonth"
+                        type="month"
+                    >
+
+                </div>
+
+                <div
+                    id="reportTotal"
+                    class="report-total"
+                >
+                    ৳0
+                </div>
+
+                <div id="categoryReport"></div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2>📋 বিস্তারিত খরচ</h2>
+
+                <div
+                    id="monthlyExpenseTable"
+                    class="table-wrap"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             LAND
+        ================================================= -->
+
+        <section id="landSection" class="hidden">
+
+            <div class="card">
+
+                <h2>🌱 জমির তথ্য</h2>
+
+                <form id="landForm">
+
+                    <div class="grid">
+
+                        <div class="form-group">
+
+                            <label>জমির নাম *</label>
+
+                            <input
+                                id="landName"
+                                required
+                                placeholder="যেমন: উত্তর জমি"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>পরিমাণ</label>
+
+                            <input
+                                id="landArea"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>একক</label>
+
+                            <select id="landUnit">
+
+                                <option value="শতাংশ">
+                                    শতাংশ
+                                </option>
+
+                                <option value="বিঘা">
+                                    বিঘা
+                                </option>
+
+                                <option value="একর">
+                                    একর
+                                </option>
+
+                                <option value="কাঠা">
+                                    কাঠা
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>ফসল</label>
+
+                            <input
+                                id="landCrop"
+                                placeholder="ফসল"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group full">
+
+                            <label>নোট</label>
+
+                            <textarea
+                                id="landNotes"
+                                rows="3"
+                            ></textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        class="primary-btn"
+                        type="submit"
+                    >
+                        🌱 জমি সংরক্ষণ করুন
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2>🌱 জমির তালিকা</h2>
+
+                <div id="landList"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SMALL LOGOUT
+        ================================================= -->
+
+        <div class="logout-area">
+
             <button
-              class="primary-btn"
-              type="submit">
-
-              💰 খরচ Save করুন
-
+                class="logout-btn"
+                onclick="logout()"
+            >
+                ↪ Logout
             </button>
 
-          </form>
-
-          <div
-            id="expenseMessage"
-            class="message">
-          </div>
-
         </div>
-
-
-        <div class="section-card">
-
-          <div class="section-title">
-            সাম্প্রতিক খরচ
-          </div>
-
-          <div
-            id="expenseTable"
-            class="table-wrapper">
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =====================================================
-           REPORT
-      ====================================================== -->
-
-      <section
-        id="reports"
-        class="page">
-
-        <h1 class="page-title">
-          📊 মাসিক বিস্তারিত রিপোর্ট
-        </h1>
-
-        <p class="page-subtitle">
-          মাস অনুযায়ী মোট খরচ ও বিস্তারিত হিসাব
-        </p>
-
-
-        <div class="section-card">
-
-          <div class="report-controls">
-
-            <select id="reportMonth">
-
-              <option value="0">
-                জানুয়ারি
-              </option>
-
-              <option value="1">
-                ফেব্রুয়ারি
-              </option>
-
-              <option value="2">
-                মার্চ
-              </option>
-
-              <option value="3">
-                এপ্রিল
-              </option>
-
-              <option value="4">
-                মে
-              </option>
-
-              <option value="5">
-                জুন
-              </option>
-
-              <option value="6">
-                জুলাই
-              </option>
-
-              <option value="7">
-                আগস্ট
-              </option>
-
-              <option value="8">
-                সেপ্টেম্বর
-              </option>
-
-              <option value="9">
-                অক্টোবর
-              </option>
-
-              <option value="10">
-                নভেম্বর
-              </option>
-
-              <option value="11">
-                ডিসেম্বর
-              </option>
-
-            </select>
-
-
-            <select id="reportYear"></select>
-
-
-            <button
-              class="secondary-btn"
-              onclick="generateReport()">
-
-              রিপোর্ট দেখুন
-
-            </button>
-
-          </div>
-
-
-          <div class="total-box">
-
-            <small>
-              নির্বাচিত মাসের মোট খরচ
-            </small>
-
-            <strong id="reportTotal">
-              ৳0
-            </strong>
-
-          </div>
-
-
-          <div class="section-title">
-            খরচের বিস্তারিত
-          </div>
-
-          <div
-            id="reportTable"
-            class="table-wrapper">
-          </div>
-
-        </div>
-
-      </section>
 
     </main>
 
-  </div>
-
-</div>
+</section>
 
 
-<!-- =========================================================
+
+<!-- =====================================================
      VACCINE MODAL
-========================================================= -->
+===================================================== -->
 
 <div
-  id="vaccineModal"
-  class="modal-overlay">
+    id="vaccineModal"
+    class="modal hidden"
+>
 
-  <div class="modal">
+    <div class="modal-card">
 
-    <div class="modal-header">
+        <div class="modal-header">
 
-      <h3>
-        💉 টিকা দিন
-      </h3>
+            <h2>💉 টিকা দিন</h2>
 
-      <button
-        class="close-btn"
-        onclick="closeVaccineModal()">
-        ×
-      </button>
+            <button
+                class="close-btn"
+                onclick="closeVaccineModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div id="vaccineModalInfo"></div>
+
+
+        <form id="giveVaccineForm">
+
+            <input
+                type="hidden"
+                id="selectedScheduleId"
+            >
+
+            <div class="form-group">
+
+                <label>টিকার নাম</label>
+
+                <input
+                    id="givenVaccineName"
+                    readonly
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>কোন কোম্পানির টিকা *</label>
+
+                <input
+                    id="vaccineCompany"
+                    required
+                    placeholder="কোম্পানির নাম"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>টিকা দেওয়ার তারিখ *</label>
+
+                <input
+                    id="vaccinationDate"
+                    type="date"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>টিকার খরচ</label>
+
+                <input
+                    id="vaccineCost"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value="0"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>নোট</label>
+
+                <textarea
+                    id="vaccineNotes"
+                    rows="3"
+                    placeholder="কোনো নোট থাকলে লিখুন"
+                ></textarea>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary-btn"
+            >
+                💉 টিকা দেওয়া হয়েছে
+            </button>
+
+        </form>
 
     </div>
 
-
-    <form id="vaccineForm">
-
-      <input
-        type="hidden"
-        id="vaccineGoatId">
-
-      <input
-        type="hidden"
-        id="vaccineName">
-
-
-      <div
-        class="form-group">
-
-        <label>
-          ছাগল
-        </label>
-
-        <input
-          type="text"
-          id="vaccineGoatDisplay"
-          readonly>
-
-      </div>
-
-
-      <div
-        class="form-group">
-
-        <label>
-          টিকার নাম
-        </label>
-
-        <input
-          type="text"
-          id="vaccineNameDisplay"
-          readonly>
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>
-          কোন কোম্পানির টিকা *
-        </label>
-
-        <input
-          type="text"
-          id="vaccineCompany"
-          list="companySuggestions"
-          placeholder="কোম্পানির নাম"
-          required>
-
-        <datalist id="companySuggestions">
-
-          <option value="ACI">
-          <option value="Square">
-          <option value="Renata">
-          <option value="Opsonin">
-          <option value="Incepta">
-          <option value="Other">
-
-        </datalist>
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>
-          টিকা দেওয়ার তারিখ *
-        </label>
-
-        <input
-          type="date"
-          id="vaccineDate"
-          required>
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>
-          টিকার খরচ
-        </label>
-
-        <input
-          type="number"
-          id="vaccineCost"
-          min="0"
-          step="0.01"
-          placeholder="৳">
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>
-          নোট
-        </label>
-
-        <textarea
-          id="vaccineNotes"
-          placeholder="কোনো নোট..."></textarea>
-
-      </div>
-
-
-      <button
-        type="submit"
-        class="primary-btn">
-
-        💉 টিকা দেওয়া হয়েছে
-
-      </button>
-
-    </form>
-
-  </div>
-
 </div>
+
 
 
 <script>
 
 /* =========================================================
-   SUPABASE CONFIG
+   SUPABASE
 ========================================================= */
 
 const SUPABASE_URL =
-  "https://dvipyiszjnnnohynfkor.supabase.co";
+"https://dvipyiszjnnnohynfkor.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_uTjl3A6mVHDr5jK0659QbQ_eWtYajMG";
-
+"sb_publishable_uTjl3A6mVHDr5jK0659QbQ_eWtYajMG";
 
 const supabaseClient =
-  window.supabase.createClient(
+window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_PUBLISHABLE_KEY
-  );
+);
 
 
 /* =========================================================
-   GLOBAL DATA
+   DATA
 ========================================================= */
+
+let goats = [];
+let schedules = [];
+let vaccinations = [];
+let expenses = [];
+let lands = [];
 
 let currentUser = null;
 
-let goats = [];
-
-let vaccinations = [];
-
-let expenses = [];
-
-
-/*
-  Default vaccine list.
-
-  নতুন vaccine চাইলে এখানে শুধু নাম যোগ করলেই
-  system সেটি দেখাবে।
-*/
-
-const DEFAULT_VACCINES = [
-
-  {
-    name: "PPR",
-    description: "Peste des petits ruminants vaccine"
-  },
-
-  {
-    name: "FMD",
-    description: "Foot and Mouth Disease vaccine"
-  },
-
-  {
-    name: "Goat Pox",
-    description: "Goat Pox vaccine"
-  },
-
-  {
-    name: "Enterotoxaemia",
-    description: "Enterotoxaemia vaccine"
-  }
-
-];
-
 
 /* =========================================================
-   UTILITIES
+   HELPERS
 ========================================================= */
 
-function showLoading(show = true) {
+function todayISO(){
 
-  const loading =
-    document.getElementById("loading");
+    const d = new Date();
 
-  if (show) {
-    loading.classList.add("show");
-  } else {
-    loading.classList.remove("show");
-  }
+    const y = d.getFullYear();
 
+    const m = String(d.getMonth()+1).padStart(2,"0");
+
+    const day = String(d.getDate()).padStart(2,"0");
+
+    return `${y}-${m}-${day}`;
 }
 
 
-function escapeHTML(value) {
+function monthISO(){
 
-  if (value === null || value === undefined) {
-    return "";
-  }
+    const d = new Date();
 
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    const y = d.getFullYear();
+
+    const m = String(d.getMonth()+1).padStart(2,"0");
+
+    return `${y}-${m}`;
 }
 
 
-function formatMoney(value) {
+function money(value){
 
-  const number =
-    Number(value || 0);
-
-  return "৳" +
-    number.toLocaleString("en-BD", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    });
-
+    return "৳" +
+        Number(value || 0).toLocaleString(
+            "en-BD",
+            {
+                maximumFractionDigits:2
+            }
+        );
 }
 
 
-function formatDate(date) {
+function escapeHTML(value){
 
-  if (!date) return "-";
-
-  const d = new Date(date);
-
-  if (Number.isNaN(d.getTime())) {
-    return date;
-  }
-
-  return d.toLocaleDateString(
-    "en-GB"
-  );
-
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 }
 
 
-function today() {
+function dateText(value){
 
-  const d = new Date();
+    if(!value) return "";
 
-  const year =
-    d.getFullYear();
+    const parts = value.split("-");
 
-  const month =
-    String(d.getMonth() + 1)
-      .padStart(2, "0");
+    if(parts.length !== 3) return value;
 
-  const day =
-    String(d.getDate())
-      .padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 
-function showMessage(
-  elementId,
-  message,
-  type = "success"
-) {
+function daysFromToday(date){
 
-  const el =
-    document.getElementById(elementId);
+    const a = new Date(todayISO()+"T00:00:00");
 
-  el.textContent = message;
+    const b = new Date(date+"T00:00:00");
 
-  el.className =
-    "message " + type;
+    return Math.round(
+        (b-a)/(1000*60*60*24)
+    );
+}
 
-  setTimeout(() => {
 
-    el.className = "message";
+function showMessage(text,type="error"){
 
-  }, 5000);
+    const box =
+        document.getElementById("authMessage");
+
+    box.innerHTML =
+        `<div class="message ${type}">
+            ${escapeHTML(text)}
+        </div>`;
 
 }
 
 
 /* =========================================================
-   AUTH MODE
+   AUTH UI
 ========================================================= */
 
-function showAuthMode(mode) {
+function showLoginForm(){
 
-  const loginForm =
-    document.getElementById("loginForm");
+    document.getElementById("loginForm")
+        .classList.remove("hidden");
 
-  const signupForm =
-    document.getElementById("signupForm");
+    document.getElementById("signupForm")
+        .classList.add("hidden");
 
-  const loginTab =
-    document.getElementById("loginTab");
+    document.getElementById("forgotForm")
+        .classList.add("hidden");
 
-  const signupTab =
-    document.getElementById("signupTab");
+    document.getElementById("loginTab")
+        .classList.add("active");
 
-  if (mode === "login") {
+    document.getElementById("signupTab")
+        .classList.remove("active");
 
-    loginForm.classList.remove("hidden");
-    signupForm.classList.add("hidden");
+    document.getElementById("authMessage")
+        .innerHTML="";
+}
 
-    loginTab.classList.add("active");
-    signupTab.classList.remove("active");
 
-  } else {
+function showSignupForm(){
 
-    loginForm.classList.add("hidden");
-    signupForm.classList.remove("hidden");
+    document.getElementById("loginForm")
+        .classList.add("hidden");
 
-    loginTab.classList.remove("active");
-    signupTab.classList.add("active");
+    document.getElementById("signupForm")
+        .classList.remove("hidden");
 
-  }
+    document.getElementById("forgotForm")
+        .classList.add("hidden");
 
+    document.getElementById("loginTab")
+        .classList.remove("active");
+
+    document.getElementById("signupTab")
+        .classList.add("active");
+
+    document.getElementById("authMessage")
+        .innerHTML="";
+}
+
+
+function showForgotForm(){
+
+    document.getElementById("loginForm")
+        .classList.add("hidden");
+
+    document.getElementById("signupForm")
+        .classList.add("hidden");
+
+    document.getElementById("forgotForm")
+        .classList.remove("hidden");
+
+    document.getElementById("authMessage")
+        .innerHTML="";
 }
 
 
@@ -1920,354 +1839,226 @@ function showAuthMode(mode) {
    LOGIN
 ========================================================= */
 
-document
-  .getElementById("loginForm")
-  .addEventListener(
-    "submit",
-    async function(event) {
+document.getElementById("loginForm")
+.addEventListener("submit", async function(e){
 
-      event.preventDefault();
+    e.preventDefault();
 
-      const email =
-        document
-          .getElementById("loginEmail")
-          .value
-          .trim();
+    const email =
+        document.getElementById("loginEmail").value.trim();
 
-      const password =
-        document
-          .getElementById("loginPassword")
-          .value;
+    const password =
+        document.getElementById("loginPassword").value;
 
-      showLoading(true);
+    showMessage("Login হচ্ছে...","success");
 
-      const {
-        data,
-        error
-      } =
+    const {error} =
         await supabaseClient.auth.signInWithPassword({
-          email,
-          password
+            email,
+            password
         });
 
-      showLoading(false);
+    if(error){
 
-      if (error) {
-
-        showMessage(
-          "authMessage",
-          error.message,
-          "error"
-        );
+        showMessage(error.message);
 
         return;
-      }
-
-      currentUser =
-        data.user;
-
-      await startApp();
-
     }
-  );
+
+});
 
 
 /* =========================================================
    SIGNUP
 ========================================================= */
 
-document
-  .getElementById("signupForm")
-  .addEventListener(
-    "submit",
-    async function(event) {
+document.getElementById("signupForm")
+.addEventListener("submit", async function(e){
 
-      event.preventDefault();
+    e.preventDefault();
 
-      const email =
-        document
-          .getElementById("signupEmail")
-          .value
-          .trim();
+    const email =
+        document.getElementById("signupEmail").value.trim();
 
-      const password =
-        document
-          .getElementById("signupPassword")
-          .value;
+    const password =
+        document.getElementById("signupPassword").value;
 
-      showLoading(true);
+    const confirm =
+        document.getElementById("signupConfirm").value;
 
-      const {
-        data,
-        error
-      } =
-        await supabaseClient.auth.signUp({
-          email,
-          password
-        });
+    if(password !== confirm){
 
-      showLoading(false);
-
-      if (error) {
-
-        showMessage(
-          "authMessage",
-          error.message,
-          "error"
-        );
+        showMessage("দুইটি password একই নয়।");
 
         return;
-      }
+    }
 
-      if (data.session) {
+    showMessage("Account তৈরি হচ্ছে...","success");
 
-        currentUser =
-          data.user;
+    const {data,error} =
+        await supabaseClient.auth.signUp({
+            email,
+            password
+        });
 
-        await startApp();
+    if(error){
 
-      } else {
+        showMessage(error.message);
+
+        return;
+    }
+
+    if(data.session){
 
         showMessage(
-          "authMessage",
-          "Account তৈরি হয়েছে। Email verification লাগতে পারে।",
-          "success"
+            "Account তৈরি হয়েছে এবং Login হয়েছে।",
+            "success"
         );
 
-      }
+    }else{
 
+        showMessage(
+            "Account তৈরি হয়েছে। ই-মেইল verification প্রয়োজন হলে আপনার ই-মেইল দেখুন।",
+            "success"
+        );
+
+        showLoginForm();
     }
-  );
+
+});
+
+
+/* =========================================================
+   FORGOT PASSWORD
+========================================================= */
+
+document.getElementById("forgotForm")
+.addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const email =
+        document.getElementById("forgotEmail").value.trim();
+
+    const redirect =
+        window.location.origin +
+        window.location.pathname;
+
+    const {error} =
+        await supabaseClient.auth.resetPasswordForEmail(
+            email,
+            {
+                redirectTo: redirect
+            }
+        );
+
+    if(error){
+
+        showMessage(error.message);
+
+        return;
+    }
+
+    showMessage(
+        "Password reset link আপনার ই-মেইলে পাঠানো হয়েছে।",
+        "success"
+    );
+
+});
 
 
 /* =========================================================
    AUTH STATE
 ========================================================= */
 
-async function checkSession() {
+supabaseClient.auth.onAuthStateChange(
+    async (event,session)=>{
 
-  showLoading(true);
+        if(session){
 
-  const {
-    data
-  } =
-    await supabaseClient
-      .auth
-      .getSession();
+            currentUser = session.user;
 
-  showLoading(false);
+            document
+                .getElementById("loginPage")
+                .classList.add("hidden");
 
-  if (data.session) {
+            document
+                .getElementById("app")
+                .classList.remove("hidden");
 
-    currentUser =
-      data.session.user;
+            await loadAll();
 
-    await startApp();
+        }else{
 
-  }
+            currentUser = null;
 
-}
+            document
+                .getElementById("app")
+                .classList.add("hidden");
 
-
-supabaseClient
-  .auth
-  .onAuthStateChange(
-    async (event, session) => {
-
-      if (event === "SIGNED_IN" && session) {
-
-        currentUser =
-          session.user;
-
-      }
-
-      if (event === "SIGNED_OUT") {
-
-        currentUser = null;
-
-        document
-          .getElementById("app")
-          .classList.add("hidden");
-
-        document
-          .getElementById("authScreen")
-          .classList.remove("hidden");
-
-      }
+            document
+                .getElementById("loginPage")
+                .classList.remove("hidden");
+        }
 
     }
-  );
+);
 
 
 /* =========================================================
-   START APP
+   INITIAL SESSION
 ========================================================= */
 
-async function startApp() {
+(async function(){
 
-  document
-    .getElementById("authScreen")
-    .classList.add("hidden");
+    const {data} =
+        await supabaseClient.auth.getSession();
 
-  document
-    .getElementById("app")
-    .classList.remove("hidden");
+    if(data.session){
 
-  document
-    .getElementById("userEmail")
-    .textContent =
-      currentUser?.email || "";
+        currentUser = data.session.user;
 
-  document
-    .getElementById("expenseDate")
-    .value = today();
+        document
+            .getElementById("loginPage")
+            .classList.add("hidden");
 
-  document
-    .getElementById("vaccineDate")
-    .value = today();
+        document
+            .getElementById("app")
+            .classList.remove("hidden");
 
-  setupReportYears();
+        await loadAll();
 
-  await loadAllData();
+    }
 
-}
+})();
 
 
 /* =========================================================
    LOGOUT
 ========================================================= */
 
-async function logout() {
+async function logout(){
 
-  await supabaseClient
-    .auth
-    .signOut();
+    await supabaseClient.auth.signOut();
 
 }
 
 
 /* =========================================================
-   NAVIGATION
+   LOAD ALL
 ========================================================= */
 
-function showPage(
-  pageId,
-  button
-) {
-
-  document
-    .querySelectorAll(".page")
-    .forEach(page => {
-
-      page.classList.remove("active");
-
-    });
-
-
-  document
-    .querySelectorAll(".nav-btn")
-    .forEach(btn => {
-
-      btn.classList.remove("active");
-
-    });
-
-
-  const page =
-    document.getElementById(pageId);
-
-  if (page) {
-    page.classList.add("active");
-  }
-
-
-  if (button) {
-    button.classList.add("active");
-  }
-
-
-  if (pageId === "dashboard") {
-    renderDashboard();
-  }
-
-  if (pageId === "goats") {
-    renderGoats();
-  }
-
-  if (pageId === "vaccines") {
-    renderVaccines();
-    renderVaccinationHistory();
-  }
-
-  if (pageId === "expenses") {
-    renderExpenses();
-    updateExpenseGoatOptions();
-  }
-
-  if (pageId === "reports") {
-    generateReport();
-  }
-
-}
-
-
-function showPageById(pageId) {
-
-  const buttons =
-    document.querySelectorAll(".nav-btn");
-
-  let targetButton = null;
-
-  buttons.forEach(btn => {
-
-    if (
-      btn
-        .getAttribute("onclick")
-        ?.includes(`'${pageId}'`)
-    ) {
-      targetButton = btn;
-    }
-
-  });
-
-  showPage(
-    pageId,
-    targetButton
-  );
-
-}
-
-
-/* =========================================================
-   LOAD DATA
-========================================================= */
-
-async function loadAllData() {
-
-  showLoading(true);
-
-  try {
+async function loadAll(){
 
     await Promise.all([
-      loadGoats(),
-      loadVaccinations(),
-      loadExpenses()
+        loadGoats(),
+        loadSchedules(),
+        loadVaccinations(),
+        loadExpenses(),
+        loadLand()
     ]);
 
-    renderDashboard();
-    renderGoats();
-    renderVaccines();
-    renderVaccinationHistory();
-    renderExpenses();
-    updateExpenseGoatOptions();
-
-  } catch (error) {
-
-    console.error(error);
-
-  }
-
-  showLoading(false);
+    renderAll();
 
 }
 
@@ -2276,518 +2067,572 @@ async function loadAllData() {
    GOATS
 ========================================================= */
 
-async function loadGoats() {
+async function loadGoats(){
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("goats")
-      .select("*")
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      );
+    const {data,error} =
+        await supabaseClient
+        .from("goats")
+        .select("*")
+        .order("created_at",{ascending:false});
 
-  if (error) {
+    if(error){
 
-    console.error(
-      "Goats load error:",
-      error
-    );
+        console.error(error);
 
-    goats = [];
+        return;
+    }
 
-    return;
-
-  }
-
-  goats = data || [];
+    goats = data || [];
 
 }
 
 
-document
-  .getElementById("goatForm")
-  .addEventListener(
-    "submit",
-    saveGoat
-  );
+async function saveGoat(goatData){
 
+    const {data,error} =
+        await supabaseClient
+        .from("goats")
+        .insert(goatData)
+        .select()
+        .single();
 
-async function saveGoat(event) {
+    if(error){
 
-  event.preventDefault();
+        alert(error.message);
 
-  if (!currentUser) return;
+        return null;
+    }
 
-
-  const goat = {
-
-    user_id:
-      currentUser.id,
-
-    tag:
-      document
-        .getElementById("goatTag")
-        .value
-        .trim(),
-
-    name:
-      document
-        .getElementById("goatName")
-        .value
-        .trim(),
-
-    breed:
-      document
-        .getElementById("goatBreed")
-        .value
-        .trim(),
-
-    gender:
-      document
-        .getElementById("goatGender")
-        .value,
-
-    birth_date:
-      document
-        .getElementById("goatBirthDate")
-        .value || null,
-
-    purchase_date:
-      document
-        .getElementById("goatPurchaseDate")
-        .value || null,
-
-    purchase_price:
-      Number(
-        document
-          .getElementById("goatPurchasePrice")
-          .value || 0
-      ),
-
-    weight:
-      Number(
-        document
-          .getElementById("goatWeight")
-          .value || 0
-      ),
-
-    notes:
-      document
-        .getElementById("goatNotes")
-        .value
-        .trim()
-
-  };
-
-
-  showLoading(true);
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("goats")
-      .insert(goat)
-      .select()
-      .single();
-
-
-  showLoading(false);
-
-
-  if (error) {
-
-    console.error(error);
-
-    showMessage(
-      "goatMessage",
-      "ছাগল Save হয়নি: " + error.message,
-      "error"
-    );
-
-    return;
-
-  }
-
-
-  goats.unshift(data);
-
-
-  document
-    .getElementById("goatForm")
-    .reset();
-
-
-  showMessage(
-    "goatMessage",
-    "✅ ছাগল সফলভাবে Save হয়েছে। এখন এটি টিকার তালিকায়ও দেখা যাবে।",
-    "success"
-  );
-
-
-  renderDashboard();
-  renderGoats();
-  renderVaccines();
-  updateExpenseGoatOptions();
-
+    return data;
 }
 
 
 /* =========================================================
-   GOAT TABLE
+   GOAT FORM
 ========================================================= */
 
-function renderGoats() {
+document.getElementById("goatForm")
+.addEventListener("submit", async function(e){
 
-  const container =
-    document.getElementById("goatTable");
+    e.preventDefault();
 
-  const search =
-    document
-      .getElementById("goatSearch")
-      ?.value
-      .trim()
-      .toLowerCase() || "";
+    if(!currentUser){
+
+        alert("আগে Login করুন।");
+
+        return;
+    }
+
+    const goatData = {
+
+        user_id:currentUser.id,
+
+        tag:
+            document.getElementById("goatTag")
+            .value.trim(),
+
+        name:
+            document.getElementById("goatName")
+            .value.trim(),
+
+        breed:
+            document.getElementById("goatBreed")
+            .value.trim(),
+
+        gender:
+            document.getElementById("goatGender")
+            .value || null,
+
+        birth_date:
+            document.getElementById("birthDate")
+            .value || null,
+
+        purchase_date:
+            document.getElementById("purchaseDate")
+            .value || null,
+
+        purchase_price:
+            Number(
+                document.getElementById("purchasePrice")
+                .value || 0
+            ),
+
+        weight:
+            Number(
+                document.getElementById("weight")
+                .value || 0
+            ),
+
+        notes:
+            document.getElementById("goatNotes")
+            .value.trim()
+
+    };
 
 
-  const filtered =
-    goats.filter(goat => {
+    const goat = await saveGoat(goatData);
 
-      const text =
-        `${goat.tag || ""}
-         ${goat.name || ""}
-         ${goat.breed || ""}`
-          .toLowerCase();
+    if(!goat) return;
 
-      return text.includes(search);
+
+    /* SAVE VACCINE SCHEDULES */
+
+    const rows =
+        document.querySelectorAll(".schedule-row");
+
+    const scheduleData=[];
+
+    rows.forEach(row=>{
+
+        const name =
+            row.querySelector(".schedule-name")
+            .value.trim();
+
+        const date =
+            row.querySelector(".schedule-date")
+            .value;
+
+        if(name && date){
+
+            scheduleData.push({
+
+                user_id:currentUser.id,
+
+                goat_id:goat.id,
+
+                vaccine_name:name,
+
+                expected_date:date,
+
+                status:"pending"
+
+            });
+
+        }
 
     });
 
 
-  if (!filtered.length) {
+    if(scheduleData.length){
 
-    container.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">🐐</div>
-        কোনো ছাগল পাওয়া যায়নি।
-      </div>
-    `;
+        const {error} =
+            await supabaseClient
+            .from("vaccine_schedules")
+            .insert(scheduleData);
 
-    return;
+        if(error){
 
-  }
+            console.error(error);
 
-
-  container.innerHTML = `
-
-    <table>
-
-      <thead>
-
-        <tr>
-          <th>ID</th>
-          <th>নাম</th>
-          <th>জাত</th>
-          <th>লিঙ্গ</th>
-          <th>ওজন</th>
-          <th>Entry Date</th>
-          <th>Action</th>
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-        ${filtered.map(goat => `
-
-          <tr>
-
-            <td>
-              <strong>
-                ${escapeHTML(goat.tag)}
-              </strong>
-            </td>
-
-            <td>
-              ${escapeHTML(goat.name || "-")}
-            </td>
-
-            <td>
-              ${escapeHTML(goat.breed || "-")}
-            </td>
-
-            <td>
-              ${goat.gender === "Female"
-                ? "স্ত্রী"
-                : "পুরুষ"}
-            </td>
-
-            <td>
-              ${goat.weight
-                ? escapeHTML(goat.weight) + " kg"
-                : "-"}
-            </td>
-
-            <td>
-              ${formatDate(goat.created_at)}
-            </td>
-
-            <td>
-
-              <button
-                class="danger-btn"
-                onclick="deleteGoat('${goat.id}')">
-                Delete
-              </button>
-
-            </td>
-
-          </tr>
-
-        `).join("")}
-
-      </tbody>
-
-    </table>
-
-  `;
-
-}
-
-
-/* =========================================================
-   DELETE GOAT
-========================================================= */
-
-async function deleteGoat(id) {
-
-  const goat =
-    goats.find(g => g.id == id);
-
-  if (!goat) return;
-
-
-  const ok =
-    confirm(
-      `"${goat.name || goat.tag}" মুছে ফেলবেন?`
-    );
-
-
-  if (!ok) return;
-
-
-  showLoading(true);
-
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("goats")
-      .delete()
-      .eq("id", id);
-
-
-  showLoading(false);
-
-
-  if (error) {
-
-    alert(
-      "Delete হয়নি: " +
-      error.message
-    );
-
-    return;
-
-  }
-
-
-  goats =
-    goats.filter(g => g.id != id);
-
-
-  renderGoats();
-  renderDashboard();
-  renderVaccines();
-  updateExpenseGoatOptions();
-
-}
-
-
-/* =========================================================
-   VACCINATION DATA
-========================================================= */
-
-async function loadVaccinations() {
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("vaccinations")
-      .select("*")
-      .order(
-        "vaccination_date",
-        {
-          ascending: false
+            alert(
+                "ছাগল save হয়েছে, কিন্তু টিকার schedule save হয়নি: "+
+                error.message
+            );
         }
-      );
+
+    }
 
 
-  if (error) {
+    alert("🐐 ছাগল সফলভাবে সংরক্ষণ হয়েছে।");
 
-    console.error(
-      "Vaccination load error:",
-      error
-    );
+    this.reset();
 
-    vaccinations = [];
+    document.getElementById("scheduleRows")
+        .innerHTML="";
 
-    return;
+    addScheduleRow();
 
-  }
+    await loadAll();
 
+    showSection("goats");
 
-  vaccinations = data || [];
-
-}
+});
 
 
 /* =========================================================
-   VACCINE CARDS
+   SCHEDULE ROW
 ========================================================= */
 
-function renderVaccines() {
+function addScheduleRow(
+    vaccineName="",
+    date=""
+){
 
-  const container =
-    document.getElementById(
-      "vaccinationCards"
-    );
+    const container =
+        document.getElementById("scheduleRows");
 
+    const row =
+        document.createElement("div");
 
-  if (!goats.length) {
+    row.className="schedule-row";
 
-    container.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">🐐</div>
-        আগে একটি ছাগল Entry করুন।
-      </div>
-    `;
+    row.innerHTML=`
 
-    return;
+        <div class="form-group">
 
-  }
+            <label>টিকার নাম</label>
 
+            <input
+                class="schedule-name"
+                list="vaccineNameList"
+                value="${escapeHTML(vaccineName)}"
+                placeholder="যেমন FMD"
+            >
 
-  let cards = [];
+        </div>
 
+        <div class="form-group">
 
-  goats.forEach(goat => {
+            <label>সম্ভাব্য তারিখ</label>
 
-    DEFAULT_VACCINES.forEach(vaccine => {
+            <input
+                class="schedule-date"
+                type="date"
+                value="${date}"
+            >
 
-      const alreadyGiven =
-        vaccinations.some(v =>
+        </div>
 
-          String(v.goat_id) === String(goat.id) &&
-          String(v.vaccine_name)
-            .toLowerCase() ===
-          vaccine.name.toLowerCase()
-
-        );
-
-
-      if (!alreadyGiven) {
-
-        cards.push({
-
-          goat,
-          vaccine
-
-        });
-
-      }
-
-    });
-
-  });
-
-
-  if (!cards.length) {
-
-    container.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">✅</div>
-        সব ছাগলের প্রয়োজনীয় টিকা দেওয়া হয়েছে।
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    cards.map(item => `
-
-      <div class="vaccine-card">
-
-        <h4>
-          🐐 ${escapeHTML(
-            item.goat.name ||
-            item.goat.tag
-          )}
-        </h4>
-
-        <p>
-          ID:
-          <strong>
-            ${escapeHTML(item.goat.tag)}
-          </strong>
-        </p>
-
-        <p>
-          জাত:
-          ${escapeHTML(item.goat.breed || "-")}
-        </p>
-
-        <hr style="
-          border:none;
-          border-top:1px solid #eee;
-          margin:10px 0;
-        ">
-
-        <h4>
-          💉 ${escapeHTML(item.vaccine.name)}
-        </h4>
-
-        <p>
-          ${escapeHTML(item.vaccine.description)}
-        </p>
+        <div></div>
 
         <button
-          onclick="openVaccineModal(
-            '${item.goat.id}',
-            '${escapeHTML(item.vaccine.name)}'
-          )">
-
-          💉 টিকা দিন
-
+            type="button"
+            class="remove-row"
+            onclick="this.parentElement.remove()"
+        >
+            ×
         </button>
+    `;
 
-      </div>
+    container.appendChild(row);
 
-    `).join("");
+}
+
+
+document.addEventListener("DOMContentLoaded",function(){
+
+    addScheduleRow();
+
+});
+
+
+/* vaccine suggestions */
+
+const vaccineListHTML = `
+<datalist id="vaccineNameList">
+    <option value="FMD">
+    <option value="PPR">
+    <option value="Goat Pox">
+    <option value="Enterotoxaemia">
+    <option value="Anthrax">
+</datalist>
+`;
+
+document.body.insertAdjacentHTML(
+    "beforeend",
+    vaccineListHTML
+);
+
+
+/* =========================================================
+   SCHEDULES
+========================================================= */
+
+async function loadSchedules(){
+
+    const {data,error} =
+        await supabaseClient
+        .from("vaccine_schedules")
+        .select(`
+            *,
+            goats (
+                tag,
+                name,
+                breed
+            )
+        `)
+        .eq("status","pending")
+        .order("expected_date",{ascending:true});
+
+    if(error){
+
+        console.error(error);
+
+        return;
+    }
+
+    schedules=data || [];
+
+}
+
+
+async function loadVaccinations(){
+
+    const {data,error} =
+        await supabaseClient
+        .from("vaccinations")
+        .select(`
+            *,
+            goats (
+                tag,
+                name
+            )
+        `)
+        .order("vaccination_date",{ascending:false});
+
+    if(error){
+
+        console.error(error);
+
+        return;
+    }
+
+    vaccinations=data || [];
+
+}
+
+
+/* =========================================================
+   NOTIFICATION
+   +/- 7 DAYS
+========================================================= */
+
+function notificationSchedules(){
+
+    return schedules.filter(s=>{
+
+        const days =
+            daysFromToday(s.expected_date);
+
+        return days >= -7 && days <= 7;
+
+    });
+
+}
+
+
+/* =========================================================
+   RENDER NOTIFICATIONS
+========================================================= */
+
+function renderNotifications(){
+
+    const list =
+        notificationSchedules();
+
+    const count =
+        document.getElementById("notificationCount");
+
+    count.textContent=list.length;
+
+    if(list.length){
+
+        count.classList.remove("hidden");
+
+    }else{
+
+        count.classList.add("hidden");
+
+    }
+
+
+    const html =
+        list.length
+
+        ? list.map(s=>{
+
+            const days =
+                daysFromToday(s.expected_date);
+
+            let text="";
+
+            if(days < 0){
+
+                text =
+                    `${Math.abs(days)} দিন আগে`;
+
+            }else if(days === 0){
+
+                text="আজ";
+
+            }else{
+
+                text =
+                    `${days} দিন পর`;
+
+            }
+
+            const goat =
+                s.goats?.name ||
+                s.goats?.tag ||
+                "ছাগল";
+
+            return `
+                <div
+                    class="notification-item"
+                    onclick="openVaccineModal('${s.id}')"
+                >
+                    <strong>💉 ${escapeHTML(s.vaccine_name)}</strong>
+
+                    <div>
+                        🐐 ${escapeHTML(goat)}
+                    </div>
+
+                    <small>
+                        📅 ${dateText(s.expected_date)}
+                        · ${text}
+                    </small>
+                </div>
+            `;
+
+        }).join("")
+
+        : `
+            <div style="padding:20px;text-align:center;color:#777">
+                এখন কোনো টিকার Notification নেই।
+            </div>
+        `;
+
+
+    document.getElementById("notificationList")
+        .innerHTML=html;
+
+
+    document.getElementById("dashboardNotifications")
+        .innerHTML=html;
+}
+
+
+function toggleNotifications(){
+
+    document
+        .getElementById("notificationPanel")
+        .classList.toggle("hidden");
+
+}
+
+
+/* =========================================================
+   VACCINE LIST
+========================================================= */
+
+function renderVaccines(){
+
+    const box =
+        document.getElementById("vaccineList");
+
+    if(!schedules.length){
+
+        box.innerHTML=`
+            <div style="text-align:center;padding:20px;color:#777">
+                কোনো Pending টিকা নেই।
+            </div>
+        `;
+
+        return;
+    }
+
+
+    box.innerHTML =
+        schedules.map(s=>{
+
+            const days =
+                daysFromToday(s.expected_date);
+
+            let cls="";
+
+            if(days < 0){
+
+                cls="overdue";
+
+            }else if(days <= 7){
+
+                cls="due";
+
+            }
+
+
+            let statusText="";
+
+            if(days < 0){
+
+                statusText =
+                    `⚠️ ${Math.abs(days)} দিন আগে দেওয়া উচিত ছিল`;
+
+            }else if(days===0){
+
+                statusText="🔴 আজ টিকা দেওয়ার দিন";
+
+            }else if(days<=7){
+
+                statusText =
+                    `🟠 ${days} দিনের মধ্যে টিকা দিতে হবে`;
+
+            }else{
+
+                statusText =
+                    `📅 ${days} দিন পরে`;
+
+            }
+
+
+            const goat =
+                s.goats?.name ||
+                s.goats?.tag ||
+                "ছাগল";
+
+
+            return `
+
+                <div class="vaccine-card ${cls}">
+
+                    <div class="vaccine-head">
+
+                        <strong>
+                            💉 ${escapeHTML(s.vaccine_name)}
+                        </strong>
+
+                        <span class="badge">
+                            Pending
+                        </span>
+
+                    </div>
+
+                    <div class="vaccine-meta">
+
+                        🐐 ছাগল:
+                        <strong>
+                            ${escapeHTML(goat)}
+                        </strong>
+
+                        <br>
+
+                        📅 সম্ভাব্য তারিখ:
+                        <strong>
+                            ${dateText(s.expected_date)}
+                        </strong>
+
+                        <br>
+
+                        ${statusText}
+
+                    </div>
+
+                    <div class="vaccine-action">
+
+                        <button
+                            class="btn btn-green"
+                            onclick="openVaccineModal('${s.id}')"
+                        >
+                            💉 টিকা দিন
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
 
 }
 
@@ -2796,1037 +2641,779 @@ function renderVaccines() {
    OPEN VACCINE MODAL
 ========================================================= */
 
-function openVaccineModal(
-  goatId,
-  vaccineName
-) {
+function openVaccineModal(scheduleId){
 
-  const goat =
-    goats.find(
-      g => String(g.id) === String(goatId)
-    );
+    const schedule =
+        schedules.find(
+            s=>s.id===scheduleId
+        );
 
-
-  if (!goat) return;
+    if(!schedule) return;
 
 
-  document
-    .getElementById("vaccineGoatId")
-    .value = goat.id;
+    document.getElementById(
+        "selectedScheduleId"
+    ).value=schedule.id;
 
 
-  document
-    .getElementById("vaccineName")
-    .value = vaccineName;
+    document.getElementById(
+        "givenVaccineName"
+    ).value=schedule.vaccine_name;
 
 
-  document
-    .getElementById("vaccineGoatDisplay")
-    .value =
-      `${goat.name || goat.tag} (${goat.tag})`;
+    document.getElementById(
+        "vaccinationDate"
+    ).value=todayISO();
 
 
-  document
-    .getElementById("vaccineNameDisplay")
-    .value = vaccineName;
+    document.getElementById(
+        "vaccineCompany"
+    ).value="";
 
 
-  document
-    .getElementById("vaccineDate")
-    .value = today();
+    document.getElementById(
+        "vaccineCost"
+    ).value="0";
 
 
-  document
-    .getElementById("vaccineCompany")
-    .value = "";
+    document.getElementById(
+        "vaccineNotes"
+    ).value="";
 
 
-  document
-    .getElementById("vaccineCost")
-    .value = "";
+    const goat =
+        schedule.goats?.name ||
+        schedule.goats?.tag ||
+        "ছাগল";
 
 
-  document
-    .getElementById("vaccineNotes")
-    .value = "";
+    document.getElementById(
+        "vaccineModalInfo"
+    ).innerHTML=`
+
+        <div
+            style="
+                background:#eef8f0;
+                padding:12px;
+                border-radius:12px;
+                margin-bottom:15px;
+            "
+        >
+
+            🐐 <strong>${escapeHTML(goat)}</strong>
+            <br>
+
+            💉 ${escapeHTML(schedule.vaccine_name)}
+            <br>
+
+            📅 সম্ভাব্য তারিখ:
+            ${dateText(schedule.expected_date)}
+
+        </div>
+    `;
 
 
-  document
-    .getElementById("vaccineModal")
-    .classList.add("show");
+    document
+        .getElementById("vaccineModal")
+        .classList.remove("hidden");
 
 }
 
 
-function closeVaccineModal() {
+function closeVaccineModal(){
 
-  document
-    .getElementById("vaccineModal")
-    .classList.remove("show");
+    document
+        .getElementById("vaccineModal")
+        .classList.add("hidden");
 
 }
 
 
 /* =========================================================
-   SAVE VACCINATION
+   GIVE VACCINE
 ========================================================= */
 
-document
-  .getElementById("vaccineForm")
-  .addEventListener(
-    "submit",
-    saveVaccination
-  );
+document.getElementById("giveVaccineForm")
+.addEventListener("submit",async function(e){
+
+    e.preventDefault();
+
+    const scheduleId =
+        document.getElementById(
+            "selectedScheduleId"
+        ).value;
+
+    const schedule =
+        schedules.find(
+            s=>s.id===scheduleId
+        );
+
+    if(!schedule){
+
+        alert("Schedule পাওয়া যায়নি।");
+
+        return;
+    }
 
 
-async function saveVaccination(event) {
+    const company =
+        document.getElementById(
+            "vaccineCompany"
+        ).value.trim();
 
-  event.preventDefault();
+    const vaccinationDate =
+        document.getElementById(
+            "vaccinationDate"
+        ).value;
 
+    const cost =
+        Number(
+            document.getElementById(
+                "vaccineCost"
+            ).value || 0
+        );
 
-  if (!currentUser) return;
-
-
-  const goatId =
-    document
-      .getElementById("vaccineGoatId")
-      .value;
-
-
-  const vaccineName =
-    document
-      .getElementById("vaccineName")
-      .value;
-
-
-  const company =
-    document
-      .getElementById("vaccineCompany")
-      .value
-      .trim();
+    const notes =
+        document.getElementById(
+            "vaccineNotes"
+        ).value.trim();
 
 
-  const date =
-    document
-      .getElementById("vaccineDate")
-      .value;
+    if(!company){
+
+        alert("কোম্পানির নাম দিন।");
+
+        return;
+    }
 
 
-  const cost =
-    Number(
-      document
-        .getElementById("vaccineCost")
-        .value || 0
-    );
+    /* Save vaccination history */
+
+    const {error:insertError} =
+        await supabaseClient
+        .from("vaccinations")
+        .insert({
+
+            user_id:currentUser.id,
+
+            goat_id:schedule.goat_id,
+
+            schedule_id:schedule.id,
+
+            vaccine_name:schedule.vaccine_name,
+
+            company:company,
+
+            vaccination_date:vaccinationDate,
+
+            cost:cost,
+
+            notes:notes
+
+        });
 
 
-  const notes =
-    document
-      .getElementById("vaccineNotes")
-      .value
-      .trim();
+    if(insertError){
+
+        alert(insertError.message);
+
+        return;
+    }
 
 
-  /*
-    Duplicate protection.
-  */
+    /* Mark schedule as given */
 
-  const duplicate =
-    vaccinations.some(v =>
+    const {error:updateError} =
+        await supabaseClient
+        .from("vaccine_schedules")
+        .update({
 
-      String(v.goat_id) === String(goatId) &&
-      String(v.vaccine_name)
-        .toLowerCase() ===
-      vaccineName.toLowerCase()
+            status:"given",
 
-    );
+            given_at:new Date().toISOString()
+
+        })
+        .eq("id",schedule.id)
+        .eq("user_id",currentUser.id);
 
 
-  if (duplicate) {
+    if(updateError){
 
-    alert(
-      "এই ছাগলকে এই টিকা ইতিমধ্যে দেওয়া হয়েছে।"
-    );
+        alert(updateError.message);
+
+        return;
+    }
+
+
+    /* Automatic vaccine expense */
+
+    if(cost > 0){
+
+        await supabaseClient
+        .from("expenses")
+        .insert({
+
+            user_id:currentUser.id,
+
+            goat_id:schedule.goat_id,
+
+            category:"টিকা",
+
+            amount:cost,
+
+            expense_date:vaccinationDate,
+
+            description:
+                `${schedule.vaccine_name} - ${company}`
+
+        });
+
+    }
+
+
+    alert("💉 টিকা দেওয়া হয়েছে।");
 
     closeVaccineModal();
 
-    return;
+    await loadAll();
 
-  }
+    showSection("vaccines");
 
-
-  const record = {
-
-    user_id:
-      currentUser.id,
-
-    goat_id:
-      goatId,
-
-    vaccine_name:
-      vaccineName,
-
-    company:
-      company,
-
-    vaccination_date:
-      date,
-
-    cost:
-      cost,
-
-    notes:
-      notes
-
-  };
-
-
-  showLoading(true);
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("vaccinations")
-      .insert(record)
-      .select()
-      .single();
-
-
-  showLoading(false);
-
-
-  if (error) {
-
-    console.error(error);
-
-    alert(
-      "টিকা Save হয়নি: " +
-      error.message
-    );
-
-    return;
-
-  }
-
-
-  vaccinations.unshift(data);
-
-
-  closeVaccineModal();
-
-
-  renderVaccines();
-  renderVaccinationHistory();
-  renderDashboard();
-
-
-  /*
-    Vaccine cost automatically expense হিসেবেও
-    যোগ করার চেষ্টা করবে।
-
-    যদি expenses table থাকে তাহলে এটি কাজ করবে।
-  */
-
-  if (cost > 0) {
-
-    await addVaccineExpense(
-      data
-    );
-
-  }
-
-}
+});
 
 
 /* =========================================================
-   AUTO VACCINE EXPENSE
+   EXPENSE
 ========================================================= */
 
-async function addVaccineExpense(
-  vaccination
-) {
-
-  if (!currentUser) return;
-
-
-  const expense = {
-
-    user_id:
-      currentUser.id,
-
-    goat_id:
-      vaccination.goat_id,
-
-    category:
-      "টিকা",
-
-    amount:
-      Number(vaccination.cost || 0),
-
-    expense_date:
-      vaccination.vaccination_date,
-
-    description:
-      `${vaccination.vaccine_name} - ${vaccination.company || ""}`
-
-  };
-
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("expenses")
-      .insert(expense);
-
-
-  if (error) {
-
-    console.warn(
-      "Automatic vaccine expense was not saved:",
-      error.message
-    );
-
-    return;
-
-  }
-
-
-  await loadExpenses();
-
-  renderExpenses();
-  renderDashboard();
-
-}
-
-
-/* =========================================================
-   VACCINATION HISTORY
-========================================================= */
-
-function renderVaccinationHistory() {
-
-  const container =
-    document.getElementById(
-      "vaccinationHistory"
-    );
-
-
-  if (!vaccinations.length) {
-
-    container.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">💉</div>
-        এখনো কোনো টিকা দেওয়া হয়নি।
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  const rows =
-    vaccinations.map(vaccine => {
-
-      const goat =
-        goats.find(
-          g =>
-            String(g.id) ===
-            String(vaccine.goat_id)
-        );
-
-
-      return `
-
-        <tr>
-
-          <td>
-            ${formatDate(
-              vaccine.vaccination_date
-            )}
-          </td>
-
-          <td>
-            <strong>
-              ${escapeHTML(
-                goat?.name ||
-                goat?.tag ||
-                "-"
-              )}
-            </strong>
-          </td>
-
-          <td>
-            ${escapeHTML(
-              goat?.tag || "-"
-            )}
-          </td>
-
-          <td>
-            ${escapeHTML(
-              vaccine.vaccine_name
-            )}
-          </td>
-
-          <td>
-            ${escapeHTML(
-              vaccine.company || "-"
-            )}
-          </td>
-
-          <td>
-            ${formatMoney(
-              vaccine.cost
-            )}
-          </td>
-
-        </tr>
-
-      `;
-
-    }).join("");
-
-
-  container.innerHTML = `
-
-    <table>
-
-      <thead>
-
-        <tr>
-          <th>তারিখ</th>
-          <th>ছাগল</th>
-          <th>ID</th>
-          <th>টিকা</th>
-          <th>কোম্পানি</th>
-          <th>খরচ</th>
-        </tr>
-
-      </thead>
-
-      <tbody>
-        ${rows}
-      </tbody>
-
-    </table>
-
-  `;
-
-}
-
-
-/* =========================================================
-   EXPENSES
-========================================================= */
-
-async function loadExpenses() {
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("expenses")
-      .select("*")
-      .order(
-        "expense_date",
-        {
-          ascending: false
-        }
-      );
-
-
-  if (error) {
-
-    console.error(
-      "Expenses load error:",
-      error
-    );
-
-    expenses = [];
-
-    return;
-
-  }
-
-
-  expenses = data || [];
-
-}
-
-
-/* =========================================================
-   SAVE EXPENSE
-========================================================= */
-
-document
-  .getElementById("expenseForm")
-  .addEventListener(
-    "submit",
-    saveExpense
-  );
-
-
-async function saveExpense(event) {
-
-  event.preventDefault();
-
-
-  if (!currentUser) return;
-
-
-  const expense = {
-
-    user_id:
-      currentUser.id,
-
-    expense_date:
-      document
-        .getElementById("expenseDate")
-        .value,
-
-    category:
-      document
-        .getElementById("expenseCategory")
-        .value
-        .trim(),
-
-    amount:
-      Number(
-        document
-          .getElementById("expenseAmount")
-          .value || 0
-      ),
-
-    goat_id:
-      document
-        .getElementById("expenseGoat")
-        .value || null,
-
-    description:
-      document
-        .getElementById("expenseDescription")
-        .value
-        .trim()
-
-  };
-
-
-  if (!expense.amount || expense.amount <= 0) {
-
-    showMessage(
-      "expenseMessage",
-      "সঠিক amount দিন।",
-      "error"
-    );
-
-    return;
-
-  }
-
-
-  showLoading(true);
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("expenses")
-      .insert(expense)
-      .select()
-      .single();
-
-
-  showLoading(false);
-
-
-  if (error) {
-
-    console.error(error);
-
-    showMessage(
-      "expenseMessage",
-      "খরচ Save হয়নি: " +
-      error.message,
-      "error"
-    );
-
-    return;
-
-  }
-
-
-  expenses.unshift(data);
-
-
-  document
-    .getElementById("expenseForm")
-    .reset();
-
-
-  document
-    .getElementById("expenseDate")
-    .value = today();
-
-
-  showMessage(
-    "expenseMessage",
-    "✅ খরচ সফলভাবে Save হয়েছে।",
-    "success"
-  );
-
-
-  renderExpenses();
-  renderDashboard();
-
-}
-
-
-/* =========================================================
-   EXPENSE GOAT OPTIONS
-========================================================= */
-
-function updateExpenseGoatOptions() {
-
-  const select =
-    document.getElementById(
-      "expenseGoat"
-    );
-
-
-  const current =
-    select.value;
-
-
-  select.innerHTML = `
-
-    <option value="">
-      সকল / সাধারণ খরচ
-    </option>
-
-    ${goats.map(goat => `
-
-      <option value="${escapeHTML(goat.id)}">
-
-        ${escapeHTML(
-          goat.name ||
-          goat.tag
-        )}
-
-        (${escapeHTML(
-          goat.tag
-        )})
-
-      </option>
-
-    `).join("")}
-
-  `;
-
-
-  if (current) {
-    select.value = current;
-  }
-
-}
-
-
-/* =========================================================
-   EXPENSE TABLE
-========================================================= */
-
-function renderExpenses() {
-
-  const container =
-    document.getElementById(
-      "expenseTable"
-    );
-
-
-  if (!expenses.length) {
-
-    container.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">💰</div>
-        কোনো খরচের তথ্য নেই।
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML = `
-
-    <table>
-
-      <thead>
-
-        <tr>
-          <th>তারিখ</th>
-          <th>ধরন</th>
-          <th>ছাগল</th>
-          <th>বিবরণ</th>
-          <th>Amount</th>
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-        ${expenses.map(expense => {
-
-          const goat =
-            goats.find(
-              g =>
-                String(g.id) ===
-                String(expense.goat_id)
-            );
-
-
-          return `
-
-            <tr>
-
-              <td>
-                ${formatDate(
-                  expense.expense_date
-                )}
-              </td>
-
-              <td>
-                <span class="badge badge-green">
-                  ${escapeHTML(
-                    expense.category
-                  )}
-                </span>
-              </td>
-
-              <td>
-                ${escapeHTML(
-                  goat?.name ||
-                  goat?.tag ||
-                  "সাধারণ"
-                )}
-              </td>
-
-              <td>
-                ${escapeHTML(
-                  expense.description || "-"
-                )}
-              </td>
-
-              <td>
-                <strong>
-                  ${formatMoney(
-                    expense.amount
-                  )}
-                </strong>
-              </td>
-
-            </tr>
-
-          `;
-
-        }).join("")}
-
-      </tbody>
-
-    </table>
-
-  `;
-
-}
-
-
-/* =========================================================
-   REPORT YEAR SETUP
-========================================================= */
-
-function setupReportYears() {
-
-  const select =
-    document.getElementById(
-      "reportYear"
-    );
-
-
-  const currentYear =
-    new Date().getFullYear();
-
-
-  select.innerHTML = "";
-
-
-  for (
-    let year = currentYear - 5;
-    year <= currentYear + 2;
-    year++
-  ) {
-
-    const option =
-      document.createElement("option");
-
-    option.value = year;
-
-    option.textContent = year;
-
-    if (year === currentYear) {
-      option.selected = true;
+async function loadExpenses(){
+
+    const {data,error} =
+        await supabaseClient
+        .from("expenses")
+        .select(`
+            *,
+            goats (
+                tag,
+                name
+            )
+        `)
+        .order("expense_date",{ascending:false});
+
+    if(error){
+
+        console.error(error);
+
+        return;
     }
 
-    select.appendChild(option);
+    expenses=data || [];
 
-  }
+}
 
 
-  document
-    .getElementById("reportMonth")
-    .value =
-      new Date().getMonth();
+document.getElementById("expenseForm")
+.addEventListener("submit",async function(e){
+
+    e.preventDefault();
+
+    const data={
+
+        user_id:currentUser.id,
+
+        category:
+            document.getElementById(
+                "expenseCategory"
+            ).value.trim(),
+
+        amount:
+            Number(
+                document.getElementById(
+                    "expenseAmount"
+                ).value || 0
+            ),
+
+        expense_date:
+            document.getElementById(
+                "expenseDate"
+            ).value,
+
+        goat_id:
+            document.getElementById(
+                "expenseGoat"
+            ).value || null,
+
+        description:
+            document.getElementById(
+                "expenseDescription"
+            ).value.trim()
+
+    };
+
+
+    const {error} =
+        await supabaseClient
+        .from("expenses")
+        .insert(data);
+
+
+    if(error){
+
+        alert(error.message);
+
+        return;
+    }
+
+
+    alert("💰 খরচ সংরক্ষণ হয়েছে।");
+
+    this.reset();
+
+    document.getElementById("expenseDate")
+        .value=todayISO();
+
+    await loadAll();
+
+});
+
+
+/* =========================================================
+   EXPENSE RENDER
+========================================================= */
+
+function renderExpenses(){
+
+    const box =
+        document.getElementById("expenseHistory");
+
+    if(!expenses.length){
+
+        box.innerHTML=
+            `<div style="color:#777">
+                কোনো খরচ নেই।
+            </div>`;
+
+        return;
+    }
+
+
+    box.innerHTML =
+        expenses.slice(0,20).map(e=>{
+
+            const goat =
+                e.goats?.name ||
+                e.goats?.tag ||
+                "";
+
+            return `
+
+                <div class="report-row">
+
+                    <div>
+
+                        <strong>
+                            ${escapeHTML(e.category)}
+                        </strong>
+
+                        <div style="font-size:12px;color:#777">
+
+                            ${dateText(e.expense_date)}
+
+                            ${goat
+                                ? " · "+escapeHTML(goat)
+                                : ""
+                            }
+
+                        </div>
+
+                        ${
+                            e.description
+                            ? `<div style="font-size:12px;color:#777">
+                                ${escapeHTML(e.description)}
+                              </div>`
+                            : ""
+                        }
+
+                    </div>
+
+                    <strong>
+                        ${money(e.amount)}
+                    </strong>
+
+                </div>
+            `;
+
+        }).join("");
 
 }
 
 
 /* =========================================================
-   MONTHLY REPORT
+   LAND
 ========================================================= */
 
-function generateReport() {
+async function loadLand(){
 
-  const month =
-    Number(
-      document
-        .getElementById("reportMonth")
-        .value
-    );
+    const {data,error} =
+        await supabaseClient
+        .from("land")
+        .select("*")
+        .order("created_at",{ascending:false});
 
+    if(error){
 
-  const year =
-    Number(
-      document
-        .getElementById("reportYear")
-        .value
-    );
+        console.error(error);
 
-
-  const selected =
-    expenses.filter(expense => {
-
-      if (!expense.expense_date) {
-        return false;
-      }
-
-      const date =
-        new Date(
-          expense.expense_date
-        );
-
-      return (
-        date.getFullYear() === year &&
-        date.getMonth() === month
-      );
-
-    });
-
-
-  const total =
-    selected.reduce(
-      (sum, item) =>
-        sum + Number(item.amount || 0),
-      0
-    );
-
-
-  document
-    .getElementById("reportTotal")
-    .textContent =
-      formatMoney(total);
-
-
-  const container =
-    document.getElementById(
-      "reportTable"
-    );
-
-
-  if (!selected.length) {
-
-    container.innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">📊</div>
-        এই মাসে কোনো খরচ পাওয়া যায়নি।
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  /*
-    Category summary
-  */
-
-  const categoryTotals = {};
-
-
-  selected.forEach(item => {
-
-    const category =
-      item.category ||
-      "অন্যান্য";
-
-    if (!categoryTotals[category]) {
-      categoryTotals[category] = 0;
+        return;
     }
 
-    categoryTotals[category] +=
-      Number(item.amount || 0);
+    lands=data || [];
 
-  });
-
-
-  let categoryHTML = `
-
-    <div style="
-      display:grid;
-      grid-template-columns:
-      repeat(auto-fit,minmax(150px,1fr));
-      gap:10px;
-      margin-bottom:20px;
-    ">
-
-  `;
+}
 
 
-  Object.entries(categoryTotals)
-    .forEach(([category, amount]) => {
+document.getElementById("landForm")
+.addEventListener("submit",async function(e){
 
-      categoryHTML += `
+    e.preventDefault();
 
-        <div style="
-          border:1px solid #e5e7eb;
-          border-radius:12px;
-          padding:14px;
-        ">
+    const data={
 
-          <div style="
-            color:#6b7280;
-            font-size:12px;
-          ">
-            ${escapeHTML(category)}
-          </div>
+        user_id:currentUser.id,
 
-          <strong style="
-            display:block;
-            color:#0f5132;
-            font-size:20px;
-            margin-top:5px;
-          ">
-            ${formatMoney(amount)}
-          </strong>
+        name:
+            document.getElementById(
+                "landName"
+            ).value.trim(),
+
+        area:
+            Number(
+                document.getElementById(
+                    "landArea"
+                ).value || 0
+            ),
+
+        unit:
+            document.getElementById(
+                "landUnit"
+            ).value,
+
+        crop:
+            document.getElementById(
+                "landCrop"
+            ).value.trim(),
+
+        notes:
+            document.getElementById(
+                "landNotes"
+            ).value.trim()
+
+    };
+
+
+    const {error} =
+        await supabaseClient
+        .from("land")
+        .insert(data);
+
+
+    if(error){
+
+        alert(error.message);
+
+        return;
+    }
+
+
+    alert("🌱 জমির তথ্য সংরক্ষণ হয়েছে।");
+
+    this.reset();
+
+    await loadAll();
+
+});
+
+
+function renderLand(){
+
+    const box =
+        document.getElementById("landList");
+
+    if(!lands.length){
+
+        box.innerHTML=
+            `<div style="color:#777">
+                কোনো জমির তথ্য নেই।
+            </div>`;
+
+        return;
+    }
+
+
+    box.innerHTML =
+        lands.map(l=>`
+
+            <div class="goat-card">
+
+                <div class="goat-title">
+
+                    <strong>
+                        🌱 ${escapeHTML(l.name)}
+                    </strong>
+
+                    <span class="badge">
+                        ${escapeHTML(l.unit)}
+                    </span>
+
+                </div>
+
+                <div>
+
+                    পরিমাণ:
+                    <strong>
+                        ${Number(l.area||0)}
+                    </strong>
+                    ${escapeHTML(l.unit)}
+
+                    ${
+                        l.crop
+                        ? `<br>🌾 ফসল:
+                           ${escapeHTML(l.crop)}`
+                        : ""
+                    }
+
+                    ${
+                        l.notes
+                        ? `<br>📝 ${escapeHTML(l.notes)}`
+                        : ""
+                    }
+
+                </div>
+
+            </div>
+
+        `).join("");
+
+}
+
+
+/* =========================================================
+   GOAT RENDER
+========================================================= */
+
+function renderGoats(){
+
+    const box =
+        document.getElementById("goatList");
+
+    if(!goats.length){
+
+        box.innerHTML=
+            `<div style="color:#777">
+                এখনো কোনো ছাগল Entry করা হয়নি।
+            </div>`;
+
+        return;
+    }
+
+
+    box.innerHTML =
+        goats.map(g=>{
+
+            const pending =
+                schedules.filter(
+                    s=>s.goat_id===g.id
+                ).length;
+
+
+            return `
+
+                <div class="goat-card">
+
+                    <div class="goat-title">
+
+                        <strong>
+                            🐐 ${escapeHTML(g.tag)}
+                        </strong>
+
+                        <span class="badge">
+                            ${escapeHTML(g.breed)}
+                        </span>
+
+                    </div>
+
+                    ${
+                        g.name
+                        ? `<div>নাম: ${escapeHTML(g.name)}</div>`
+                        : ""
+                    }
+
+                    ${
+                        g.gender
+                        ? `<div>লিঙ্গ:
+                            ${g.gender==="Male"
+                                ? "পুরুষ"
+                                : "স্ত্রী"
+                            }
+                          </div>`
+                        : ""
+                    }
+
+                    ${
+                        g.birth_date
+                        ? `<div>
+                            জন্ম:
+                            ${dateText(g.birth_date)}
+                          </div>`
+                        : ""
+                    }
+
+                    ${
+                        g.weight
+                        ? `<div>
+                            ওজন:
+                            ${g.weight} কেজি
+                          </div>`
+                        : ""
+                    }
+
+                    <div style="margin-top:8px">
+
+                        <span class="badge">
+                            💉 Pending টিকা: ${pending}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+
+    /* Expense goat dropdown */
+
+    const select =
+        document.getElementById(
+            "expenseGoat"
+        );
+
+    const current =
+        select.value;
+
+    select.innerHTML=
+        `<option value="">
+            সকল / নির্দিষ্ট নয়
+         </option>` +
+
+        goats.map(g=>`
+
+            <option value="${g.id}">
+                ${escapeHTML(g.tag)}
+                ${g.name
+                    ? " - "+escapeHTML(g.name)
+                    : ""
+                }
+            </option>
+
+        `).join("");
+
+    select.value=current;
+
+}
+
+
+/* =========================================================
+   VACCINE HISTORY
+========================================================= */
+
+function renderVaccineHistory(){
+
+    const box =
+        document.getElementById(
+            "vaccineHistory"
+        );
+
+    if(!vaccinations.length){
+
+        box.innerHTML=
+            `<div style="color:#777">
+                এখনো কোনো টিকা দেওয়া হয়নি।
+            </div>`;
+
+        return;
+    }
+
+
+    box.innerHTML = `
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ছাগল</th>
+                        <th>টিকা</th>
+                        <th>কোম্পানি</th>
+                        <th>তারিখ</th>
+                        <th>খরচ</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    ${
+                        vaccinations.map(v=>`
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHTML(
+                                        v.goats?.name ||
+                                        v.goats?.tag ||
+                                        ""
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHTML(
+                                        v.vaccine_name
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHTML(
+                                        v.company
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${dateText(
+                                        v.vaccination_date
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${money(v.cost)}
+                                </td>
+
+                            </tr>
+
+                        `).join("")
+                    }
+
+                </tbody>
+
+            </table>
 
         </div>
-
-      `;
-
-    });
-
-
-  categoryHTML += `</div>`;
-
-
-  const rows =
-    selected.map(expense => {
-
-      const goat =
-        goats.find(
-          g =>
-            String(g.id) ===
-            String(expense.goat_id)
-        );
-
-
-      return `
-
-        <tr>
-
-          <td>
-            ${formatDate(
-              expense.expense_date
-            )}
-          </td>
-
-          <td>
-            ${escapeHTML(
-              expense.category
-            )}
-          </td>
-
-          <td>
-            ${escapeHTML(
-              goat?.name ||
-              goat?.tag ||
-              "সাধারণ"
-            )}
-          </td>
-
-          <td>
-            ${escapeHTML(
-              expense.description || "-"
-            )}
-          </td>
-
-          <td>
-            <strong>
-              ${formatMoney(
-                expense.amount
-              )}
-            </strong>
-          </td>
-
-        </tr>
-
-      `;
-
-    }).join("");
-
-
-  container.innerHTML = `
-
-    ${categoryHTML}
-
-    <table>
-
-      <thead>
-
-        <tr>
-          <th>তারিখ</th>
-          <th>খরচের ধরন</th>
-          <th>ছাগল</th>
-          <th>বিবরণ</th>
-          <th>Amount</th>
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-        ${rows}
-
-      </tbody>
-
-    </table>
-
-  `;
+    `;
 
 }
 
@@ -3835,337 +3422,390 @@ function generateReport() {
    DASHBOARD
 ========================================================= */
 
-function renderDashboard() {
+function renderDashboard(){
 
-  /*
-    Total goats
-  */
+    const month =
+        monthISO();
 
-  document
-    .getElementById("statGoats")
-    .textContent =
-      goats.length;
-
-
-  /*
-    Vaccinations
-  */
-
-  document
-    .getElementById("statVaccines")
-    .textContent =
-      vaccinations.length;
-
-
-  /*
-    Pending vaccinations
-  */
-
-  let pending = 0;
-
-
-  goats.forEach(goat => {
-
-    DEFAULT_VACCINES.forEach(vaccine => {
-
-      const given =
-        vaccinations.some(v =>
-
-          String(v.goat_id) ===
-            String(goat.id) &&
-
-          String(v.vaccine_name)
-            .toLowerCase() ===
-            vaccine.name.toLowerCase()
-
+    const monthExpenses =
+        expenses.filter(
+            e=>e.expense_date.startsWith(month)
         );
 
 
-      if (!given) {
-        pending++;
-      }
-
-    });
-
-  });
-
-
-  document
-    .getElementById("statPending")
-    .textContent =
-      pending;
-
-
-  /*
-    Current month expense
-  */
-
-  const now =
-    new Date();
-
-  const currentMonth =
-    now.getMonth();
-
-  const currentYear =
-    now.getFullYear();
-
-
-  const monthExpenses =
-    expenses.filter(expense => {
-
-      if (!expense.expense_date) {
-        return false;
-      }
-
-      const date =
-        new Date(
-          expense.expense_date
+    const total =
+        monthExpenses.reduce(
+            (sum,e)=>
+                sum+Number(e.amount||0),
+            0
         );
 
-      return (
-        date.getMonth() === currentMonth &&
-        date.getFullYear() === currentYear
-      );
 
-    });
+    document.getElementById(
+        "statGoats"
+    ).textContent=goats.length;
 
 
-  const monthTotal =
-    monthExpenses.reduce(
-      (sum, item) =>
-        sum + Number(item.amount || 0),
-      0
-    );
+    document.getElementById(
+        "statVaccines"
+    ).textContent=schedules.length;
 
 
-  document
-    .getElementById("statExpense")
-    .textContent =
-      formatMoney(monthTotal);
+    document.getElementById(
+        "statExpense"
+    ).textContent=money(total);
 
 
-  renderRecentGoats();
-  renderRecentVaccinations();
+    document.getElementById(
+        "statLand"
+    ).textContent=lands.length;
+
+
+    const recent =
+        goats.slice(0,5);
+
+
+    document.getElementById(
+        "recentGoats"
+    ).innerHTML = recent.length
+
+        ? recent.map(g=>`
+
+            <div class="report-row">
+
+                <div>
+
+                    <strong>
+                        🐐 ${escapeHTML(g.tag)}
+                    </strong>
+
+                    <div style="font-size:12px;color:#777">
+
+                        ${escapeHTML(g.breed)}
+
+                        ${
+                            g.name
+                            ? " · "+escapeHTML(g.name)
+                            : ""
+                        }
+
+                    </div>
+
+                </div>
+
+                <span class="badge">
+                    ${
+                        schedules.filter(
+                            s=>s.goat_id===g.id
+                        ).length
+                    } টিকা
+                </span>
+
+            </div>
+
+        `).join("")
+
+        : `<div style="color:#777">
+            কোনো ছাগল নেই।
+           </div>`;
 
 }
 
 
 /* =========================================================
-   RECENT GOATS
+   REPORT
 ========================================================= */
 
-function renderRecentGoats() {
+function renderReport(){
 
-  const container =
+    const monthInput =
+        document.getElementById(
+            "reportMonth"
+        );
+
+    if(!monthInput.value){
+
+        monthInput.value=monthISO();
+
+    }
+
+
+    const month =
+        monthInput.value;
+
+
+    const rows =
+        expenses.filter(
+            e=>e.expense_date.startsWith(month)
+        );
+
+
+    const total =
+        rows.reduce(
+            (sum,e)=>
+                sum+Number(e.amount||0),
+            0
+        );
+
+
     document.getElementById(
-      "recentGoats"
-    );
+        "reportTotal"
+    ).textContent=
+        money(total);
 
 
-  const recent =
-    goats.slice(0, 5);
+    const categories={};
+
+    rows.forEach(e=>{
+
+        const cat=e.category || "অন্যান্য";
+
+        categories[cat] =
+            (categories[cat] || 0) +
+            Number(e.amount||0);
+
+    });
 
 
-  if (!recent.length) {
+    const categoryBox =
+        document.getElementById(
+            "categoryReport"
+        );
 
-    container.innerHTML = `
-      <div class="empty">
-        কোনো ছাগল নেই।
-      </div>
+
+    const categoryEntries =
+        Object.entries(categories);
+
+
+    categoryBox.innerHTML =
+        categoryEntries.length
+
+        ? categoryEntries
+            .sort((a,b)=>b[1]-a[1])
+            .map(([cat,value])=>`
+
+                <div class="report-row">
+
+                    <span>
+                        ${escapeHTML(cat)}
+                    </span>
+
+                    <strong>
+                        ${money(value)}
+                    </strong>
+
+                </div>
+
+            `).join("")
+
+        : `
+            <div style="color:#777">
+                এই মাসে কোনো খরচ নেই।
+            </div>
+        `;
+
+
+    const table =
+        document.getElementById(
+            "monthlyExpenseTable"
+        );
+
+
+    if(!rows.length){
+
+        table.innerHTML=
+            `<div style="color:#777">
+                এই মাসে কোনো খরচ নেই।
+            </div>`;
+
+        return;
+    }
+
+
+    table.innerHTML=`
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>তারিখ</th>
+                    <th>খরচ</th>
+                    <th>ছাগল</th>
+                    <th>পরিমাণ</th>
+                    <th>বিবরণ</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ${
+                    rows.map(e=>`
+
+                        <tr>
+
+                            <td>
+                                ${dateText(e.expense_date)}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(e.category)}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    e.goats?.name ||
+                                    e.goats?.tag ||
+                                    "-"
+                                )}
+                            </td>
+
+                            <td>
+                                ${money(e.amount)}
+                            </td>
+
+                            <td>
+                                ${escapeHTML(
+                                    e.description || "-"
+                                )}
+                            </td>
+
+                        </tr>
+
+                    `).join("")
+                }
+
+            </tbody>
+
+        </table>
     `;
 
-    return;
-
-  }
+}
 
 
-  container.innerHTML = `
+document.getElementById(
+    "reportMonth"
+).addEventListener(
+    "change",
+    renderReport
+);
 
-    <table>
 
-      <thead>
+/* =========================================================
+   RENDER ALL
+========================================================= */
 
-        <tr>
-          <th>ID</th>
-          <th>নাম</th>
-          <th>জাত</th>
-          <th>তারিখ</th>
-        </tr>
+function renderAll(){
 
-      </thead>
+    renderDashboard();
 
-      <tbody>
+    renderGoats();
 
-        ${recent.map(goat => `
+    renderVaccines();
 
-          <tr>
+    renderVaccineHistory();
 
-            <td>
-              ${escapeHTML(
-                goat.tag
-              )}
-            </td>
+    renderExpenses();
 
-            <td>
-              ${escapeHTML(
-                goat.name || "-"
-              )}
-            </td>
+    renderLand();
 
-            <td>
-              ${escapeHTML(
-                goat.breed || "-"
-              )}
-            </td>
+    renderNotifications();
 
-            <td>
-              ${formatDate(
-                goat.created_at
-              )}
-            </td>
-
-          </tr>
-
-        `).join("")}
-
-      </tbody>
-
-    </table>
-
-  `;
+    renderReport();
 
 }
 
 
 /* =========================================================
-   RECENT VACCINATIONS
+   NAVIGATION
 ========================================================= */
 
-function renderRecentVaccinations() {
+function showSection(section){
 
-  const container =
-    document.getElementById(
-      "recentVaccinations"
-    );
-
-
-  const recent =
-    vaccinations.slice(0, 5);
-
-
-  if (!recent.length) {
-
-    container.innerHTML = `
-      <div class="empty">
-        কোনো টিকা দেওয়া হয়নি।
-      </div>
-    `;
-
-    return;
-
-  }
+    const sections=[
+        "dashboard",
+        "goats",
+        "vaccines",
+        "expenses",
+        "reports",
+        "land"
+    ];
 
 
-  container.innerHTML = `
+    sections.forEach(name=>{
 
-    <table>
-
-      <thead>
-
-        <tr>
-          <th>তারিখ</th>
-          <th>ছাগল</th>
-          <th>টিকা</th>
-          <th>কোম্পানি</th>
-          <th>খরচ</th>
-        </tr>
-
-      </thead>
-
-      <tbody>
-
-        ${recent.map(vaccine => {
-
-          const goat =
-            goats.find(
-              g =>
-                String(g.id) ===
-                String(vaccine.goat_id)
+        const el =
+            document.getElementById(
+                name+"Section"
             );
 
+        if(el){
 
-          return `
+            el.classList.toggle(
+                "hidden",
+                name!==section
+            );
 
-            <tr>
+        }
 
-              <td>
-                ${formatDate(
-                  vaccine.vaccination_date
-                )}
-              </td>
 
-              <td>
-                ${escapeHTML(
-                  goat?.name ||
-                  goat?.tag ||
-                  "-"
-                )}
-              </td>
+        const nav =
+            document.getElementById(
+                "nav"+
+                name.charAt(0).toUpperCase()+
+                name.slice(1)
+            );
 
-              <td>
-                ${escapeHTML(
-                  vaccine.vaccine_name
-                )}
-              </td>
+        if(nav){
 
-              <td>
-                ${escapeHTML(
-                  vaccine.company || "-"
-                )}
-              </td>
+            nav.classList.toggle(
+                "active",
+                name===section
+            );
 
-              <td>
-                ${formatMoney(
-                  vaccine.cost
-                )}
-              </td>
+        }
 
-            </tr>
+    });
 
-          `;
 
-        }).join("")}
+    if(section==="reports"){
 
-      </tbody>
+        renderReport();
 
-    </table>
-
-  `;
+    }
 
 }
 
 
 /* =========================================================
-   INITIALIZE
+   DEFAULT EXPENSE DATE
 ========================================================= */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
+document.getElementById(
+    "expenseDate"
+).value=todayISO();
 
-    document
-      .getElementById("expenseDate")
-      .value = today();
 
-    document
-      .getElementById("vaccineDate")
-      .value = today();
+/* =========================================================
+   CLOSE MODAL BY OUTSIDE CLICK
+========================================================= */
 
-    setupReportYears();
+document.getElementById(
+    "vaccineModal"
+).addEventListener(
+    "click",
+    function(e){
 
-    checkSession();
+        if(e.target===this){
 
-  }
+            closeVaccineModal();
+
+        }
+
+    }
 );
 
 </script>
