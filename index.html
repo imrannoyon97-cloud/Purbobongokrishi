@@ -697,6 +697,13 @@ body.locked nav{
  </div>
 
 
+ <button class="btn" id="newGoatBtn">
+  ➕ নতুন ছাগল যোগ করুন
+ </button>
+
+
+ <div id="newGoatPanel" style="display:none">
+
  <div class="card">
 
   <h2 style="margin-top:0">
@@ -864,6 +871,8 @@ body.locked nav{
   >
    Edit বাতিল
   </button>
+
+ </div>
 
  </div>
 
@@ -1255,6 +1264,12 @@ body.locked nav{
  <button data-tab="reports">
   📊<br>
   রিপোর্ট
+ </button>
+
+
+ <button data-tab="account">
+  👤<br>
+  অ্যাকাউন্ট
  </button>
 
 </nav>
@@ -2560,6 +2575,8 @@ async function saveGoat(){
 
   user_id:user,
 
+  tag:name,
+
   name:name,
 
   breed:
@@ -2796,6 +2813,11 @@ async function saveGoat(){
  }
 
 
+ $("newGoatPanel")
+ .style.display =
+ "none";
+
+
  [
   "gName",
   "gBreed",
@@ -2816,6 +2838,49 @@ async function saveGoat(){
  await loadAll();
 
 }
+
+
+/* NEW GOAT BUTTON */
+
+$("newGoatBtn")
+.onclick =
+() => {
+
+ editingGoatId = null;
+
+ [
+  "gName",
+  "gBreed",
+  "gWeight",
+  "gBirth",
+  "gPurchase",
+  "gPrice",
+  "gSource",
+  "gMark",
+  "gNote"
+ ]
+ .forEach(
+  id =>
+  $(id).value=""
+ );
+
+ $("gSex").value="মাদি";
+
+ $("saveGoat")
+ .textContent =
+ "ছাগল সংরক্ষণ করুন";
+
+ $("cancelGoatEdit")
+ .style.display =
+ "none";
+
+ $("newGoatPanel")
+ .style.display =
+ "block";
+
+ $("gName").focus();
+
+};
 
 
 /* SAVE BUTTON */
@@ -2839,6 +2904,10 @@ $("cancelGoatEdit")
  "ছাগল সংরক্ষণ করুন";
 
  $("cancelGoatEdit")
+ .style.display =
+ "none";
+
+ $("newGoatPanel")
  .style.display =
  "none";
 
@@ -3059,6 +3128,10 @@ function editGoat(id){
 
 
  $("cancelGoatEdit")
+ .style.display =
+ "block";
+
+ $("newGoatPanel")
  .style.display =
  "block";
 
