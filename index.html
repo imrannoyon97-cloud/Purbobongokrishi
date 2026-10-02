@@ -274,9 +274,9 @@ textarea{
 .goat{
  border:1px solid var(--line);
  background:var(--card);
- border-radius:14px;
- padding:14px;
- margin:10px 0
+ border-radius:12px;
+ padding:9px 10px;
+ margin:7px 0
 }
 
 .top{
@@ -286,14 +286,17 @@ textarea{
 
 .goat h3{
  margin:0;
- font-size:19px
+ font-size:15px;
+ line-height:1.35;
+ max-width:260px;
+ overflow-wrap:anywhere
 }
 
 .facts{
  display:grid;
  grid-template-columns:repeat(4,1fr);
- gap:6px;
- margin:10px 0
+ gap:5px;
+ margin:7px 0
 }
 
 .facts div{
@@ -845,6 +848,92 @@ body.locked nav{
   </div>
 
 
+  <div class="two">
+
+   <div>
+
+    <label>
+     ছাগলটি কীভাবে এসেছে? *
+    </label>
+
+    <select id="gOrigin">
+     <option value="purchase">
+      ক্রয় করা
+     </option>
+     <option value="birth">
+      উৎপাদিত / জন্ম
+     </option>
+    </select>
+
+   </div>
+
+
+   <div>
+
+    <label>
+     ছাগল যোগের সময় টিকা
+    </label>
+
+    <select id="gVaccineName">
+     <option value="">
+      টিকা নির্বাচন করুন
+     </option>
+    </select>
+
+   </div>
+
+  </div>
+
+
+  <div class="two">
+
+   <div>
+
+    <label>
+     সম্ভাব্য টিকার তারিখ
+    </label>
+
+    <input
+     id="gVaccineDate"
+     type="date"
+    >
+
+   </div>
+
+
+   <div>
+
+    <label>
+     টিকা কোম্পানি
+    </label>
+
+    <input
+     id="gVaccineCompany"
+     list="gVaccineCompanyList"
+    >
+
+    <datalist id="gVaccineCompanyList"></datalist>
+
+   </div>
+
+  </div>
+
+
+  <button
+   type="button"
+   class="btn secondary"
+   id="addGoatVaccineDraft"
+  >
+   + টিকা যোগ করুন
+  </button>
+
+
+  <div
+   id="goatVaccineDraftList"
+   class="s"
+  ></div>
+
+
   <label>
    রঙ/চিহ্ন
   </label>
@@ -1001,9 +1090,29 @@ body.locked nav{
   </h2>
 
   <p class="muted">
-   ছাগল যোগ হলে এখানে অটোমেটিক দেখা যাবে।
-   দেওয়া টিকার status আর কোম্পানির তথ্য রাখা যাবে।
+   ছাগল যোগ করার সময় টিকার সম্ভাব্য তারিখ দিন।
+   পরে এখানে Pending/Complete রাখা হবে।
   </p>
+
+
+  <div class="seg" id="vaccineRange">
+
+   <button
+    class="on"
+    data-vr="pending"
+   >
+    পেন্ডিং
+   </button>
+
+   <button data-vr="complete">
+    কমপ্লিট
+   </button>
+
+   <button data-vr="all">
+    সব
+   </button>
+
+  </div>
 
 
   <label>
@@ -1312,6 +1421,8 @@ let goatFilter = "all";
 let expenseRange = "day";
 
 let editingGoatId = null;
+let goatVaccineDrafts = [];
+let vaccineFilter = "pending";
 
 
 /* =========================================
@@ -1663,9 +1774,9 @@ async function loadAll(){
    .from("vaccinations")
    .select("*")
    .order(
-    "given_date",
+    "scheduled_date",
     {
-     ascending:false
+     ascending:true
     }
    ),
 
@@ -1927,8 +2038,9 @@ function renderDashboard(){
   .filter(
    v =>
    v.goat_id===g.id &&
-   v.next_date &&
-   v.next_date <=
+   (v.status||"completed")==="pending" &&
+   v.scheduled_date &&
+   v.scheduled_date <=
    addDays(today(),14)
   )
   .map(
@@ -2393,14 +2505,21 @@ function renderGoats(){
        class=x
        onclick="editGoat('${g.id}')"
       >
-       ✎
+       ✎ Edit
       </button>
 
       <button
        class=x
        onclick="deleteGoat('${g.id}')"
       >
-       ×
+       🗑 Delete
+      </button>
+
+      <button
+       class=x
+       onclick="editGoat('${g.id}')"
+      >
+       ↻ Update
       </button>
 
      </div>
@@ -2542,6 +2661,130 @@ function renderGoats(){
 
 
 /* =========================================
+   GOAT ENTRY VACCINE DRAFTS
+========================================= */
+
+function renderGoatVaccineDrafts(){
+
+ const box =
+ $("goatVaccineDraftList");
+
+ if(!box)
+  return;
+
+ box.innerHTML =
+ goatVaccineDrafts.length
+
+ ?
+
+ goatVaccineDrafts
+ .map(
+  (v,i) =>
+  `<div class="item">
+
+   <div>
+
+    <b>
+     ${esc(v.name)}
+    </b>
+
+    <div class="s">
+     সম্ভাব্য: ${fmt(v.scheduled_date)}
+     ·
+     ${esc(v.company||"কোম্পানি নেই")}
+    </div>
+
+   </div>
+
+   <button
+    class="x"
+    onclick="removeGoatVaccineDraft(${i})"
+   >
+    ×
+   </button>
+
+  </div>`
+ )
+ .join("")
+
+ :
+
+ `<div class="s" style="margin-top:8px">
+   এই ছাগলের জন্য এখনো কোনো টিকা পরিকল্পনা যোগ করা হয়নি।
+  </div>`;
+
+}
+
+
+function removeGoatVaccineDraft(i){
+
+ goatVaccineDrafts.splice(
+  i,
+  1
+ );
+
+ renderGoatVaccineDrafts();
+
+}
+
+
+$("addGoatVaccineDraft").onclick =
+() => {
+
+ let name =
+ $("gVaccineName")
+ .value
+ .trim();
+
+ if(!name){
+
+  alert("টিকা নির্বাচন করুন");
+
+  return;
+
+ }
+
+
+ goatVaccineDrafts.push({
+
+  name:name,
+
+  company:
+   $("gVaccineCompany")
+   .value
+   .trim(),
+
+  scheduled_date:
+   $("gVaccineDate")
+   .value
+   ||
+   addDays(
+    today(),
+    30
+   )
+
+ });
+
+
+ $("gVaccineName")
+ .value="";
+
+ $("gVaccineCompany")
+ .value="";
+
+ $("gVaccineDate")
+ .value =
+ addDays(
+  today(),
+  30
+ );
+
+ renderGoatVaccineDrafts();
+
+};
+
+
+/* =========================================
    SAVE / EDIT GOAT
 ========================================= */
 
@@ -2666,31 +2909,105 @@ async function saveGoat(){
 
   if(!error){
 
-   await db
-   .from("goat_transactions")
-   .update({
+   let tx =
+    DATA.tx.find(
+     x =>
+     x.goat_id===editingGoatId &&
+     (
+      x.type==="birth" ||
+      x.type==="purchase"
+     )
+    );
 
-    transaction_date:
-     row.birth_date ||
-     row.purchase_date ||
-     today(),
+   if(tx){
 
-    amount:
-     row.purchase_price ||
-     0
+    await db
+    .from("goat_transactions")
+    .update({
 
-   })
-   .eq(
-    "goat_id",
-    editingGoatId
-   )
-   .in(
-    "type",
-    [
-     "birth",
-     "purchase"
-    ]
-   );
+     type:
+      $("gOrigin").value==="birth"
+      ?
+      "birth"
+      :
+      "purchase",
+
+     transaction_date:
+      $("gOrigin").value==="birth"
+      ?
+      (row.birth_date || today())
+      :
+      (row.purchase_date || today()),
+
+     amount:
+      row.purchase_price ||
+      0
+
+    })
+    .eq(
+     "id",
+     tx.id
+    );
+
+   }
+   else{
+
+    await db
+    .from("goat_transactions")
+    .insert({
+
+     user_id:user,
+     goat_id:editingGoatId,
+
+     type:
+      $("gOrigin").value==="birth"
+      ?
+      "birth"
+      :
+      "purchase",
+
+     transaction_date:
+      $("gOrigin").value==="birth"
+      ?
+      (row.birth_date || today())
+      :
+      (row.purchase_date || today()),
+
+     amount:
+      row.purchase_price ||
+      0,
+
+     details:
+      "ছাগল আপডেট"
+
+    });
+
+   }
+
+   if(goatVaccineDrafts.length){
+
+    await db
+    .from("vaccinations")
+    .insert(
+     goatVaccineDrafts.map(v => ({
+      user_id:user,
+      goat_id:editingGoatId,
+      vaccine_name:v.name,
+      company:v.company || null,
+      scheduled_date:v.scheduled_date || null,
+      given_date:null,
+      status:"pending",
+      next_date:null
+     }))
+    );
+
+    for(const v of goatVaccineDrafts){
+     await addLookup("vaccine",v.name);
+     if(v.company)
+      await addLookup("vaccine_company",v.company);
+    }
+
+   }
 
   }
 
@@ -2731,7 +3048,7 @@ async function saveGoat(){
   if(!error){
 
    let type =
-   row.birth_date
+   $("gOrigin").value === "birth"
    ?
    "birth"
    :
@@ -2797,6 +3114,33 @@ async function saveGoat(){
 
    }
 
+
+   /* ছাগল এন্ট্রির সময় টিকা পরিকল্পনা */
+   if(goatVaccineDrafts.length){
+
+    await db
+    .from("vaccinations")
+    .insert(
+     goatVaccineDrafts.map(v => ({
+      user_id:user,
+      goat_id:result.data.id,
+      vaccine_name:v.name,
+      company:v.company || null,
+      scheduled_date:v.scheduled_date || null,
+      given_date:null,
+      status:"pending",
+      next_date:null
+     }))
+    );
+
+    for(const v of goatVaccineDrafts){
+     await addLookup("vaccine",v.name);
+     if(v.company)
+      await addLookup("vaccine_company",v.company);
+    }
+
+   }
+
   }
 
  }
@@ -2818,6 +3162,11 @@ async function saveGoat(){
  "none";
 
 
+ goatVaccineDrafts=[];
+
+ renderGoatVaccineDrafts();
+
+
  [
   "gName",
   "gBreed",
@@ -2827,12 +3176,17 @@ async function saveGoat(){
   "gPrice",
   "gSource",
   "gMark",
-  "gNote"
+  "gNote",
+  "gVaccineDate",
+  "gVaccineCompany"
  ]
  .forEach(
   id =>
   $(id).value=""
  );
+
+
+ $("gVaccineName").value="";
 
 
  await loadAll();
@@ -2857,7 +3211,9 @@ $("newGoatBtn")
   "gPrice",
   "gSource",
   "gMark",
-  "gNote"
+  "gNote",
+  "gVaccineDate",
+  "gVaccineCompany"
  ]
  .forEach(
   id =>
@@ -2865,6 +3221,20 @@ $("newGoatBtn")
  );
 
  $("gSex").value="মাদি";
+
+ $("gOrigin").value="purchase";
+
+ $("gVaccineName").value="";
+
+ $("gVaccineDate").value =
+ addDays(
+  today(),
+  30
+ );
+
+ goatVaccineDrafts=[];
+
+ renderGoatVaccineDrafts();
 
  $("saveGoat")
  .textContent =
@@ -2910,6 +3280,10 @@ $("cancelGoatEdit")
  $("newGoatPanel")
  .style.display =
  "none";
+
+ goatVaccineDrafts=[];
+
+ renderGoatVaccineDrafts();
 
 };
 
@@ -3107,6 +3481,29 @@ function editGoat(id){
  g.purchase_price || "";
 
 
+ let originTx =
+ DATA.tx.find(
+  x =>
+  x.goat_id===g.id &&
+  (
+   x.type==="purchase" ||
+   x.type==="birth"
+  )
+ );
+
+ $("gOrigin")
+ .value =
+ originTx?.type==="birth"
+ ?
+ "birth"
+ :
+ "purchase";
+
+ goatVaccineDrafts=[];
+
+ renderGoatVaccineDrafts();
+
+
  $("gSource")
  .value =
  g.source || "";
@@ -3219,12 +3616,15 @@ async function vaxGoat(id){
    company ||
    null,
 
-  given_date:
-   today(),
+  given_date:null,
 
-  next_date:
+  scheduled_date:
    next ||
-   null
+   null,
+
+  status:"pending",
+
+  next_date:null
 
  });
 
@@ -3543,122 +3943,143 @@ async function deleteExpense(id){
 
 function renderVaccines(){
 
- let names =
- [
-  ...new Set(
-   DATA.lookups
-   .filter(
-    x =>
-    x.kind==="vaccine"
-   )
-   .map(
-    x =>
-    x.name
-   )
-  )
- ];
+ let rows =
+ DATA.vaccines
+ .filter(
+  v => {
+
+   let st =
+    v.status ||
+    (
+     v.given_date
+     ?
+     "completed"
+     :
+     "pending"
+    );
+
+   return (
+    vaccineFilter==="all" ||
+    st===vaccineFilter
+   );
+
+  }
+ );
 
 
  $("vaccineList")
  .innerHTML =
 
- DATA.goats
- .filter(
-  g =>
-  g.status==="active"
- )
- .map(
-  g => {
+ rows.length
 
-   let vs =
-   DATA.vaccines
-   .filter(
-    v =>
-    v.goat_id===g.id
-   );
+ ?
+
+ rows
+ .map(
+  v => {
+
+   let g =
+    DATA.goats.find(
+     x =>
+     x.id===v.goat_id
+    );
+
+   let st =
+    v.status ||
+    (
+     v.given_date
+     ?
+     "completed"
+     :
+     "pending"
+    );
+
+   let late =
+    st==="pending" &&
+    v.scheduled_date &&
+    v.scheduled_date < today();
 
 
    return `
 
-   <div class=card>
+   <div class="card" style="padding:10px">
 
-    <b>
-     ${esc(g.name)}
-    </b>
+    <div class="top">
 
-    <div class=s>
-     ${esc(g.breed||"জাত নেই")}
+     <div>
+
+      <b style="font-size:15px">
+       ${esc(g?.name||"অজানা ছাগল")}
+      </b>
+
+      <div class=s>
+       ${esc(g?.breed||"জাত নেই")}
+       ·
+       ${esc(v.vaccine_name)}
+      </div>
+
+     </div>
+
+
+     <span
+      class="tag ${late?"warn":""}"
+     >
+      ${
+       st==="pending"
+       ?
+       "পেন্ডিং"
+       :
+       "কমপ্লিট"
+      }
+     </span>
+
     </div>
 
 
     <div
-     class=vaccine-grid
-     style="margin-top:10px"
+     class=s
+     style="margin-top:6px"
     >
 
      ${
-      names
-      .map(
-       n => {
-
-        let v =
-        vs.find(
-         x =>
-         x.vaccine_name===n
-        );
-
-
-        let cls =
-        v?.next_date &&
-        v.next_date<today()
-        ?
-        "late"
-        :
-        v
-        ?
-        "done"
-        :
-        "";
-
-
-        return `
-
-        <button
-         class="chip ${cls}"
-         onclick="${
-          v
-          ?
-          `alert('দেওয়া: ${fmt(v.given_date)}\\nকোম্পানি: ${esc(v.company||"—")}\\nপরবর্তী: ${fmt(v.next_date)}')`
-          :
-          `vaxDirect('${g.id}','${esc(n)}')`
-         }"
-        >
-
-         ${v?"✓":"○"}
-
-         ${esc(n)}
-
-         <small>
-
-          ${
-           v
-           ?
-           (
-            v.company ||
-            "কোম্পানি নেই"
-           )
-           :
-           "দেওয়া হয়নি"
-          }
-
-         </small>
-
-        </button>`;
-
-       }
-      )
-      .join("")
+      st==="pending"
+      ?
+      "সম্ভাব্য তারিখ: "+
+      fmt(v.scheduled_date)
+      :
+      "দেওয়ার তারিখ: "+
+      fmt(v.given_date)
      }
+
+     · কোম্পানি:
+     ${esc(v.company||"—")}
+
+    </div>
+
+
+    <div class=seg>
+
+     ${
+      st==="pending"
+      ?
+
+      `<button
+       onclick="completeVaccine('${v.id}')"
+      >
+       ✓ টিকা দেওয়া সম্পন্ন
+      </button>`
+
+      :
+
+      ""
+     }
+
+
+     <button
+      onclick="showVaccineHistory('${v.goat_id}')"
+     >
+      📋 এই ছাগলের সব টিকা
+     </button>
 
     </div>
 
@@ -3668,11 +4089,157 @@ function renderVaccines(){
  )
  .join("")
 
- ||
+ :
 
- `<div class=empty>
-  প্রথমে আমার ছাগল-এ ছাগল যোগ করুন।
+ `<div class="card">
+
+  <div class=empty>
+   এই তালিকায় কোনো টিকার রেকর্ড নেই।
+  </div>
+
  </div>`;
+
+
+ document
+ .querySelectorAll(
+  "#vaccineRange button"
+ )
+ .forEach(
+  b =>
+  b.classList.toggle(
+   "on",
+   b.dataset.vr===vaccineFilter
+  )
+ );
+
+}
+
+
+document
+ .querySelectorAll(
+  "#vaccineRange button"
+ )
+ .forEach(
+  b =>
+  b.onclick =
+  () => {
+
+   vaccineFilter =
+   b.dataset.vr;
+
+   renderVaccines();
+
+  }
+ );
+
+
+async function completeVaccine(id){
+
+ let {
+  error
+ } =
+ await db
+ .from("vaccinations")
+ .update({
+
+  status:"completed",
+
+  given_date:
+   today()
+
+ })
+ .eq(
+  "id",
+  id
+ );
+
+
+ if(error){
+
+  alert(
+   error.message
+  );
+
+  return;
+
+ }
+
+ await loadAll();
+
+}
+
+
+function showVaccineHistory(goatId){
+
+ let g =
+ DATA.goats.find(
+  x =>
+  x.id===goatId
+ );
+
+ let vs =
+ DATA.vaccines
+ .filter(
+  v =>
+  v.goat_id===goatId
+ );
+
+ if(!vs.length){
+
+  alert(
+   "এই ছাগলের কোনো টিকার রেকর্ড নেই।"
+  );
+
+  return;
+
+ }
+
+
+ let text =
+ `${g?.name||"ছাগল"} - মোট ${vs.length}টি টিকার রেকর্ড\n\n`;
+
+
+ text +=
+ vs
+ .map(
+  (v,i) => {
+
+   let st =
+    v.status ||
+    (
+     v.given_date
+     ?
+     "completed"
+     :
+     "pending"
+    );
+
+   return (
+    `${i+1}. ${v.vaccine_name} — `+
+    (
+     st==="completed"
+     ?
+     "কমপ্লিট"
+     :
+     "পেন্ডিং"
+    )+
+    "\n"+
+    (
+     st==="completed"
+     ?
+     `দেওয়া: ${fmt(v.given_date)}`
+     :
+     `সম্ভাব্য: ${fmt(v.scheduled_date)}`
+    )+
+    `\nকোম্পানি: ${v.company||"—"}`
+   );
+
+  }
+ )
+ .join("\n\n");
+
+
+ alert(text);
 
 }
 
@@ -3725,12 +4292,15 @@ async function vaxDirect(
    company ||
    null,
 
-  given_date:
-   today(),
+  given_date:null,
 
-  next_date:
+  scheduled_date:
    next ||
-   null
+   null,
+
+  status:"pending",
+
+  next_date:null
 
  });
 
@@ -3846,6 +4416,45 @@ function fillLookups(){
  .innerHTML =
 
  e.map(
+  x =>
+  `<option value="${esc(x.name)}">`
+ )
+ .join("");
+
+
+ let vnames =
+ DATA.lookups
+ .filter(
+  x =>
+  x.kind==="vaccine"
+ );
+
+
+ $("gVaccineName")
+ .innerHTML =
+ `<option value="">টিকা নির্বাচন করুন</option>`+
+ vnames
+ .map(
+  x =>
+  `<option value="${esc(x.name)}">
+    ${esc(x.name)}
+   </option>`
+ )
+ .join("");
+
+
+ let comps =
+ DATA.lookups
+ .filter(
+  x =>
+  x.kind==="vaccine_company"
+ );
+
+
+ $("gVaccineCompanyList")
+ .innerHTML =
+ comps
+ .map(
   x =>
   `<option value="${esc(x.name)}">`
  )
