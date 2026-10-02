@@ -1363,11 +1363,28 @@ hr{
       <section id="page-reports" class="hidden">
 
         <div style="font-size:19px;font-weight:800">
-          📊 মাসিক বিস্তারিত রিপোর্ট
+          📊 রিপোর্ট / হিস্টোরি
         </div>
 
         <div class="small" style="margin:3px 0 10px">
           চলতি মাসের আয়-ব্যয় ও ছাগলের হিসাব
+        </div>
+
+
+        <div class="tabbar">
+
+          <button id="rtab-current"
+                  class="tab active"
+                  onclick="reportTab('current')">
+            📅 এই মাস
+          </button>
+
+          <button id="rtab-history"
+                  class="tab"
+                  onclick="reportTab('history')">
+            📚 ৬ মাসের হিস্টোরি
+          </button>
+
         </div>
 
 
@@ -1575,6 +1592,7 @@ let currentUser = null;
 let currentGoatTab = "all";
 let currentExpenseTab = "day";
 let currentVaccineTab = "pending";
+let currentReportTab = "current";
 
 
 /* =========================================================
@@ -2547,8 +2565,41 @@ async function deleteGoat(id){
 
 
   if(!confirm(
-    `"${g.name}" ছাগলটি Delete করবেন?`
+    `"${g.name}" ছাগলটি Delete করবেন?\nএর সাথে থাকা ইতিহাসও Dashboard/Report থেকে বাদ যাবে।`
   )) return;
+
+
+  const {error:txError} =
+    await db
+      .from("goat_transactions")
+      .delete()
+      .eq("goat_id",id)
+      .eq("user_id",currentUser.id);
+
+
+  if(txError){
+
+    alert(txError.message);
+
+    return;
+  }
+
+
+  const {error:expenseError} =
+    await db
+      .from("expenses")
+      .delete()
+      .eq("user_id",currentUser.id)
+      .eq("category","ছাগল ক্রয়")
+      .eq("note","ছাগল: " + g.name);
+
+
+  if(expenseError){
+
+    alert(expenseError.message);
+
+    return;
+  }
 
 
   const {error} =
@@ -3936,6 +3987,21 @@ function renderDashboard(){
         0
       );
 
+  const monthLandCost =
+    DATA.land
+      .filter(
+        x =>
+          x.record_date?.startsWith(month)
+      )
+      .reduce(
+        (sum,x)=>
+          sum + Number(x.cost || 0),
+        0
+      );
+
+  const monthTotalCost =
+    monthExpense + monthLandCost;
+
 
   const pending =
     DATA.vaccines.filter(
@@ -3956,7 +4022,7 @@ function renderDashboard(){
     sale;
 
   $("dMonthExpense").textContent =
-    money(monthExpense);
+    money(monthTotalCost);
 
   $("dVaccine").textContent =
     pending;
@@ -4129,11 +4195,53 @@ function renderDashboard(){
    MONTHLY REPORT
 ========================================================= */
 
-function renderReport(){
+function getMonthKey(offset=0){
 
-  const month =
-    today().slice(0,7);
+  const d = new Date();
 
+  d.setDate(1);
+  d.setMonth(d.getMonth() - offset);
+
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth()+1)
+  );
+
+}
+
+
+function monthLabel(month){
+
+  const parts = String(month).split("-");
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+
+  const names = [
+    "জানুয়ারি",
+    "ফেব্রুয়ারি",
+    "মার্চ",
+    "এপ্রিল",
+    "মে",
+    "জুন",
+    "জুলাই",
+    "আগস্ট",
+    "সেপ্টেম্বর",
+    "অক্টোবর",
+    "নভেম্বর",
+    "ডিসেম্বর"
+  ];
+
+  return (
+    names[(m || 1)-1] +
+    " " +
+    y
+  );
+
+}
+
+
+function getMonthData(month){
 
   const expenses =
     DATA.expenses.filter(
@@ -4141,6 +4249,11 @@ function renderReport(){
         x.expense_date?.startsWith(month)
     );
 
+  const land =
+    DATA.land.filter(
+      x =>
+        x.record_date?.startsWith(month)
+    );
 
   const purchases =
     DATA.tx.filter(
@@ -4149,6 +4262,12 @@ function renderReport(){
         x.transaction_date?.startsWith(month)
     );
 
+  const births =
+    DATA.tx.filter(
+      x =>
+        x.type==="birth" &&
+        x.transaction_date?.startsWith(month)
+    );
 
   const sales =
     DATA.tx.filter(
@@ -4157,7 +4276,6 @@ function renderReport(){
         x.transaction_date?.startsWith(month)
     );
 
-
   const expenseTotal =
     expenses.reduce(
       (s,x)=>
@@ -4165,6 +4283,12 @@ function renderReport(){
       0
     );
 
+  const landTotal =
+    land.reduce(
+      (s,x)=>
+        s + Number(x.cost || 0),
+      0
+    );
 
   const purchaseTotal =
     purchases.reduce(
@@ -4173,7 +4297,6 @@ function renderReport(){
       0
     );
 
-
   const saleTotal =
     sales.reduce(
       (s,x)=>
@@ -4181,15 +4304,65 @@ function renderReport(){
       0
     );
 
+  return {
+    expenses,
+    land,
+    purchases,
+    births,
+    sales,
+    expenseTotal,
+    landTotal,
+    totalCost:expenseTotal + landTotal,
+    purchaseTotal,
+    saleTotal
+  };
+
+}
+
+
+function reportTab(tab){
+
+  currentReportTab = tab;
+
+  [
+    "current",
+    "history"
+  ].forEach(x=>{
+
+    const el = $("rtab-" + x);
+
+    if(el){
+
+      el.classList.toggle(
+        "active",
+        x===tab
+      );
+
+    }
+
+  });
+
+  renderReport();
+
+}
+
+
+function renderCurrentReport(){
+
+  const month =
+    today().slice(0,7);
+
+  const data =
+    getMonthData(month);
 
   $("rExpense").textContent =
-    money(expenseTotal);
+    money(data.totalCost);
 
   $("rPurchase").textContent =
-    money(purchaseTotal);
+    money(data.purchaseTotal);
 
   $("rSale").textContent =
-    money(saleTotal);
+    money(data.saleTotal);
 
   $("rCurrent").textContent =
     DATA.goats.filter(
@@ -4199,30 +4372,41 @@ function renderReport(){
 
   let html = "";
 
-
   html += `
     <div class="card">
 
       <div class="card-title">
-        📅 ${month} বিস্তারিত
+        📅 ${monthLabel(month)} বিস্তারিত
       </div>
 
       <div class="row-between"
            style="padding:7px 0">
         <span>মোট খরচ</span>
-        <strong>${money(expenseTotal)}</strong>
+        <strong>${money(data.totalCost)}</strong>
+      </div>
+
+      <div class="row-between"
+           style="padding:7px 0">
+        <span>সাধারণ খরচ</span>
+        <strong>${money(data.expenseTotal)}</strong>
+      </div>
+
+      <div class="row-between"
+           style="padding:7px 0">
+        <span>🌱 জমির খরচ</span>
+        <strong>${money(data.landTotal)}</strong>
       </div>
 
       <div class="row-between"
            style="padding:7px 0">
         <span>ছাগল ক্রয়</span>
-        <strong>${money(purchaseTotal)}</strong>
+        <strong>${money(data.purchaseTotal)}</strong>
       </div>
 
       <div class="row-between"
            style="padding:7px 0">
         <span>ছাগল বিক্রি</span>
-        <strong>${money(saleTotal)}</strong>
+        <strong>${money(data.saleTotal)}</strong>
       </div>
 
     </div>
@@ -4238,7 +4422,7 @@ function renderReport(){
   `;
 
 
-  if(!expenses.length){
+  if(!data.expenses.length && !data.land.length){
 
     html += `
       <div class="empty">
@@ -4248,47 +4432,203 @@ function renderReport(){
 
   }else{
 
-    html +=
-      expenses.map(x=>`
+    const rows = [
+      ...data.expenses.map(x=>({
+        date:x.expense_date,
+        title:x.category,
+        amount:x.amount,
+        note:x.note
+      })),
+      ...data.land.map(x=>({
+        date:x.record_date,
+        title:"🌱 জমির খরচ — " + (x.land_name || ""),
+        amount:x.cost,
+        note:x.note
+      }))
+    ].sort(
+      (a,b)=>
+        String(b.date || "")
+          .localeCompare(
+            String(a.date || "")
+          )
+    );
 
-        <div style="
-          padding:8px 0;
-          border-bottom:1px solid #edf0ee;
-        ">
 
-          <div class="row-between">
+    html += rows.map(x=>`
 
-            <strong>
-              ${esc(x.category)}
-            </strong>
+      <div style="
+        padding:8px 0;
+        border-bottom:1px solid #edf0ee;
+      ">
 
-            <strong>
-              ${money(x.amount)}
-            </strong>
+        <div class="row-between">
 
-          </div>
+          <strong>
+            ${esc(x.title)}
+          </strong>
 
-          <div class="small">
-            ${fmt(x.expense_date)}
-            ${
-              x.note
-                ? " • " + esc(x.note)
-                : ""
-            }
-          </div>
+          <strong>
+            ${money(x.amount)}
+          </strong>
 
         </div>
 
-      `).join("");
+        <div class="small">
+          ${fmt(x.date)}
+          ${
+            x.note
+              ? " • " + esc(x.note)
+              : ""
+          }
+        </div>
+
+      </div>
+
+    `).join("");
 
   }
 
 
   html += `</div>`;
 
+  $("reportBody").innerHTML =
+    html;
+
+}
+
+
+function renderSixMonthHistory(){
+
+  let html = `
+
+    <div class="card">
+
+      <div class="card-title">
+        📚 গত ৬ মাসের হিস্টোরি
+      </div>
+
+      <div class="small">
+        বর্তমান মাসসহ সর্বশেষ ৬ মাসের খরচ, জমির খরচ, ক্রয় ও বিক্রির হিসাব
+      </div>
+
+    </div>
+
+  `;
+
+
+  for(let i=0; i<6; i++){
+
+    const month =
+      getMonthKey(i);
+
+    const data =
+      getMonthData(month);
+
+
+    html += `
+
+      <div class="card">
+
+        <div class="row-between">
+
+          <strong>
+            📅 ${monthLabel(month)}
+          </strong>
+
+          <strong class="orange">
+            ${money(data.totalCost)}
+          </strong>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div>
+            সাধারণ খরচ:
+            <strong>
+              ${money(data.expenseTotal)}
+            </strong>
+          </div>
+
+          <div>
+            🌱 জমির খরচ:
+            <strong>
+              ${money(data.landTotal)}
+            </strong>
+          </div>
+
+          <div>
+            🛒 ক্রয়:
+            <strong>
+              ${money(data.purchaseTotal)}
+            </strong>
+          </div>
+
+          <div>
+            💰 বিক্রি:
+            <strong>
+              ${money(data.saleTotal)}
+            </strong>
+          </div>
+
+          <div>
+            🐐 জন্ম:
+            <strong>
+              ${data.births.length}
+            </strong>
+          </div>
+
+          <div>
+            মোট খরচ:
+            <strong>
+              ${money(data.totalCost)}
+            </strong>
+          </div>
+
+        </div>
+
+        ${
+          (
+            data.expenses.length ||
+            data.land.length ||
+            data.purchases.length ||
+            data.births.length ||
+            data.sales.length
+          )
+            ? ""
+            : `
+              <div class="empty"
+                   style="padding:10px 0 2px">
+                এই মাসে কোনো হিসাব নেই।
+              </div>
+            `
+        }
+
+      </div>
+
+    `;
+
+  }
+
 
   $("reportBody").innerHTML =
     html;
+
+}
+
+
+function renderReport(){
+
+  if(currentReportTab==="history"){
+
+    renderSixMonthHistory();
+
+    return;
+
+  }
+
+  renderCurrentReport();
 
 }
 
