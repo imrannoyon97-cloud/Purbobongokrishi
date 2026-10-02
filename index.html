@@ -1910,32 +1910,32 @@ async function loadAll(){
 
     db.from("goats")
       .select("*")
-      .eq("user_id",uid)
+      
       .order("created_at",{ascending:false}),
 
     db.from("goat_transactions")
       .select("*")
-      .eq("user_id",uid)
+      
       .order("transaction_date",{ascending:false}),
 
     db.from("vaccinations")
       .select("*")
-      .eq("user_id",uid)
+      
       .order("scheduled_date",{ascending:true}),
 
     db.from("expenses")
       .select("*")
-      .eq("user_id",uid)
+      
       .order("expense_date",{ascending:false}),
 
     db.from("land_records")
       .select("*")
-      .eq("user_id",uid)
+      
       .order("record_date",{ascending:false}),
 
     db.from("lookup_items")
       .select("*")
-      .eq("user_id",uid)
+      
       .order("name",{ascending:true})
 
   ]);
@@ -2320,7 +2320,7 @@ async function saveGoat(){
         .from("goats")
         .update(row)
         .eq("id",editingId)
-        .eq("user_id",currentUser.id);
+        ;
 
 
     if(error){
@@ -2377,7 +2377,7 @@ async function saveGoat(){
 
         })
         .eq("id",originTx.id)
-        .eq("user_id",currentUser.id);
+        ;
 
     }else{
 
@@ -2574,7 +2574,7 @@ async function deleteGoat(id){
       .from("goat_transactions")
       .delete()
       .eq("goat_id",id)
-      .eq("user_id",currentUser.id);
+      ;
 
 
   if(txError){
@@ -2589,7 +2589,7 @@ async function deleteGoat(id){
     await db
       .from("expenses")
       .delete()
-      .eq("user_id",currentUser.id)
+      
       .eq("category","ছাগল ক্রয়")
       .eq("note","ছাগল: " + g.name);
 
@@ -2607,7 +2607,7 @@ async function deleteGoat(id){
       .from("goats")
       .delete()
       .eq("id",id)
-      .eq("user_id",currentUser.id);
+      ;
 
 
   if(error){
@@ -2703,7 +2703,7 @@ async function sellGoat(id){
         updated_at:new Date().toISOString()
       })
       .eq("id",id)
-      .eq("user_id",currentUser.id);
+      ;
 
 
   if(updateError){
@@ -3263,7 +3263,7 @@ async function completeVaccine(id){
 
       })
       .eq("id",id)
-      .eq("user_id",currentUser.id);
+      ;
 
 
   if(error){
@@ -3291,7 +3291,7 @@ async function deleteVaccine(id){
       .from("vaccinations")
       .delete()
       .eq("id",id)
-      .eq("user_id",currentUser.id);
+      ;
 
 
   if(error){
@@ -3630,7 +3630,7 @@ async function deleteExpense(id){
       .from("expenses")
       .delete()
       .eq("id",id)
-      .eq("user_id",currentUser.id);
+      ;
 
 
   if(error){
@@ -3833,7 +3833,7 @@ async function deleteLand(id){
       .from("land_records")
       .delete()
       .eq("id",id)
-      .eq("user_id",currentUser.id);
+      ;
 
 
   if(error){
