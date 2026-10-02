@@ -1772,4 +1772,652 @@ function goatCard(goat){
 
           <div class="goat-id">
             ID: ${escapeHtml(goat.id)}
-            • ${escapeHtml(goat
+            • ${escapeHtml(goat.breed)}
+          </div>
+
+        </div>
+
+        <div class="badge ${badge}">
+          ${badgeText}
+        </div>
+
+      </div>
+
+
+      <div class="info-line">
+
+        জন্ম:
+        ${formatDate(goat.birth)}
+
+        • বয়স:
+        ${escapeHtml(goat.age || "—")}
+
+        • ওজন:
+        ${escapeHtml(goat.weight || "—")}
+
+        • অবস্থা:
+        ${escapeHtml(goat.condition || "—")}
+
+      </div>
+
+
+      <div class="info-line">
+
+        পরবর্তী টিকা:
+
+        <b>
+          ${next ? formatDate(next.nextDate) : "নির্ধারিত নেই"}
+        </b>
+
+      </div>
+
+
+      <div class="vaccine-preview">
+
+        ${chips || "<span class='vaccine-chip'>কোনো টিকা নেই</span>"}
+
+      </div>
+
+
+      <div class="goat-actions">
+
+        <button
+          class="btn secondary small"
+          onclick="openDetail('${goat.uid}')"
+        >
+          বিস্তারিত
+        </button>
+
+        <button
+          class="btn small"
+          onclick="openGoatModal('${goat.uid}')"
+        >
+          ✏️ Edit
+        </button>
+
+        <button
+          class="btn danger small"
+          onclick="deleteGoat('${goat.uid}')"
+        >
+          বাদ
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================
+   NEXT VACCINE
+========================================= */
+
+function getNextVaccine(goat){
+
+  const list=(goat.vaccines||[])
+    .filter(v=>v.nextDate);
+
+  if(!list.length) return null;
+
+  list.sort((a,b)=>
+    new Date(a.nextDate)-new Date(b.nextDate)
+  );
+
+  return list[0];
+
+}
+
+
+/* =========================================
+   DUE COUNT
+========================================= */
+
+function countDueVaccines(){
+
+  let count=0;
+
+  goats.forEach(g=>{
+
+    (g.vaccines||[]).forEach(v=>{
+
+      if(!v.nextDate) return;
+
+      const diff=dateDiff(v.nextDate);
+
+      if(
+        v.status!=="done" &&
+        diff!==null &&
+        diff<=7
+      ){
+
+        count++;
+
+      }
+
+    });
+
+  });
+
+  return count;
+
+}
+
+
+function countOverdueVaccines(){
+
+  let count=0;
+
+  goats.forEach(g=>{
+
+    (g.vaccines||[]).forEach(v=>{
+
+      if(!v.nextDate) return;
+
+      if(
+        v.status!=="done" &&
+        dateDiff(v.nextDate)<0
+      ){
+
+        count++;
+
+      }
+
+    });
+
+  });
+
+  return count;
+
+}
+
+
+/* =========================================
+   DASHBOARD
+========================================= */
+
+function renderDashboard(){
+
+  document.getElementById("totalGoats").textContent =
+    goats.length;
+
+  document.getElementById("vaccineDue").textContent =
+    countDueVaccines();
+
+  document.getElementById("vaccineOverdue").textContent =
+    countOverdueVaccines();
+
+
+  const currentMonth =
+    new Date().toISOString().slice(0,7);
+
+  const total =
+    expenses
+      .filter(e=>(e.date||"").startsWith(currentMonth))
+      .reduce((sum,e)=>sum+Number(e.amount||0),0);
+
+  document.getElementById("monthExpense").textContent =
+    "৳"+total.toLocaleString("bn-BD");
+
+
+  const items=[];
+
+  goats.forEach(g=>{
+
+    (g.vaccines||[]).forEach(v=>{
+
+      if(v.nextDate && v.status!=="done"){
+
+        items.push({
+
+          goat:g.name,
+          vaccine:v.name,
+          date:v.nextDate
+
+        });
+
+      }
+
+    });
+
+  });
+
+
+  items.sort((a,b)=>
+    new Date(a.date)-new Date(b.date)
+  );
+
+
+  const box =
+    document.getElementById("upcomingVaccines");
+
+
+  if(!items.length){
+
+    box.innerHTML=`
+      <div class="empty">
+        🎉 এখন কোনো টিকা বাকি নেই
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  box.innerHTML =
+    items.slice(0,8).map(item=>{
+
+      const diff=dateDiff(item.date);
+
+      let cls="success";
+      let txt="সময় আছে";
+
+      if(diff<0){
+        cls="danger";
+        txt="তারিখ পার হয়েছে";
+      }else if(diff<=7){
+        cls="warning";
+        txt=diff===0?"আজ":"আর "+diff+" দিন";
+      }
+
+      return `
+
+        <div
+          class="goat-card"
+          style="padding:14px;margin-bottom:9px"
+        >
+
+          <div class="goat-head">
+
+            <div>
+              🐐 <b>${escapeHtml(item.goat)}</b>
+              <br>
+              💉 ${escapeHtml(item.vaccine)}
+            </div>
+
+            <span class="badge ${cls}">
+              ${txt}
+            </span>
+
+          </div>
+
+          <div class="info-line">
+            পরবর্তী তারিখ:
+            <b>${formatDate(item.date)}</b>
+          </div>
+
+        </div>
+
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================================
+   DETAIL
+========================================= */
+
+function openDetail(uid){
+
+  const goat=goats.find(g=>g.uid===uid);
+
+  if(!goat) return;
+
+
+  const vaccines=(goat.vaccines||[])
+    .map((v,index)=>{
+
+      const s=vaccineStatus(v);
+
+      return `
+
+        <div class="vaccine-box">
+
+          <div class="vaccine-box-head">
+
+            <div class="vaccine-name">
+              💉 ${escapeHtml(v.name)}
+            </div>
+
+            <div class="status ${s.class}">
+              ${s.text}
+            </div>
+
+          </div>
+
+          <div class="info-line">
+
+            টিকা দেওয়ার তারিখ:
+            <b>${formatDate(v.givenDate)}</b>
+
+          </div>
+
+          <div class="info-line">
+
+            পরবর্তী টিকার তারিখ:
+            <b>${formatDate(v.nextDate)}</b>
+
+          </div>
+
+          <div class="vaccine-buttons" style="margin-top:12px">
+
+            <button
+              class="btn small"
+              onclick="changeVaccineStatus('${uid}',${index},'done')"
+            >
+              ✓ দেওয়া হয়েছে
+            </button>
+
+            <button
+              class="btn danger small"
+              onclick="changeVaccineStatus('${uid}',${index},'notdone')"
+            >
+              ✕ দেওয়া হয়নি
+            </button>
+
+          </div>
+
+        </div>
+
+      `;
+
+    }).join("");
+
+
+  document.getElementById("detailContent").innerHTML=`
+
+    <div class="goat-card">
+
+      <div class="goat-name">
+        🐐 ${escapeHtml(goat.name)}
+      </div>
+
+      <div class="info-line">
+        ID: ${escapeHtml(goat.id)}
+      </div>
+
+      <div class="info-line">
+        জাত: ${escapeHtml(goat.breed)}
+      </div>
+
+      <div class="info-line">
+        জন্মতারিখ: ${formatDate(goat.birth)}
+      </div>
+
+      <div class="info-line">
+        বয়স: ${escapeHtml(goat.age || "—")}
+      </div>
+
+      <div class="info-line">
+        ওজন: ${escapeHtml(goat.weight || "—")}
+      </div>
+
+      <div class="info-line">
+        অবস্থা: ${escapeHtml(goat.condition || "—")}
+      </div>
+
+    </div>
+
+
+    <div class="form-card">
+
+      <div class="form-title">
+        💉 সব টিকার তথ্য
+      </div>
+
+      ${
+        vaccines ||
+        "<div class='empty'>কোনো টিকা নেই</div>"
+      }
+
+    </div>
+
+
+    <button
+      class="btn"
+      style="width:100%"
+      onclick="openGoatModal('${goat.uid}');closeDetail()"
+    >
+      ✏️ তথ্য Edit করুন
+    </button>
+
+  `;
+
+
+  document.getElementById("detailModal")
+    .classList.remove("hidden");
+
+}
+
+
+function closeDetail(){
+
+  document.getElementById("detailModal")
+    .classList.add("hidden");
+
+}
+
+
+function changeVaccineStatus(uid,index,status){
+
+  const goat=goats.find(g=>g.uid===uid);
+
+  if(!goat || !goat.vaccines[index]) return;
+
+  goat.vaccines[index].status=status;
+
+  if(status==="done" &&
+     !goat.vaccines[index].givenDate){
+
+    goat.vaccines[index].givenDate=today();
+
+  }
+
+  saveData();
+
+  openDetail(uid);
+
+  renderGoats();
+
+  renderDashboard();
+
+  showToast(
+    status==="done"
+    ? "টিকা দেওয়া হয়েছে হিসেবে সংরক্ষণ হয়েছে"
+    : "টিকা দেওয়া হয়নি হিসেবে সংরক্ষণ হয়েছে"
+  );
+
+}
+
+
+/* =========================================
+   DELETE GOAT
+========================================= */
+
+function deleteGoat(uid){
+
+  const goat=goats.find(g=>g.uid===uid);
+
+  if(!goat) return;
+
+  if(!confirm(
+    "আপনি কি "+goat.name+"-কে বাদ দিতে চান?"
+  )) return;
+
+  goats=goats.filter(g=>g.uid!==uid);
+
+  saveData();
+
+  renderGoats();
+
+  renderDashboard();
+
+  showToast("ছাগলটি বাদ দেওয়া হয়েছে");
+
+}
+
+
+/* =========================================
+   EXPENSE
+========================================= */
+
+function addExpense(){
+
+  const title=
+    document.getElementById("expenseTitle").value.trim();
+
+  const amount=
+    Number(document.getElementById("expenseAmount").value);
+
+  const date=
+    document.getElementById("expenseDate").value || today();
+
+  if(!title || !amount){
+
+    showToast("খরচের ধরন ও পরিমাণ দিন");
+
+    return;
+
+  }
+
+  expenses.push({
+
+    id:"exp_"+Date.now(),
+    title:title,
+    amount:amount,
+    date:date
+
+  });
+
+  saveData();
+
+  document.getElementById("expenseTitle").value="";
+  document.getElementById("expenseAmount").value="";
+
+  renderExpenses();
+  renderDashboard();
+
+  showToast("খরচ সংরক্ষণ হয়েছে");
+
+}
+
+
+function renderExpenses(){
+
+  const box=
+    document.getElementById("expenseList");
+
+  if(!expenses.length){
+
+    box.innerHTML=`
+      <div class="empty">
+        💰 এখনো কোনো খরচ যোগ করা হয়নি
+      </div>
+    `;
+
+    return;
+
+  }
+
+  const currentMonth=
+    new Date().toISOString().slice(0,7);
+
+  const monthTotal=
+    expenses
+      .filter(e=>e.date.startsWith(currentMonth))
+      .reduce((s,e)=>s+Number(e.amount),0);
+
+  document.getElementById("expenseMonth").textContent=
+    "৳"+monthTotal.toLocaleString("bn-BD");
+
+
+  box.innerHTML=
+    expenses.slice().reverse().map(e=>`
+
+      <div class="goat-card">
+
+        <div class="goat-head">
+
+          <div>
+            <div class="goat-name">
+              💰 ${escapeHtml(e.title)}
+            </div>
+
+            <div class="goat-id">
+              ${formatDate(e.date)}
+            </div>
+          </div>
+
+          <div class="badge warning">
+            ৳${Number(e.amount).toLocaleString("bn-BD")}
+          </div>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+}
+
+
+/* =========================================
+   TOAST
+========================================= */
+
+function showToast(message){
+
+  const old=document.querySelector(".toast");
+
+  if(old) old.remove();
+
+  const toast=document.createElement("div");
+
+  toast.className="toast";
+
+  toast.textContent=message;
+
+  document.body.appendChild(toast);
+
+  setTimeout(()=>{
+    toast.remove();
+  },2500);
+
+}
+
+
+/* =========================================
+   ESCAPE HTML
+========================================= */
+
+function escapeHtml(value){
+
+  return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================
+   INIT
+========================================= */
+
+renderDashboard();
+
+renderGoats();
+
+renderExpenses();
+
+</script>
+
+</body>
+</html>
