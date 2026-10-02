@@ -180,7 +180,7 @@ th{background:#f5f8f5;color:#35533e;font-size:13px}
     <div class="auth-brand">
       <div class="logo">ক</div>
       <h1>পূর্ববঙ্গ কৃষি কেন্দ্র</h1>
-      <p>ছাগল খামার হিসাব ও ব্যবস্থাপনা</p>
+      <p>খামারের হিসাব দেখতে লগইন করুন</p>
     </div>
 
     <div class="auth-switch">
@@ -277,13 +277,14 @@ th{background:#f5f8f5;color:#35533e;font-size:13px}
         <h2>ছাগল যোগ করুন</h2>
         <div class="grid grid3">
           <div class="form-row"><label>ছাগল ID</label><input id="goatId" placeholder="যেমন G-001"></div>
-          <div class="form-row"><label>জাত</label><input id="goatBreed" placeholder="ব্ল্যাক বেঙ্গল"></div>
+          <div class="form-row"><label>জাত</label><input id="goatBreed" list="breedSuggestions" placeholder="জাত লিখুন বা তালিকা থেকে বেছে নিন">
+          <datalist id="breedSuggestions"></datalist></div>
           <div class="form-row"><label>লিঙ্গ</label><select id="goatGender"><option>পুরুষ</option><option>মাদি</option></select></div>
           <div class="form-row"><label>জন্ম/কেনার তারিখ</label><input id="goatDate" type="date"></div>
           <div class="form-row"><label>ক্রয় মূল্য</label><input id="goatPrice" type="number" min="0" placeholder="৳"></div>
           <div class="form-row"><label>বর্তমান অবস্থা</label><select id="goatStatus"><option>সুস্থ</option><option>অসুস্থ</option><option>বিক্রি হয়েছে</option><option>মারা গেছে</option></select></div>
         </div>
-        <div class="form-row"><label>নোট</label><textarea id="goatNote" placeholder="অতিরিক্ত তথ্য"></textarea></div>
+        <div class="form-row"><label>নোট</label><textarea id="goatNote" placeholder="অতিরিক্ত তথ্য"></textarea></div><div class="muted" style="margin:-4px 0 12px">জাতের ঘরে লিখলে আগের ব্যবহৃত জাত ও সাধারণ জাতের suggestion দেখাবে।</div>
         <button class="btn" onclick="addGoat()">ছাগল সংরক্ষণ</button>
       </div>
 
@@ -301,10 +302,11 @@ th{background:#f5f8f5;color:#35533e;font-size:13px}
         <h2>খরচ যোগ করুন</h2>
         <div class="grid grid3">
           <div class="form-row"><label>তারিখ</label><input id="expenseDate" type="date"></div>
-          <div class="form-row"><label>খরচের ধরন</label><input id="expenseCategory" placeholder="খাদ্য / ওষুধ / শ্রমিক"></div>
+          <div class="form-row"><label>খরচের ধরন</label><input id="expenseCategory" list="expenseSuggestions" placeholder="খরচের ধরন লিখুন বা তালিকা থেকে বেছে নিন">
+          <datalist id="expenseSuggestions"></datalist></div>
           <div class="form-row"><label>পরিমাণ</label><input id="expenseAmount" type="number" min="0" placeholder="৳"></div>
         </div>
-        <div class="form-row"><label>বিবরণ</label><textarea id="expenseNote" placeholder="খরচের বিস্তারিত"></textarea></div>
+        <div class="form-row"><label>বিবরণ</label><textarea id="expenseNote" placeholder="খরচের বিস্তারিত"></textarea></div><div class="muted" style="margin:-4px 0 12px">খরচের ধরনে লিখলে আগের ব্যবহৃত ধরন ও সাধারণ ধরনের suggestion দেখাবে।</div>
         <button class="btn" onclick="addExpense()">খরচ সংরক্ষণ</button>
       </div>
 
@@ -340,9 +342,9 @@ th{background:#f5f8f5;color:#35533e;font-size:13px}
 
     <section id="tab-vaccines" class="hidden">
       <div class="card">
-        <h2>টিকা/চিকিৎসা রেকর্ড</h2>
+        <h2>টিকা/চিকিৎসা রেকর্ড</h2><p class="muted" style="margin-top:-4px">আপনি ছাগল যোগ করলেই সেই ছাগলটি এখানে স্বয়ংক্রিয়ভাবে দেখা যাবে।</p>
         <div class="grid grid3">
-          <div class="form-row"><label>ছাগল ID</label><input id="vaccineGoat" placeholder="G-001"></div>
+          <div class="form-row"><label>ছাগল ID</label><select id="vaccineGoat" onchange="autoFillVaccineGoat()"></select></div>
           <div class="form-row"><label>টিকা/ওষুধ</label><input id="vaccineName" placeholder="PPR"></div>
           <div class="form-row"><label>তারিখ</label><input id="vaccineDate" type="date"></div>
           <div class="form-row"><label>পরবর্তী তারিখ</label><input id="vaccineNext" type="date"></div>
@@ -771,7 +773,95 @@ async function forceCloudLoad(){
   alert("ক্লাউড লোড প্রক্রিয়া শেষ হয়েছে।");
 }
 
+
+const COMMON_BREEDS = [
+  "ব্ল্যাক বেঙ্গল",
+  "জামুনাপাড়ি",
+  "বিটাল",
+  "সিরোহি",
+  "বোয়ার",
+  "টোজেনবার্গ",
+  "আলপাইন",
+  "নুবিয়ান",
+  "ক্রস ব্রিড",
+  "অন্যান্য"
+];
+
+const COMMON_EXPENSE_CATEGORIES = [
+  "খাদ্য",
+  "ঘাস",
+  "ভুসি",
+  "দানাদার খাদ্য",
+  "ওষুধ",
+  "টিকা",
+  "ভেটেরিনারি",
+  "শ্রমিক",
+  "বিদ্যুৎ",
+  "পানি",
+  "খামার রক্ষণাবেক্ষণ",
+  "যাতায়াত",
+  "ছাগল ক্রয়",
+  "অন্যান্য"
+];
+
+function uniqueSorted(values){
+  return [...new Set(values.map(v=>String(v||"").trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,'bn'));
+}
+
+function renderSuggestions(){
+  const breeds = uniqueSorted([
+    ...COMMON_BREEDS,
+    ...S.goats.map(g=>g.breed)
+  ]);
+  $("breedSuggestions").innerHTML = breeds.map(v =>
+    `<option value="${escapeHtml(v)}"></option>`
+  ).join("");
+
+  const expenses = uniqueSorted([
+    ...COMMON_EXPENSE_CATEGORIES,
+    ...S.expenses.map(x=>x.category)
+  ]);
+  $("expenseSuggestions").innerHTML = expenses.map(v =>
+    `<option value="${escapeHtml(v)}"></option>`
+  ).join("");
+}
+
+function renderVaccineGoatOptions(selectedId=""){
+  const select = $("vaccineGoat");
+  const goats = S.goats;
+
+  if(!goats.length){
+    select.innerHTML = '<option value="">আগে ছাগল যোগ করুন</option>';
+    return;
+  }
+
+  select.innerHTML =
+    '<option value="">ছাগল নির্বাচন করুন</option>' +
+    goats.map(g =>
+      `<option value="${escapeHtml(g.id)}">${escapeHtml(g.id)} — ${escapeHtml(g.breed)} — ${escapeHtml(g.gender)}</option>`
+    ).join("");
+
+  if(selectedId && goats.some(g=>g.id===selectedId)){
+    select.value = selectedId;
+  }
+}
+
+function autoFillVaccineGoat(){
+  const id = $("vaccineGoat").value;
+  const goat = S.goats.find(g=>g.id===id);
+  if(goat){
+    // The selected goat is already tied to its current breed.
+    // Keep the form simple and let the user record vaccine/medicine for that goat.
+    $("vaccineNote").value =
+      $("vaccineNote").value ||
+      ("জাত: " + (goat.breed || "অজানা"));
+  }
+}
+
 function renderAll(){
+  renderSuggestions();
+  renderVaccineGoatOptions($("vaccineGoat")?.value || "");
   renderDashboard();
   renderGoats();
   renderExpenses();
@@ -829,6 +919,7 @@ function addGoat(){
   ["goatId","goatBreed","goatPrice","goatNote"].forEach(id=>$(id).value="");
   $("goatDate").value=today();
   scheduleCloudSave(); renderAll();
+  // নতুন ছাগলটি সঙ্গে সঙ্গে টিকার তালিকায় চলে যাবে।
 }
 
 function renderGoats(){
