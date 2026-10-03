@@ -914,6 +914,14 @@ hr{
 
           <div class="field">
 
+            <label>মোট খরচ (ম্যানুয়াল)</label>
+            <input id="gManualCost" type="number" step="0.01" placeholder="৳ — অটো খরচের সাথে যোগ হবে">
+
+          </div>
+
+
+          <div class="field">
+
             <label>নোট</label>
 
             <textarea id="gNotes"
@@ -2175,6 +2183,7 @@ function clearGoatForm(){
   $("gPurchaseDate").value = "";
   $("gPurchasePrice").value = "";
   $("gSource").value = "";
+  $("gManualCost").value = "";
   $("gColor").value = "";
   $("gNotes").value = "";
 
@@ -2214,6 +2223,9 @@ function editGoat(id){
 
   $("gSource").value =
     g.source || "";
+
+  $("gManualCost").value =
+    Number(localStorage.getItem("goat_manual_cost_" + g.id) || 0) || "";
 
   $("gColor").value =
     g.color_mark || "";
@@ -2543,6 +2555,16 @@ async function saveGoat(){
   $("goatFormCard")
     .classList.add("hidden");
 
+  const manualCost = Number($("gManualCost").value) || 0;
+
+  if(goatId){
+    if(manualCost > 0){
+      localStorage.setItem("goat_manual_cost_" + goatId, String(manualCost));
+    }else{
+      localStorage.removeItem("goat_manual_cost_" + goatId);
+    }
+  }
+
   await loadAll();
 
 
@@ -2620,6 +2642,8 @@ async function deleteGoat(id){
     return;
   }
 
+
+  localStorage.removeItem("goat_manual_cost_" + id);
 
   await loadAll();
 
@@ -2863,6 +2887,41 @@ function renderGoats(){
 }
 
 
+function goatSalePrice(goatId){
+
+  const sales =
+    DATA.tx.filter(
+      x => x.goat_id===goatId && x.type==="sale"
+    ).sort((a,b)=>
+      String(b.transaction_date || "").localeCompare(String(a.transaction_date || ""))
+    );
+
+  return Number(sales[0]?.amount || 0);
+}
+
+function goatAutoCost(g){
+
+  const purchaseCost = Number(g.purchase_price || 0);
+
+  const extraExpenses =
+    DATA.expenses
+      .filter(x =>
+        x.note === "ছাগল: " + g.name &&
+        x.category !== "ছাগল ক্রয়"
+      )
+      .reduce((sum,x)=>sum + Number(x.amount || 0), 0);
+
+  return purchaseCost + extraExpenses;
+}
+
+function goatManualCost(g){
+  return Number(localStorage.getItem("goat_manual_cost_" + g.id) || 0);
+}
+
+function goatTotalCost(g){
+  return goatAutoCost(g) + goatManualCost(g);
+}
+
 function renderGoatCard(g){
 
   const origin =
@@ -2892,6 +2951,11 @@ function renderGoatCard(g){
     vaccines.filter(
       x=>x.status==="pending"
     ).length;
+
+  const salePrice = goatSalePrice(g.id);
+  const totalCost = goatTotalCost(g);
+  const profit = salePrice - totalCost;
+  const showXY = ["purchase","birth","sale"].includes(currentGoatTab);
 
 
   return `
@@ -2936,37 +3000,19 @@ function renderGoatCard(g){
 
       <div class="info-row">
 
-        <div>
-          জাত:
-          <strong>${esc(g.breed || "-")}</strong>
-        </div>
+        <div>জাত: <strong>${esc(g.breed || "-")}</strong></div>
+        <div>লিঙ্গ: <strong>${esc(g.sex || "-")}</strong></div>
+        <div>ওজন: <strong>${g.weight_kg ? esc(g.weight_kg)+" kg" : "-"}</strong></div>
+        <div>উৎস: <strong>${esc(g.source || originText || "-")}</strong></div>
+        <div>ক্রয় মূল্য: <strong>${money(g.purchase_price)}</strong></div>
+        <div>বিক্রয় মূল্য: <strong>${salePrice ? money(salePrice) : "-"}</strong></div>
+        <div>জন্ম: <strong>${fmt(g.birth_date)}</strong></div>
+        <div>টিকা বাকি: <strong>${pendingVax}</strong></div>
 
-        <div>
-          লিঙ্গ:
-          <strong>${esc(g.sex || "-")}</strong>
-        </div>
-
-        <div>
-          ওজন:
-          <strong>
-            ${g.weight_kg ? esc(g.weight_kg)+" kg" : "-"}
-          </strong>
-        </div>
-
-        <div>
-          উৎস:
-          <strong>${originText}</strong>
-        </div>
-
-        <div>
-          জন্ম:
-          <strong>${fmt(g.birth_date)}</strong>
-        </div>
-
-        <div>
-          টিকা বাকি:
-          <strong>${pendingVax}</strong>
-        </div>
+        ${showXY ? `
+          <div>মোট খরচ (X): <strong>${money(totalCost)}</strong></div>
+          <div>লাভ (Y): <strong>${money(profit)}</strong></div>
+        ` : ""}
 
       </div>
 
