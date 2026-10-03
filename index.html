@@ -4035,17 +4035,22 @@ function renderDashboard(){
 
   const alerts =
     DATA.vaccines
+      .map(v => ({
+        ...v,
+        alertDate:
+          v.next_date ||
+          (v.status==="pending" ? v.scheduled_date : null)
+      }))
       .filter(
         v =>
-          v.status==="pending" &&
-          v.scheduled_date &&
-          v.scheduled_date <= addDays(today(),14)
+          v.alertDate &&
+          v.alertDate <= addDays(today(),14)
       )
       .sort(
         (a,b)=>
-          String(a.scheduled_date)
+          String(a.alertDate)
             .localeCompare(
-              String(b.scheduled_date)
+              String(b.alertDate)
             )
       )
       .slice(0,6);
@@ -4070,7 +4075,7 @@ function renderDashboard(){
 
 
         const late =
-          a.scheduled_date < today();
+          a.alertDate < today();
 
 
         return `
@@ -4084,8 +4089,8 @@ function renderDashboard(){
 
             <br>
 
-            তারিখ:
-            ${fmt(a.scheduled_date)}
+            পরবর্তী টিকা:
+            ${fmt(a.alertDate)}
 
             ${
               late
@@ -4150,7 +4155,17 @@ function renderDashboard(){
   /* Recent expenses */
 
   const recentExpenses =
-    DATA.expenses
+    [...DATA.expenses]
+      .sort((a,b)=>{
+        const dateCompare =
+          String(b.expense_date || "")
+            .localeCompare(String(a.expense_date || ""));
+
+        if(dateCompare!==0) return dateCompare;
+
+        return String(b.created_at || b.id || "")
+          .localeCompare(String(a.created_at || a.id || ""));
+      })
       .slice(0,5);
 
 
@@ -4438,30 +4453,40 @@ function renderCurrentReport(){
     const rows = [
       ...data.expenses.map(x=>({
         date:x.expense_date,
+        created_at:x.created_at,
+        id:x.id,
         title:x.category,
         amount:x.amount,
         note:x.note
       })),
       ...data.land.map(x=>({
         date:x.record_date,
+        created_at:x.created_at,
+        id:x.id,
         title:"🌱 জমির খরচ — " + (x.land_name || ""),
         amount:x.cost,
         note:x.note
       }))
     ].sort(
-      (a,b)=>
-        String(b.date || "")
-          .localeCompare(
-            String(a.date || "")
-          )
+      (a,b)=>{
+        const dateCompare =
+          String(b.date || "")
+            .localeCompare(String(a.date || ""));
+
+        if(dateCompare!==0) return dateCompare;
+
+        return String(b.created_at || b.id || "")
+          .localeCompare(String(a.created_at || a.id || ""));
+      }
     );
 
 
     html += rows.map(x=>`
 
       <div style="
-        padding:8px 0;
+        padding:6px 0;
         border-bottom:1px solid #edf0ee;
+        font-size:12px;
       ">
 
         <div class="row-between">
