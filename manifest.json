@@ -1,24 +1,42 @@
 {
+  "id": "https://imrannoyon97-cloud.github.io/Purbobongokrishi/",
   "name": "পূর্ববঙ্গ কৃষি কেন্দ্র",
-  "short_name": "পূর্ববঙ্গ কৃষি কেন্দ্র",
+  "short_name": "পূর্ববঙ্গ কৃষি",
   "description": "ছাগল ও কৃষি ব্যবস্থাপনা",
   "lang": "bn",
   "dir": "ltr",
-  "start_url": "./index.html",
-  "scope": "./",
+
+  "start_url": "https://imrannoyon97-cloud.github.io/Purbobongokrishi/",
+  "scope": "https://imrannoyon97-cloud.github.io/Purbobongokrishi/",
+
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+
   "orientation": "portrait",
+
   "background_color": "#f5f7f8",
   "theme_color": "#126b3a",
+
+  "categories": [
+    "business",
+    "productivity",
+    "lifestyle"
+  ],
+
+  "prefer_related_applications": false,
+
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "https://imrannoyon97-cloud.github.io/Purbobongokrishi/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "https://imrannoyon97-cloud.github.io/Purbobongokrishi/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
