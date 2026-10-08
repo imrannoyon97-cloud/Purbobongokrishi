@@ -1906,7 +1906,6 @@ async function logout(){
   currentUser = null;
 
   $("appScreen").classList.add("hidden");
-  $("signupScreen").classList.add("hidden");
   $("loginScreen").classList.remove("hidden");
 
 }
@@ -1919,7 +1918,6 @@ async function logout(){
 async function startApp(){
 
   $("loginScreen").classList.add("hidden");
-  $("signupScreen").classList.add("hidden");
   $("appScreen").classList.remove("hidden");
 
   $("accountEmail").textContent =
