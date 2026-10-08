@@ -6,6 +6,15 @@
 
 <title>পূর্ববঙ্গ কৃষি কেন্দ্র</title>
 
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#126b3a">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="পূর্ববঙ্গ কৃষি কেন্দ্র">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -4736,6 +4745,20 @@ var OWNER_ID = "a2c33320-483a-4d21-9417-cec22a259db9";
     if(viewer)document.querySelectorAll(formBtns).forEach(function(x){var c=x.closest('#goatFormCard')||x.closest('.card');if(c)c.classList.add('viewer-hide')});
   },400);
 })();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(function () {
+        console.log("PWA service worker registered");
+      })
+      .catch(function (err) {
+        console.warn("PWA service worker registration failed:", err);
+      });
+  });
+}
 </script>
 
 </body>
