@@ -472,6 +472,79 @@ hr{
   margin:10px 0;
 }
 
+
+
+/* =========================================================
+   MONTHLY ADD MONEY REPORT
+========================================================= */
+
+.monthly-filter{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  align-items:end;
+}
+
+.monthly-account-card{
+  background:#fff;
+  border:1px solid #e2e8e4;
+  border-radius:11px;
+  padding:10px;
+  margin-bottom:8px;
+}
+
+.monthly-account-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.monthly-account-name{
+  font-size:15px;
+  font-weight:800;
+}
+
+.monthly-account-total{
+  font-size:16px;
+  font-weight:800;
+  color:#126b3a;
+  white-space:nowrap;
+}
+
+.monthly-detail{
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid #e6ebe8;
+}
+
+.monthly-detail-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  padding:7px 0;
+  border-bottom:1px solid #eef1ef;
+  font-size:12px;
+}
+
+.monthly-detail-row:last-child{
+  border-bottom:0;
+}
+
+.monthly-total-card{
+  background:#f6faf7;
+  border:1px solid #cfe6d7;
+  border-radius:11px;
+  padding:12px;
+  margin-top:10px;
+}
+
+.monthly-total-value{
+  font-size:22px;
+  font-weight:900;
+  color:#126b3a;
+}
+
 @media(max-width:390px){
   .grid{
     grid-template-columns:1fr;
@@ -1540,7 +1613,53 @@ hr{
           </div>
         </div>
 
-        <div id="addMoneyRecords"></div>
+        <!-- =================================================
+             MONTHLY ADD MONEY REPORT
+        ================================================= -->
+        <div class="card">
+
+          <div class="card-title">
+            📊 মাসিক Add Money হিসাব
+          </div>
+
+          <div class="monthly-filter">
+            <div class="field" style="margin-bottom:0">
+              <label>মাস নির্বাচন</label>
+              <input id="amMonth" type="month">
+            </div>
+
+            <button class="btn btn-secondary"
+                    onclick="setCurrentMonthAndRender()">
+              এই মাস
+            </button>
+          </div>
+
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            👤 ব্যক্তিভিত্তিক মাসিক হিসাব
+          </div>
+
+          <div id="monthlyAddMoneyList"></div>
+
+          <div class="monthly-total-card">
+            <div class="row-between">
+              <div>
+                <div class="small">📌 নির্বাচিত মাসের সর্বমোট</div>
+                <div id="monthlyAddMoneyMonthLabel" style="font-weight:800;margin-top:2px"></div>
+              </div>
+              <div id="monthlyAddMoneyTotal" class="monthly-total-value">৳0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALL ADD MONEY HISTORY -->
+        <div class="card">
+          <div class="card-title">📋 Add Money History</div>
+          <div id="addMoneyRecords"></div>
+        </div>
+
       </section>
 
       <!-- =================================================
@@ -2187,8 +2306,39 @@ function openPage(page){
    ADD MONEY
 ========================================================= */
 
+/*
+  Account order/name fallback is kept here so the Add Money page
+  still shows the requested names correctly even if a profile row
+  has not yet received account_order from Supabase.
+*/
+const ACCOUNT_DIRECTORY = [
+  {order:1, email:"alaminh120@gmail.com", name:"Alamin Hossain"},
+  {order:2, email:"ashrafulgbus@gmail.com", name:"Asharful Islam Shorif"},
+  {order:3, email:"imrannoyon97@gmail.com", name:"Imran Hossen"},
+  {order:4, email:"jahangiralom872@gmail.com", name:"Jahangir Alam"},
+  {order:5, email:"mdridoyk499@gmail.com", name:"Shoriful islam Ridoy"},
+  {order:6, email:"mdsanwarhossen002@gmail.com", name:"Sanwar Hossen"},
+  {order:7, email:"rabiulhasan6889@gmail.com", name:"Rabiul Islam"},
+  {order:8, email:"sohelfslbd@gmail.com", name:"Shoel Rana"}
+];
+
+const ACCOUNT_BY_EMAIL = Object.fromEntries(
+  ACCOUNT_DIRECTORY.map(x=>[x.email.toLowerCase(),x])
+);
+
+function accountDirectoryInfo(p){
+  const email = String(
+    p?.email || p?.user_email || ""
+  ).trim().toLowerCase();
+
+  return ACCOUNT_BY_EMAIL[email] || null;
+}
+
 function accountDisplayName(p){
+  const directory = accountDirectoryInfo(p);
+
   return (
+    directory?.name ||
     p?.name ||
     p?.full_name ||
     p?.display_name ||
@@ -2199,33 +2349,68 @@ function accountDisplayName(p){
   );
 }
 
+function accountDisplayEmail(p){
+  return String(
+    p?.email ||
+    p?.user_email ||
+    ""
+  ).trim();
+}
+
 function getAccountRows(){
   const rows = [];
 
   (DATA.profiles || []).forEach(p=>{
     const id = p.user_id || p.id;
+    const email = accountDisplayEmail(p);
+    const directory = accountDirectoryInfo(p);
     const name = accountDisplayName(p);
-    if(id && name) rows.push({id,name});
+    const dbOrder = Number(p.account_order);
+    const order = directory?.order || (Number.isFinite(dbOrder) && dbOrder > 0 ? dbOrder : 999);
+
+    if(id && name){
+      rows.push({
+        id,
+        name,
+        email,
+        order
+      });
+    }
   });
 
   /* Existing login account is always available as a fallback. */
   if(currentUser){
-    const exists = rows.some(x=>String(x.id)===String(currentUser.id));
+    const exists = rows.some(
+      x=>String(x.id)===String(currentUser.id)
+    );
+
     if(!exists){
+      const email = String(currentUser.email || "").trim();
+      const directory = ACCOUNT_BY_EMAIL[email.toLowerCase()];
+
       rows.push({
         id:currentUser.id,
-        name:currentUser.email || currentUser.id
+        name:directory?.name || email || currentUser.id,
+        email,
+        order:directory?.order || 999
       });
     }
   }
 
   const seen = new Set();
-  return rows.filter(x=>{
+  const unique = rows.filter(x=>{
     const key = String(x.id);
     if(seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+
+  unique.sort((a,b)=>{
+    if(a.order !== b.order) return a.order - b.order;
+    return String(a.name).localeCompare(String(b.name));
+  });
+
+  return unique;
 }
 
 function fillAddMoneyAccounts(){
@@ -2292,6 +2477,147 @@ async function saveAddMoney(){
   alert("Add Money সফল হয়েছে");
 }
 
+function monthKey(dateValue){
+  if(!dateValue) return "";
+  return String(dateValue).slice(0,7);
+}
+
+function formatMonthLabel(value){
+  if(!value) return "";
+
+  const parts = String(value).split("-");
+  if(parts.length !== 2) return value;
+
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+
+  if(!y || !m) return value;
+
+  const names = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+
+  return `${names[m-1] || value} ${y}`;
+}
+
+function setCurrentMonthAndRender(){
+  if($("amMonth")){
+    $("amMonth").value = monthKey(today());
+  }
+  renderMonthlyAddMoney();
+}
+
+function toggleMonthlyAccount(accountId){
+  const detail = $("monthly-detail-" + String(accountId));
+  if(!detail) return;
+  detail.classList.toggle("hidden");
+}
+
+function renderMonthlyAddMoney(){
+  const list = $("monthlyAddMoneyList");
+  if(!list) return;
+
+  let selectedMonth = $("amMonth")?.value || monthKey(today());
+
+  if($("amMonth") && !$("amMonth").value){
+    $("amMonth").value = selectedMonth;
+  }
+
+  const accounts = getAccountRows();
+  const rows = DATA.addMoney || [];
+  const monthlyRows = rows.filter(
+    x=>monthKey(x.transaction_date)===selectedMonth
+  );
+
+  let monthTotal = 0;
+
+  const cards = accounts.map(acc=>{
+    const txs = monthlyRows
+      .filter(x=>String(x.account_user_id)===String(acc.id))
+      .sort((a,b)=>String(b.transaction_date||"").localeCompare(String(a.transaction_date||"")));
+
+    const total = txs.reduce(
+      (sum,x)=>sum + Number(x.amount || 0),
+      0
+    );
+
+    monthTotal += total;
+
+    const detailId = `monthly-detail-${String(acc.id)}`;
+
+    const detail = txs.length
+      ? `
+        <div id="${esc(detailId)}" class="monthly-detail hidden">
+          ${txs.map(x=>`
+            <div class="monthly-detail-row">
+              <div>
+                <strong>${esc(fmt(x.transaction_date))}</strong>
+                <div class="small">
+                  মাধ্যম: ${esc(x.payment_method || "-")}
+                  ${x.note ? ` • 📝 ${esc(x.note)}` : ""}
+                </div>
+              </div>
+              <strong class="amount">${money(x.amount)}</strong>
+            </div>
+          `).join("")}
+          <div class="row-between" style="padding-top:8px">
+            <strong>মাসে মোট</strong>
+            <strong class="green">${money(total)}</strong>
+          </div>
+        </div>
+      `
+      : `
+        <div id="${esc(detailId)}" class="monthly-detail hidden">
+          <div class="empty" style="padding:10px 5px">
+            এই মাসে কোনো Add Money নেই।
+          </div>
+        </div>
+      `;
+
+    return `
+      <div class="monthly-account-card">
+        <div class="monthly-account-head">
+          <div>
+            <div class="monthly-account-name">${esc(acc.name)}</div>
+            <div class="small">এই মাসে মোট</div>
+          </div>
+
+          <div style="text-align:right">
+            <div class="monthly-account-total">${money(total)}</div>
+            <button class="btn btn-secondary btn-small"
+                    style="margin-top:5px"
+                    onclick="toggleMonthlyAccount('${esc(acc.id)}')">
+              Details
+            </button>
+          </div>
+        </div>
+
+        ${detail}
+      </div>
+    `;
+  }).join("");
+
+  if(!accounts.length){
+    list.innerHTML = `
+      <div class="empty">
+        কোনো Account পাওয়া যায়নি।
+      </div>
+    `;
+  }else{
+    list.innerHTML = cards;
+  }
+
+  if($("monthlyAddMoneyMonthLabel")){
+    $("monthlyAddMoneyMonthLabel").textContent =
+      formatMonthLabel(selectedMonth);
+  }
+
+  if($("monthlyAddMoneyTotal")){
+    $("monthlyAddMoneyTotal").textContent = money(monthTotal);
+  }
+}
+
 function renderAddMoney(){
   fillAddMoneyAccounts();
 
@@ -2306,11 +2632,17 @@ function renderAddMoney(){
     $("amTotal").textContent = money(total);
   }
 
+  if($("amMonth") && !$("amMonth").value){
+    $("amMonth").value = monthKey(today());
+  }
+
+  renderMonthlyAddMoney();
+
   if(!$("addMoneyRecords")) return;
 
   if(!rows.length){
     $("addMoneyRecords").innerHTML =
-      `<div class="card empty">
+      `<div class="empty">
         এখনো কোনো Add Money transaction নেই।
       </div>`;
     return;
@@ -2324,7 +2656,7 @@ function renderAddMoney(){
     );
 
     return `
-      <div class="card">
+      <div class="card" style="margin-bottom:8px">
         <div class="row-between">
           <strong>${esc(acc?.name || x.account_user_id || "-")}</strong>
           <strong class="amount">${money(x.amount)}</strong>
@@ -5001,6 +5333,11 @@ function renderReport(){
 $("eDate").value = today();
 $("vDate").value = today();
 $("lDate").value = today();
+if($("amDate")) $("amDate").value = today();
+if($("amMonth")) {
+  $("amMonth").value = monthKey(today());
+  $("amMonth").addEventListener("change", renderMonthlyAddMoney);
+}
 
 checkAuth();
 
