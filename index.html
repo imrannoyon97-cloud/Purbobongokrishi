@@ -4719,5 +4719,24 @@ checkAuth();
 
 </script>
 
+<script id="viewer-mode">
+/* শুধু OWNER_ID এডিট করতে পারবে, বাকিরা শুধু দেখতে পারবে */
+var OWNER_ID = "a2c33320-483a-4d21-9417-cec22a259db9";
+(function(){
+  var css=document.createElement('style');
+  css.textContent='body.viewer [onclick^="sellGoat("],body.viewer [onclick^="editGoat("],body.viewer [onclick^="deleteGoat("],body.viewer [onclick^="deleteExpense("],body.viewer [onclick^="deleteVaccine("],body.viewer [onclick^="deleteLand("],body.viewer [onclick^="completeVaccine("],body.viewer [onclick^="quickVaccine("],body.viewer [onclick^="toggleGoatForm("],body.viewer [onclick^="cancelGoatForm("],body.viewer .viewer-hide{display:none!important}'
+   +'#viewerBadge{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;background:#17251c;color:#fff;font-size:12px;padding:5px 12px;border-radius:99px;opacity:.9;z-index:50;display:none}body.viewer #viewerBadge{display:block}';
+  document.head.appendChild(css);
+  var b=document.createElement('div');b.id='viewerBadge';b.textContent='👁️ শুধু দেখার অনুমতি';document.body.appendChild(b);
+  var formBtns='[onclick^="saveGoat("],[onclick^="saveExpense("],[onclick^="saveLand("],[onclick^="addVaccine("]';
+  setInterval(function(){
+    var viewer=false;
+    try{viewer=!!(currentUser&&OWNER_ID.indexOf('PASTE')!==0&&currentUser.id!==OWNER_ID)}catch(e){}
+    document.body.classList.toggle('viewer',viewer);
+    if(viewer)document.querySelectorAll(formBtns).forEach(function(x){var c=x.closest('#goatFormCard')||x.closest('.card');if(c)c.classList.add('viewer-hide')});
+  },400);
+})();
+</script>
+
 </body>
 </html>
