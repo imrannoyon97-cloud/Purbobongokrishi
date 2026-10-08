@@ -390,7 +390,7 @@ textarea{
   background:#fff;
   border-top:1px solid #dfe5e1;
   display:grid;
-  grid-template-columns:repeat(7,1fr);
+  grid-template-columns:repeat(8,1fr);
   z-index:30;
   padding:5px 3px;
 }
@@ -1475,6 +1475,75 @@ hr{
 
 
       <!-- =================================================
+           ADD MONEY
+      ================================================= -->
+      <section id="page-addmoney" class="hidden">
+
+        <div class="row-between">
+          <div>
+            <div style="font-size:19px;font-weight:800">
+              💵 Add Money
+            </div>
+            <div class="small">
+              Account-এ টাকা যোগ করুন
+            </div>
+          </div>
+        </div>
+
+        <div id="addMoneyFormCard" class="card viewer-hide" style="margin-top:10px">
+          <div class="card-title">💰 টাকা যোগ করুন</div>
+
+          <div class="field">
+            <label>Account Name</label>
+            <select id="amAccount"></select>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label>পরিমাণ</label>
+              <input id="amAmount" type="number" step="0.01" placeholder="৳">
+            </div>
+
+            <div class="field">
+              <label>তারিখ</label>
+              <input id="amDate" type="date">
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label>Payment Method</label>
+              <select id="amMethod">
+                <option value="Cash">Cash</option>
+                <option value="Bank">Bank</option>
+                <option value="bKash">bKash</option>
+                <option value="Nagad">Nagad</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Note</label>
+              <input id="amNote" placeholder="বিস্তারিত">
+            </div>
+          </div>
+
+          <button class="btn btn-primary" onclick="saveAddMoney()">
+            + Add Money
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="row-between">
+            <b>বর্তমান মোট Add Money</b>
+            <strong id="amTotal">৳0</strong>
+          </div>
+        </div>
+
+        <div id="addMoneyRecords"></div>
+      </section>
+
+      <!-- =================================================
            ACCOUNT
       ================================================= -->
 
@@ -1556,6 +1625,13 @@ hr{
         রিপোর্ট
       </button>
 
+      <button id="nav-addmoney"
+              class="nav-btn"
+              onclick="openPage('addmoney')">
+        <span>💵</span>
+        Add Money
+      </button>
+
       <button id="nav-account"
               class="nav-btn"
               onclick="openPage('account')">
@@ -1600,7 +1676,9 @@ let DATA = {
   vaccines:[],
   expenses:[],
   land:[],
-  lookups:[]
+  lookups:[],
+  profiles:[],
+  addMoney:[]
 
 };
 
@@ -1862,6 +1940,7 @@ async function startApp(){
   $("eDate").value = today();
   $("vDate").value = today();
   $("lDate").value = today();
+  $("amDate").value = today();
 
   await loadAll();
 
@@ -1922,7 +2001,9 @@ async function loadAll(){
     vacRes,
     expRes,
     landRes,
-    lookupRes
+    lookupRes,
+    profilesRes,
+    addMoneyRes
   ] = await Promise.all([
 
     db.from("goats")
@@ -1953,7 +2034,15 @@ async function loadAll(){
     db.from("lookup_items")
       .select("*")
       
-      .order("name",{ascending:true})
+      .order("name",{ascending:true}),
+
+    db.from("profiles")
+      .select("*")
+      .order("name",{ascending:true}),
+
+    db.from("add_money_transactions")
+      .select("*")
+      .order("transaction_date",{ascending:false})
 
   ]);
 
@@ -2003,6 +2092,20 @@ async function loadAll(){
   DATA.lookups =
     lookupRes.error ? [] : (lookupRes.data || []);
 
+  DATA.profiles =
+    profilesRes?.error ? [] : (profilesRes?.data || []);
+
+  DATA.addMoney =
+    addMoneyRes?.error ? [] : (addMoneyRes?.data || []);
+
+  if(profilesRes?.error){
+    console.warn("profiles load error:", profilesRes.error);
+  }
+
+  if(addMoneyRes?.error){
+    console.warn("add_money_transactions load error:", addMoneyRes.error);
+  }
+
   renderAll();
 
 }
@@ -2028,6 +2131,8 @@ function renderAll(){
 
   renderReport();
 
+  renderAddMoney();
+
   fillLookups();
 
 }
@@ -2046,6 +2151,7 @@ function openPage(page){
     "vaccines",
     "land",
     "reports",
+    "addmoney",
     "account"
   ];
 
@@ -2073,6 +2179,178 @@ function openPage(page){
 
   });
 
+}
+
+
+
+/* =========================================================
+   ADD MONEY
+========================================================= */
+
+function accountDisplayName(p){
+  return (
+    p?.name ||
+    p?.full_name ||
+    p?.display_name ||
+    p?.email ||
+    p?.user_email ||
+    p?.user_id ||
+    ""
+  );
+}
+
+function getAccountRows(){
+  const rows = [];
+
+  (DATA.profiles || []).forEach(p=>{
+    const id = p.user_id || p.id;
+    const name = accountDisplayName(p);
+    if(id && name) rows.push({id,name});
+  });
+
+  /* Existing login account is always available as a fallback. */
+  if(currentUser){
+    const exists = rows.some(x=>String(x.id)===String(currentUser.id));
+    if(!exists){
+      rows.push({
+        id:currentUser.id,
+        name:currentUser.email || currentUser.id
+      });
+    }
+  }
+
+  const seen = new Set();
+  return rows.filter(x=>{
+    const key = String(x.id);
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function fillAddMoneyAccounts(){
+  const select = $("amAccount");
+  if(!select) return;
+
+  const rows = getAccountRows();
+
+  if(!rows.length){
+    select.innerHTML =
+      `<option value="">কোনো Account পাওয়া যায়নি</option>`;
+    return;
+  }
+
+  const oldValue = select.value;
+
+  select.innerHTML = rows.map(x=>`
+    <option value="${esc(x.id)}">${esc(x.name)}</option>
+  `).join("");
+
+  if(rows.some(x=>String(x.id)===String(oldValue))){
+    select.value = oldValue;
+  }
+}
+
+async function saveAddMoney(){
+  const accountId = $("amAccount").value;
+  const amount = Number($("amAmount").value) || 0;
+  const date = $("amDate").value || today();
+  const method = $("amMethod").value;
+  const note = $("amNote").value.trim();
+
+  if(!accountId){
+    alert("Account নির্বাচন করুন");
+    return;
+  }
+
+  if(amount<=0){
+    alert("টাকার পরিমাণ দিন");
+    return;
+  }
+
+  const {error} = await db
+    .from("add_money_transactions")
+    .insert({
+      user_id: currentUser.id,
+      account_user_id: accountId,
+      transaction_date: date,
+      amount: amount,
+      payment_method: method,
+      note: note || null
+    });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  $("amAmount").value = "";
+  $("amNote").value = "";
+
+  await loadAll();
+
+  alert("Add Money সফল হয়েছে");
+}
+
+function renderAddMoney(){
+  fillAddMoneyAccounts();
+
+  const rows = DATA.addMoney || [];
+
+  const total = rows.reduce(
+    (sum,x)=>sum + Number(x.amount || 0),
+    0
+  );
+
+  if($("amTotal")){
+    $("amTotal").textContent = money(total);
+  }
+
+  if(!$("addMoneyRecords")) return;
+
+  if(!rows.length){
+    $("addMoneyRecords").innerHTML =
+      `<div class="card empty">
+        এখনো কোনো Add Money transaction নেই।
+      </div>`;
+    return;
+  }
+
+  const accounts = getAccountRows();
+
+  $("addMoneyRecords").innerHTML = rows.map(x=>{
+    const acc = accounts.find(
+      a=>String(a.id)===String(x.account_user_id)
+    );
+
+    return `
+      <div class="card">
+        <div class="row-between">
+          <strong>${esc(acc?.name || x.account_user_id || "-")}</strong>
+          <strong class="amount">${money(x.amount)}</strong>
+        </div>
+
+        <div class="info-row">
+          <div>
+            তারিখ:
+            <strong>${fmt(x.transaction_date)}</strong>
+          </div>
+          <div>
+            মাধ্যম:
+            <strong>${esc(x.payment_method || "-")}</strong>
+          </div>
+        </div>
+
+        ${
+          x.note
+            ? `<div class="small" style="margin-top:6px">
+                 📝 ${esc(x.note)}
+               </div>`
+            : ""
+        }
+      </div>
+    `;
+  }).join("");
 }
 
 
@@ -4737,12 +5015,22 @@ var OWNER_ID = "a2c33320-483a-4d21-9417-cec22a259db9";
    +'#viewerBadge{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;background:#17251c;color:#fff;font-size:12px;padding:5px 12px;border-radius:99px;opacity:.9;z-index:50;display:none}body.viewer #viewerBadge{display:block}';
   document.head.appendChild(css);
   var b=document.createElement('div');b.id='viewerBadge';b.textContent='👁️ শুধু দেখার অনুমতি';document.body.appendChild(b);
-  var formBtns='[onclick^="saveGoat("],[onclick^="saveExpense("],[onclick^="saveLand("],[onclick^="addVaccine("]';
+  var formBtns='[onclick^="saveGoat("],[onclick^="saveExpense("],[onclick^="saveLand("],[onclick^="addVaccine("],[onclick^="saveAddMoney("]';
   setInterval(function(){
     var viewer=false;
     try{viewer=!!(currentUser&&OWNER_ID.indexOf('PASTE')!==0&&currentUser.id!==OWNER_ID)}catch(e){}
     document.body.classList.toggle('viewer',viewer);
-    if(viewer)document.querySelectorAll(formBtns).forEach(function(x){var c=x.closest('#goatFormCard')||x.closest('.card');if(c)c.classList.add('viewer-hide')});
+    if(viewer){
+      document.querySelectorAll(formBtns).forEach(function(x){
+        var c=x.closest('#goatFormCard')||x.closest('.card');
+        if(c)c.classList.add('viewer-hide');
+      });
+      var am=document.getElementById('addMoneyFormCard');
+      if(am) am.classList.add('viewer-hide');
+    }else{
+      var am=document.getElementById('addMoneyFormCard');
+      if(am) am.classList.remove('viewer-hide');
+    }
   },400);
 })();
 </script>
