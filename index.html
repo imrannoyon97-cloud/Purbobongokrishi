@@ -2544,12 +2544,32 @@ function renderMonthlyAddMoney(){
 
     monthTotal += total;
 
+    // Details will show the complete Add Money history for this account,
+    // not only the currently selected month.
+    const allHistory = (DATA.addMoney || [])
+      .filter(x=>String(x.account_user_id)===String(acc.id))
+      .sort((a,b)=>{
+        const dateCompare = String(b.transaction_date||"")
+          .localeCompare(String(a.transaction_date||""));
+        if(dateCompare !== 0) return dateCompare;
+        return String(b.created_at||"").localeCompare(String(a.created_at||""));
+      });
+
+    const allHistoryTotal = allHistory.reduce(
+      (sum,x)=>sum + Number(x.amount || 0),
+      0
+    );
+
     const detailId = `monthly-detail-${String(acc.id)}`;
 
-    const detail = txs.length
+    const detail = allHistory.length
       ? `
         <div id="${esc(detailId)}" class="monthly-detail hidden">
-          ${txs.map(x=>`
+          <div class="small" style="margin-bottom:7px;font-weight:700">
+            📋 এখন পর্যন্ত সম্পূর্ণ Add Money History
+          </div>
+
+          ${allHistory.map(x=>`
             <div class="monthly-detail-row">
               <div>
                 <strong>${esc(fmt(x.transaction_date))}</strong>
@@ -2561,16 +2581,17 @@ function renderMonthlyAddMoney(){
               <strong class="amount">${money(x.amount)}</strong>
             </div>
           `).join("")}
+
           <div class="row-between" style="padding-top:8px">
-            <strong>মাসে মোট</strong>
-            <strong class="green">${money(total)}</strong>
+            <strong>এখন পর্যন্ত মোট</strong>
+            <strong class="green">${money(allHistoryTotal)}</strong>
           </div>
         </div>
       `
       : `
         <div id="${esc(detailId)}" class="monthly-detail hidden">
           <div class="empty" style="padding:10px 5px">
-            এই মাসে কোনো Add Money নেই।
+            এখনো কোনো Add Money নেই।
           </div>
         </div>
       `;
