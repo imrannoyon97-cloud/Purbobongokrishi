@@ -339,6 +339,11 @@ textarea{
   color:#b42318;
 }
 
+.badge-green{
+  background:#e3f6ea;
+  color:#126b3a;
+}
+
 .badge-orange{
   background:#fff2d6;
   color:#8a5a00;
@@ -1956,7 +1961,9 @@ let DATA = {
   deleteRequests:[],
   addHistory:[],
   editHistory:[],
-  deleteHistory:[]
+  deleteHistory:[],
+  votes:[],
+  directory:[]
 
 };
 
@@ -2194,7 +2201,7 @@ async function login(){
 async function logout(){
 
   if(currentUser){
-    await writeActivity("LOGOUT","Account",null,null,null,"User logout");
+    await writeActivity("LOGOUT","Account",null,null,null,null,"User logout");
   }
 
   await db.auth.signOut();
@@ -2383,11 +2390,91 @@ async function createDeleteRequest(module,tableName,row,reason){
 
   await writeActivity("DELETE_REQUEST",module,tableName,row.id,row,null,reason);
   await loadAll();
-  if(!isSuperAdmin) alert("Delete Request Super Admin-এর কাছে পাঠানো হয়েছে।");
+  alert("Delete Request পাঠানো হয়েছে।\n৮ জন partner-এর মধ্যে ৫ জন Approve করলে Super Admin রেজুলেশন কোড দিয়ে Delete করবেন।");
   return data?.id || null;
 }
 
-async function approveDeleteRequest(id){
+const DELETE_REQUIRED_APPROVALS = 5;
+
+/* ---------- নাম / email helper ---------- */
+
+function userInfo(uid){
+  const id=String(uid||"");
+  if(!id) return {name:"-",email:""};
+
+  const prof=(DATA.profiles||[]).find(p=>String(p.user_id||p.id)===id);
+  const dir=(DATA.directory||[]).find(d=>String(d.user_id)===id);
+
+  const email=String(dir?.email||prof?.email||prof?.user_email||"").trim();
+  const known=email ? ACCOUNT_BY_EMAIL[email.toLowerCase()] : null;
+
+  const name=
+    prof?.name||prof?.full_name||prof?.display_name||
+    known?.name||"";
+
+  return {name:name||email||("User "+id.slice(0,6)), email};
+}
+
+function userLabel(uid){
+  const u=userInfo(uid);
+  return (u.email && u.email!==u.name) ? `${u.name} (${u.email})` : u.name;
+}
+
+function fmtDT(v){
+  if(!v) return "-";
+  const d=new Date(v);
+  return isNaN(d) ? String(v) : d.toLocaleString("en-GB");
+}
+
+function votesFor(reqId){
+  return (DATA.votes||[]).filter(v=>String(v.request_id)===String(reqId));
+}
+
+function snapshotSummary(snap){
+  if(!snap || typeof snap!=="object") return "";
+  const skip=new Set(["id","user_id","created_at","updated_at"]);
+  return Object.entries(snap)
+    .filter(([k,v])=>!skip.has(k) && v!==null && v!=="" && typeof v!=="object")
+    .slice(0,8)
+    .map(([k,v])=>`${k}: ${v}`)
+    .join(" • ");
+}
+
+/* ---------- ভোট / Execute / Reject ---------- */
+
+async function voteDeleteRequest(id,vote){
+
+  if(!currentUser) return;
+
+  let comment=null;
+
+  if(vote==="reject"){
+    const c=prompt("Reject করার কারণ লিখুন (Mandatory):","");
+    if(c===null) return;
+    if(!String(c).trim()){
+      alert("Reject করার কারণ অবশ্যই লিখতে হবে।");
+      return;
+    }
+    comment=String(c).trim();
+  } else {
+    if(!confirm("এই Delete Request-এ আপনি সম্মতি (Approve) দিচ্ছেন?")) return;
+  }
+
+  const {error}=await db.rpc("cast_delete_vote",{
+    p_request_id:String(id),
+    p_vote:vote,
+    p_comment:comment
+  });
+
+  if(error){
+    alert("ভোট দেওয়া যায়নি:\n"+error.message);
+    return;
+  }
+
+  await loadAll();
+}
+
+async function executeDeleteRequest(id){
 
   if(!isSuperAdmin){
     alert("শুধু Super Admin এটি করতে পারবেন।");
@@ -2397,17 +2484,50 @@ async function approveDeleteRequest(id){
   const req=(DATA.deleteRequests||[]).find(x=>String(x.id)===String(id));
   if(!req || req.status!=="pending") return;
 
-  if(!confirm("এই Delete Request APPROVE করে recordটি Delete করবেন?")) return;
+  const approvals=votesFor(id).filter(v=>v.vote==="approve").length;
 
-  const {data,error}=await db.rpc("approve_delete_request",{p_request_id:id});
-
-  if(error){
-    alert("Approve করা যায়নি:\n"+error.message);
+  if(approvals<DELETE_REQUIRED_APPROVALS){
+    alert(`এখনো যথেষ্ট Approve হয়নি (${approvals}/${DELETE_REQUIRED_APPROVALS})।`);
     return;
   }
 
+  const code=prompt("রেজুলেশন কোড লিখুন (Mandatory)\nযেমন: RES-2026-001","");
+  if(code===null) return;
+  const cleanCode=String(code).trim();
+  if(cleanCode.length<3){
+    alert("রেজুলেশন কোড অবশ্যই লিখতে হবে।");
+    return;
+  }
+
+  const note=prompt("রেজুলেশন নোট লিখুন (Mandatory):","");
+  if(note===null) return;
+  const cleanNote=String(note).trim();
+  if(!cleanNote){
+    alert("নোট অবশ্যই লিখতে হবে।");
+    return;
+  }
+
+  if(!confirm(
+    `রেজুলেশন: ${cleanCode}\nনোট: ${cleanNote}\n\nআসল record স্থায়ীভাবে Delete হবে। নিশ্চিত?`
+  )) return;
+
+  const {data,error}=await db.rpc("execute_delete_request",{
+    p_request_id:String(id),
+    p_resolution_code:cleanCode,
+    p_note:cleanNote
+  });
+
+  if(error){
+    alert("Delete করা যায়নি:\n"+error.message);
+    return;
+  }
+
+  if(req.table_name==="goats"){
+    try{ localStorage.removeItem("goat_manual_cost_"+req.record_id); }catch(e){}
+  }
+
   await loadAll();
-  alert(data?.message || "Delete approved এবং record delete হয়েছে।");
+  alert(data?.message || "Record Delete হয়েছে।");
 }
 
 async function rejectDeleteRequest(id){
@@ -2420,30 +2540,190 @@ async function rejectDeleteRequest(id){
   const req=(DATA.deleteRequests||[]).find(x=>String(x.id)===String(id));
   if(!req || req.status!=="pending") return;
 
-  const reason=prompt("Reject করার কারণ লিখুন (Mandatory):","");
+  const reason=prompt("Request বাতিল করার কারণ লিখুন (Mandatory):","");
   if(reason===null) return;
   if(!String(reason).trim()){
-    alert("Reject করার কারণ অবশ্যই লিখতে হবে।");
+    alert("কারণ অবশ্যই লিখতে হবে।");
     return;
   }
 
   const {error}=await db.rpc("reject_delete_request",{
-    p_request_id:id,
+    p_request_id:String(id),
     p_reason:String(reason).trim()
   });
 
   if(error){
-    alert("Reject করা যায়নি:\n"+error.message);
+    alert("Reject করা যায়নি:\n"+error.message);
     return;
   }
 
   await loadAll();
-  alert("Delete Request Reject করা হয়েছে।");
+  alert("Delete Request বাতিল করা হয়েছে।");
+}
+
+/* ---------- PDF ---------- */
+
+function ensurePdfOverlay(){
+  if($("pdfOverlay")) return;
+
+  const st=document.createElement("style");
+  st.textContent=`
+    @media print{
+      body>*:not(#pdfOverlay){display:none!important}
+      #pdfOverlay{position:static!important;display:block!important;overflow:visible!important;padding:0!important}
+      .no-print{display:none!important}
+    }
+    #pdfOverlay table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+    #pdfOverlay td,#pdfOverlay th{border:1px solid #cfd8d3;padding:6px;text-align:left;vertical-align:top;word-break:break-word}
+    #pdfOverlay th{background:#eef3f0;width:34%}
+    #pdfOverlay h2{margin:0 0 4px;font-size:20px}
+    #pdfOverlay h3{margin:14px 0 6px;font-size:15px}
+  `;
+  document.head.appendChild(st);
+
+  const d=document.createElement("div");
+  d.id="pdfOverlay";
+  d.style.cssText="display:none;position:fixed;inset:0;background:#fff;color:#111;z-index:99999;overflow:auto;padding:14px";
+  document.body.appendChild(d);
+}
+
+function closeDeletePdf(){
+  const o=$("pdfOverlay");
+  if(o) o.style.display="none";
+}
+
+function printDeletePdf(title){
+  const old=document.title;
+  document.title=title;
+  window.onafterprint=()=>{ document.title=old; window.onafterprint=null; };
+  window.print();
+}
+
+function openDeletePdf(i){
+
+  const x=(DATA.deleteHistory||[])[i];
+  if(!x) return;
+
+  ensurePdfOverlay();
+
+  const row=(k,v)=>`<tr><th>${esc(k)}</th><td>${v}</td></tr>`;
+
+  const approvers=Array.isArray(x.approvers) ? x.approvers : [];
+  const apprHtml=approvers.length
+    ? approvers.map((a,n)=>`${n+1}. ${esc(userLabel(a.user_id))} — ${esc(fmtDT(a.at))}`).join("<br>")
+    : "-";
+
+  const data=(x.deleted_data && typeof x.deleted_data==="object") ? x.deleted_data : {};
+  const dataRows=Object.entries(data)
+    .filter(([k,v])=>v!==null && v!=="")
+    .map(([k,v])=>row(k,esc(typeof v==="object" ? JSON.stringify(v) : v)))
+    .join("");
+
+  const fileTitle=`Delete-${x.resolution_code||"record"}-${String(x.record_id||"").slice(0,8)}`;
+
+  $("pdfOverlay").innerHTML=`
+    <div class="no-print" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="printDeletePdf('${esc(fileTitle)}')">🖨 PDF সেভ করুন</button>
+      <button class="btn btn-warning" onclick="closeDeletePdf()">✕ বন্ধ</button>
+    </div>
+    <div class="no-print small" style="margin-bottom:10px">Print স্ক্রিনে "Save as PDF" / "PDF হিসেবে সেভ" বেছে নিন।</div>
+
+    <h2>🐐 পূর্ববঙ্গ কৃষি কেন্দ্র</h2>
+    <div style="margin-bottom:10px;color:#444">Delete Record Notice (রেজুলেশন সহ)</div>
+
+    <table>
+      ${row("মডিউল", esc(x.module||"-"))}
+      ${row("Table", esc(x.table_name||"-"))}
+      ${row("Record ID", esc(x.record_id||"-"))}
+      ${row("Request করেছেন", esc(userLabel(x.user_id)))}
+      ${row("Request-এর সময়", esc(fmtDT(x.requested_at)))}
+      ${row("Delete-এর কারণ", esc(x.reason||"-"))}
+      ${row("রেজুলেশন কোড", `<strong>${esc(x.resolution_code||"-")}</strong>`)}
+      ${row("রেজুলেশন নোট", esc(x.resolution_note||"-"))}
+      ${row("Delete করেছেন (Super Admin)", esc(userLabel(x.approved_by)))}
+      ${row("Delete-এর সময়", esc(fmtDT(x.deleted_at)))}
+    </table>
+
+    <h3>✅ যাঁরা Approve করেছেন (${approvers.length}/৮)</h3>
+    <table>${row("Partner তালিকা", apprHtml)}</table>
+
+    <h3>🗂 Delete হওয়া record-এর তথ্য</h3>
+    <table>${dataRows || row("-","-")}</table>
+
+    <div style="font-size:11px;color:#666;margin-top:14px">
+      Generated by ${esc(userLabel(currentUser?.id))} • ${esc(fmtDT(new Date()))}
+    </div>
+  `;
+
+  $("pdfOverlay").style.display="block";
+  $("pdfOverlay").scrollTop=0;
+}
+
+/* ---------- Report / Log render ---------- */
+
+function renderPendingRequests(pending){
+
+  const req=DELETE_REQUIRED_APPROVALS;
+
+  if(!pending.length){
+    return `<div class="empty">কোনো Pending Delete Request নেই।</div>`;
+  }
+
+  return pending.map(r=>{
+
+    const votes=votesFor(r.id);
+    const appr=votes.filter(v=>v.vote==="approve");
+    const rej=votes.filter(v=>v.vote==="reject");
+    const mine=votes.find(v=>String(v.voter_id)===String(currentUser?.id));
+    const ready=appr.length>=req;
+
+    const voterLines=votes.map(v=>`
+      <div class="small">
+        ${v.vote==="approve" ? "✅" : "❌"} ${esc(userLabel(v.voter_id))}
+        ${v.vote==="reject" && v.comment ? ` — ${esc(v.comment)}` : ""}
+      </div>`).join("");
+
+    const summary=snapshotSummary(r.record_snapshot);
+
+    return `
+      <div style="padding:10px 0;border-bottom:1px solid #edf0ee">
+        <div class="row-between">
+          <strong>${esc(r.module)} • ${esc(r.table_name)}</strong>
+          <span class="badge ${ready?"badge-green":"badge-orange"}">${appr.length}/${req} Approve</span>
+        </div>
+        <div class="small" style="margin-top:4px">👤 Request: ${esc(userLabel(r.requested_by))}</div>
+        <div class="small">🕒 ${esc(fmtDT(r.requested_at))}</div>
+        <div class="small">কারণ: ${esc(r.reason)}</div>
+        ${summary ? `<div class="small" style="margin-top:3px;color:#555">📄 ${esc(summary)}</div>` : ""}
+
+        <div style="margin-top:6px">${voterLines || `<div class="small">এখনো কেউ ভোট দেয়নি।</div>`}</div>
+        ${rej.length ? `<div class="small" style="color:#b42318">❌ Reject: ${rej.length} জন</div>` : ""}
+
+        <div class="actions" style="margin-top:7px">
+          <button class="btn btn-primary btn-small" onclick="voteDeleteRequest('${esc(r.id)}','approve')">
+            ${mine?.vote==="approve" ? "✓ আপনি Approve করেছেন" : "✓ Approve"}
+          </button>
+          <button class="btn btn-danger btn-small" onclick="voteDeleteRequest('${esc(r.id)}','reject')">
+            ${mine?.vote==="reject" ? "✕ আপনি Reject করেছেন" : "✕ Reject"}
+          </button>
+          ${isSuperAdmin ? `
+            <button class="btn btn-warning btn-small" ${ready?"":"disabled style=\"opacity:.5\""}
+              onclick="executeDeleteRequest('${esc(r.id)}')">
+              🗑 রেজুলেশন দিয়ে Delete${ready?"":` (আরও ${req-appr.length} জন লাগবে)`}
+            </button>
+            <button class="btn btn-small" style="background:#eceff1"
+              onclick="rejectDeleteRequest('${esc(r.id)}')">🚫 Request বাতিল</button>
+          ` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 function renderLog(){
 
   const pending=(DATA.deleteRequests||[]).filter(x=>x.status==="pending");
+  const rejected=(DATA.deleteRequests||[]).filter(x=>x.status==="rejected").slice(0,20);
   const activities=(DATA.activityLogs||[]).slice(0,200);
   const adds=(DATA.addHistory||[]).slice(0,100);
   const edits=(DATA.editHistory||[]).slice(0,100);
@@ -2451,24 +2731,26 @@ function renderLog(){
 
   let html="";
 
-  if(isSuperAdmin){
+  html += `
+    <div class="card">
+      <div class="card-title">🗳 Delete Requests</div>
+      <div class="small" style="margin-bottom:6px">Delete হতে ৮ জনের মধ্যে ${DELETE_REQUIRED_APPROVALS} জনের Approve লাগবে। তারপর Super Admin রেজুলেশন কোড দিয়ে Delete করবেন।</div>
+      ${renderPendingRequests(pending)}
+    </div>
+  `;
+
+  if(rejected.length){
     html += `
       <div class="card">
-        <div class="card-title">🔐 Delete Requests</div>
-        ${pending.length ? pending.map(r=>`
+        <div class="card-title">🚫 বাতিল হওয়া Request</div>
+        ${rejected.map(r=>`
           <div style="padding:8px 0;border-bottom:1px solid #edf0ee">
-            <div class="row-between">
-              <strong>${esc(r.module)} • ${esc(r.table_name)}</strong>
-              <span class="badge badge-orange">PENDING</span>
-            </div>
-            <div class="small" style="margin-top:4px">Record: ${esc(r.record_id)}</div>
-            <div class="small">কারণ: ${esc(r.reason)}</div>
-            <div class="actions" style="margin-top:7px">
-              <button class="btn btn-primary btn-small" onclick="approveDeleteRequest('${esc(r.id)}')">✓ Approve</button>
-              <button class="btn btn-danger btn-small" onclick="rejectDeleteRequest('${esc(r.id)}')">✕ Reject</button>
-            </div>
+            <strong>${esc(r.module)}</strong> • ${esc(r.record_id)}<br>
+            <span class="small">Request: ${esc(userLabel(r.requested_by))}</span><br>
+            <span class="small">কারণ: ${esc(r.reason)}</span><br>
+            <span class="small">বাতিল: ${esc(userLabel(r.reviewed_by))} — ${esc(r.reject_reason||"-")}</span>
           </div>
-        `).join("") : `<div class="empty">কোনো Pending Delete Request নেই।</div>`}
+        `).join("")}
       </div>
     `;
   }
@@ -2476,7 +2758,8 @@ function renderLog(){
   const activityRows=activities.length ? activities.map(x=>`
     <div style="padding:8px 0;border-bottom:1px solid #edf0ee">
       <strong>${esc(x.action)}</strong> • ${esc(x.module || "-")}<br>
-      <span class="small">${esc(new Date(x.created_at).toLocaleString("en-GB"))}</span>
+      <span class="small">👤 ${esc(userLabel(x.user_id))}</span><br>
+      <span class="small">${esc(fmtDT(x.created_at))}</span>
       ${x.record_id ? `<div class="small">Record: ${esc(x.record_id)}</div>` : ""}
       ${x.reason ? `<div class="small">কারণ: ${esc(x.reason)}</div>` : ""}
     </div>
@@ -2485,33 +2768,45 @@ function renderLog(){
   const addRows=adds.length ? adds.map(x=>`
     <div style="padding:8px 0;border-bottom:1px solid #edf0ee">
       <strong>ADD</strong> • ${esc(x.module || "-")} • ${esc(x.record_id || "-")}<br>
-      <span class="small">${esc(new Date(x.created_at).toLocaleString("en-GB"))}</span>
+      <span class="small">👤 ${esc(userLabel(x.user_id))}</span><br>
+      <span class="small">${esc(fmtDT(x.created_at))}</span>
     </div>
   `).join("") : `<div class="empty">কোনো Add History নেই।</div>`;
 
   const editRows=edits.length ? edits.map(x=>`
     <div style="padding:8px 0;border-bottom:1px solid #edf0ee">
       <strong>EDIT</strong> • ${esc(x.module || "-")} • ${esc(x.record_id || "-")}<br>
-      <span class="small">${esc(new Date(x.created_at).toLocaleString("en-GB"))}</span>
+      <span class="small">👤 ${esc(userLabel(x.user_id))}</span><br>
+      <span class="small">${esc(fmtDT(x.created_at))}</span>
       <details style="margin-top:5px"><summary class="small">Before → After</summary>
         <pre style="white-space:pre-wrap;font-size:10px">${esc(JSON.stringify(x.before_data,null,2))}\n→\n${esc(JSON.stringify(x.after_data,null,2))}</pre>
       </details>
     </div>
   `).join("") : `<div class="empty">কোনো Edit History নেই।</div>`;
 
-  const deleteRows=deletes.length ? deletes.map(x=>`
+  const deleteRows=deletes.length ? deletes.map((x,i)=>{
+    const approvers=Array.isArray(x.approvers) ? x.approvers : [];
+    return `
     <div style="padding:8px 0;border-bottom:1px solid #edf0ee">
       <strong>DELETE</strong> • ${esc(x.module || "-")} • ${esc(x.record_id || "-")}<br>
-      <span class="small">${esc(new Date(x.deleted_at).toLocaleString("en-GB"))}</span>
+      <span class="small">${esc(fmtDT(x.deleted_at))}</span>
+      <div class="small">👤 Request: ${esc(userLabel(x.user_id))}</div>
+      <div class="small">🗑 Delete করেছেন: ${esc(userLabel(x.approved_by))}</div>
+      ${x.resolution_code ? `<div class="small">🧾 রেজুলেশন: <strong>${esc(x.resolution_code)}</strong> — ${esc(x.resolution_note||"")}</div>` : ""}
+      ${approvers.length ? `<div class="small">✅ Approve: ${approvers.map(a=>esc(userInfo(a.user_id).name)).join(", ")}</div>` : ""}
       <div class="small">কারণ: ${esc(x.reason || "-")}</div>
-    </div>
-  `).join("") : `<div class="empty">কোনো Delete History নেই।</div>`;
+      <div class="actions" style="margin-top:6px">
+        <button class="btn btn-warning btn-small" onclick="openDeletePdf(${i})">📄 PDF</button>
+      </div>
+    </div>`;
+  }).join("") : `<div class="empty">কোনো Delete History নেই।</div>`;
 
-  const loginRows=activities.filter(x=>x.action==="LOGIN" || x.action==="LOGOUT").length
-    ? activities.filter(x=>x.action==="LOGIN" || x.action==="LOGOUT").map(x=>`
+  const loginList=activities.filter(x=>x.action==="LOGIN" || x.action==="LOGOUT");
+  const loginRows=loginList.length
+    ? loginList.map(x=>`
       <div style="padding:8px 0;border-bottom:1px solid #edf0ee">
-        <strong>${esc(x.action)}</strong> • Account<br>
-        <span class="small">${esc(new Date(x.created_at).toLocaleString("en-GB"))}</span>
+        <strong>${esc(x.action)}</strong> • ${esc(userLabel(x.user_id))}<br>
+        <span class="small">${esc(fmtDT(x.created_at))}</span>
       </div>
     `).join("")
     : `<div class="empty">কোনো Login/Logout History নেই।</div>`;
@@ -2552,7 +2847,9 @@ async function loadAll(){
     deleteReqRes,
     addHistoryRes,
     editHistoryRes,
-    deleteHistoryRes
+    deleteHistoryRes,
+    votesRes,
+    dirRes
   ] = await Promise.all([
 
     db.from("goats")
@@ -2616,7 +2913,13 @@ async function loadAll(){
     db.from("delete_history")
       .select("*")
       .order("deleted_at",{ascending:false})
-      .limit(200)
+      .limit(200),
+
+    db.from("delete_votes")
+      .select("*")
+      .order("created_at",{ascending:true}),
+
+    db.rpc("get_partner_directory")
 
   ]);
 
@@ -2686,6 +2989,15 @@ async function loadAll(){
 
   DATA.deleteHistory =
     deleteHistoryRes?.error ? [] : (deleteHistoryRes?.data || []);
+
+  DATA.votes =
+    votesRes?.error ? [] : (votesRes?.data || []);
+
+  DATA.directory =
+    dirRes?.error ? [] : (dirRes?.data || []);
+
+  if(votesRes?.error) console.warn("delete_votes load error:", votesRes.error);
+  if(dirRes?.error) console.warn("partner directory load error:", dirRes.error);
 
   if(activityRes?.error){
     console.warn("activity_logs load error:", activityRes.error);
@@ -3523,9 +3835,6 @@ async function deleteAddMoney(id){
   const requestId=await createDeleteRequest("Add Money","add_money_transactions",row,reason);
   if(!requestId) return;
 
-  if(isSuperAdmin){
-    await approveDeleteRequest(requestId);
-  }
 }
 
 
@@ -4055,77 +4364,17 @@ async function saveGoat(){
 
 async function deleteGoat(id){
 
-  const g =
-    DATA.goats.find(x=>x.id===id);
-
+  const g=DATA.goats.find(x=>String(x.id)===String(id));
   if(!g) return;
 
-
   if(!confirm(
-    `"${g.name}" ছাগলটি Delete করবেন?\nএর সাথে থাকা ইতিহাসও Dashboard/Report থেকে বাদ যাবে।`
+    `"${g.name}" ছাগলটি Delete করার Request পাঠাবেন?\nঅনুমোদন পেলে এর সাথে থাকা লেনদেন ও ক্রয়-খরচও Delete হবে।`
   )) return;
 
   const reason=askDeleteReason("এই ছাগলটি Delete করতে যাচ্ছেন।");
   if(!reason) return;
 
-  const snapshot=JSON.parse(JSON.stringify(g));
-
-  const {error:txError} =
-    await db
-      .from("goat_transactions")
-      .delete()
-      .eq("goat_id",id)
-      ;
-
-
-  if(txError){
-
-    alert(txError.message);
-
-    return;
-  }
-
-
-  const {error:expenseError} =
-    await db
-      .from("expenses")
-      .delete()
-      
-      .eq("category","ছাগল ক্রয়")
-      .eq("note","ছাগল: " + g.name);
-
-
-  if(expenseError){
-
-    alert(expenseError.message);
-
-    return;
-  }
-
-
-  const {error} =
-    await db
-      .from("goats")
-      .delete()
-      .eq("id",id)
-      ;
-
-
-  if(error){
-
-    alert(error.message);
-
-    return;
-  }
-
-
-  localStorage.removeItem("goat_manual_cost_" + id);
-
-  await writeDeleteHistory("আমার ছাগল","goats",id,snapshot,reason,currentUser.id);
-  await writeActivity("DELETE","আমার ছাগল","goats",id,snapshot,null,reason);
-
-  await loadAll();
-
+  await createDeleteRequest("আমার ছাগল","goats",JSON.parse(JSON.stringify(g)),reason);
 }
 
 
@@ -4560,1693 +4809,4 @@ function quickVaccine(goatId){
     goatId;
 
   window.scrollTo({
-    top:0,
-    behavior:"smooth"
-  });
-
-}
-
-
-function vaccineTab(tab){
-
-  currentVaccineTab = tab;
-
-
-  [
-    "pending",
-    "completed",
-    "all"
-  ].forEach(x=>{
-
-    $("vtab-"+x)
-      .classList.toggle(
-        "active",
-        x===tab
-      );
-
-  });
-
-
-  renderVaccines();
-
-}
-
-
-function fillVaccineGoats(){
-
-  const active =
-    DATA.goats.filter(
-      x=>x.status==="active"
-    );
-
-
-  $("vGoat").innerHTML =
-    active.length
-      ? active
-          .map(
-            g =>
-              `<option value="${g.id}">
-                ${esc(g.name)}
-              </option>`
-          )
-          .join("")
-      : `<option value="">
-           কোনো সক্রিয় ছাগল নেই
-         </option>`;
-
-}
-
-
-async function addVaccine(){
-
-  const goatId =
-    $("vGoat").value;
-
-  const vaccineName =
-    $("vName").value.trim();
-
-  const company =
-    $("vCompany").value.trim();
-
-  const scheduled =
-    $("vDate").value || today();
-
-  const nextDate =
-    $("vNext").value || null;
-
-  const note =
-    $("vNote").value.trim();
-
-
-  if(!goatId){
-
-    alert("ছাগল নির্বাচন করুন");
-
-    return;
-  }
-
-
-  if(!vaccineName){
-
-    alert("টিকার নাম দিন");
-
-    return;
-  }
-
-
-  /*
-    একই ছাগলকে একই টিকা আগে দেওয়া হয়ে থাকলে
-    আবার pending হিসেবে যোগ করতে দেওয়া হবে না।
-  */
-
-  const existing =
-    DATA.vaccines.filter(
-      x =>
-        x.goat_id===goatId &&
-        String(x.vaccine_name || "")
-          .trim()
-          .toLowerCase() ===
-        vaccineName.toLowerCase()
-    );
-
-
-  const alreadyCompleted =
-    existing.some(
-      x=>x.status==="completed"
-    );
-
-  const alreadyPending =
-    existing.some(
-      x=>x.status==="pending"
-    );
-
-
-  if(alreadyCompleted){
-
-    alert(
-      "এই ছাগলকে এই টিকা আগে দেওয়া হয়েছে।"
-    );
-
-    return;
-  }
-
-
-  if(alreadyPending){
-
-    alert(
-      "এই টিকার একটি pending record ইতিমধ্যে আছে।"
-    );
-
-    return;
-  }
-
-
-  const {error} =
-    await db
-      .from("vaccinations")
-      .insert({
-
-        user_id:currentUser.id,
-
-        goat_id:goatId,
-
-        vaccine_name:vaccineName,
-
-        company:company || null,
-
-        scheduled_date:scheduled,
-
-        given_date:null,
-
-        next_date:nextDate,
-
-        status:"pending",
-
-        notes:note || null
-
-      });
-
-
-  if(error){
-
-    alert(error.message);
-
-    return;
-  }
-
-
-  await addLookup(
-    "vaccine",
-    vaccineName
-  );
-
-
-  if(company){
-
-    await addLookup(
-      "vaccine_company",
-      company
-    );
-
-  }
-
-
-  $("vName").value = "";
-  $("vCompany").value = "";
-  $("vNext").value = "";
-  $("vNote").value = "";
-
-
-  await loadAll();
-
-
-  alert("টিকা পরিকল্পনা যোগ হয়েছে");
-
-}
-
-
-async function completeVaccine(id){
-
-  const v =
-    DATA.vaccines.find(
-      x=>x.id===id
-    );
-
-  if(!v) return;
-
-
-  if(!confirm(
-    "এই টিকা দেওয়া হয়েছে হিসেবে সংরক্ষণ করবেন?"
-  )) return;
-
-
-  const {error} =
-    await db
-      .from("vaccinations")
-      .update({
-
-        status:"completed",
-
-        given_date:today()
-
-      })
-      .eq("id",id)
-      ;
-
-
-  if(error){
-
-    alert(error.message);
-
-    return;
-  }
-
-
-  await loadAll();
-
-}
-
-
-async function deleteVaccine(id){
-
-  if(!confirm(
-    "এই টিকার record Delete করবেন?"
-  )) return;
-
-
-  const {error} =
-    await db
-      .from("vaccinations")
-      .delete()
-      .eq("id",id)
-      ;
-
-
-  if(error){
-
-    alert(error.message);
-
-    return;
-  }
-
-
-  await loadAll();
-
-}
-
-
-function renderVaccines(){
-
-  fillVaccineGoats();
-
-
-  let rows =
-    DATA.vaccines;
-
-
-  if(currentVaccineTab!=="all"){
-
-    rows =
-      rows.filter(
-        x =>
-          x.status===currentVaccineTab
-      );
-
-  }
-
-
-  if(!rows.length){
-
-    $("vaccineListBox").innerHTML =
-      `<div class="card empty">
-        কোনো টিকার record নেই।
-      </div>`;
-
-    return;
-  }
-
-
-  $("vaccineListBox").innerHTML =
-    rows.map(v=>{
-
-      const goat =
-        DATA.goats.find(
-          g=>g.id===v.goat_id
-        );
-
-
-      const overdue =
-        v.status==="pending" &&
-        v.scheduled_date &&
-        v.scheduled_date < today();
-
-
-      return `
-        <div class="card">
-
-          <div class="row-between">
-
-            <strong>
-              💉 ${esc(v.vaccine_name)}
-            </strong>
-
-            ${
-              v.status==="completed"
-                ? `<span class="badge">
-                    দেওয়া হয়েছে
-                  </span>`
-                : `<span class="badge badge-orange">
-                    বাকি
-                  </span>`
-            }
-
-          </div>
-
-
-          <div class="info-row">
-
-            <div>
-              ছাগল:
-              <strong>
-                ${esc(goat?.name || "-")}
-              </strong>
-            </div>
-
-            <div>
-              কোম্পানি:
-              <strong>
-                ${esc(v.company || "-")}
-              </strong>
-            </div>
-
-            <div>
-              তারিখ:
-              <strong>
-                ${fmt(
-                  v.status==="completed"
-                    ? v.given_date
-                    : v.scheduled_date
-                )}
-              </strong>
-            </div>
-
-            <div>
-              পরবর্তী:
-              <strong>
-                ${fmt(v.next_date)}
-              </strong>
-            </div>
-
-          </div>
-
-
-          ${
-            overdue
-              ? `<div class="alert"
-                     style="margin-top:8px">
-                   ⚠️ টিকার নির্ধারিত তারিখ পার হয়েছে
-                 </div>`
-              : ""
-          }
-
-
-          ${
-            v.notes
-              ? `<div class="small"
-                       style="margin-top:7px">
-                   📝 ${esc(v.notes)}
-                 </div>`
-              : ""
-          }
-
-
-          <div class="actions"
-               style="margin-top:8px">
-
-            ${
-              v.status==="pending"
-                ? `<button
-                     class="btn btn-primary btn-small"
-                     onclick="completeVaccine('${v.id}')">
-                     ✓ টিকা দেওয়া হয়েছে
-                   </button>`
-                : ""
-            }
-
-            <button
-              class="btn btn-danger btn-small"
-              onclick="deleteVaccine('${v.id}')">
-              🗑 Delete
-            </button>
-
-          </div>
-
-        </div>
-      `;
-
-    }).join("");
-
-}
-
-
-/* =========================================================
-   EXPENSE
-========================================================= */
-
-function expenseTab(tab){
-
-  currentExpenseTab = tab;
-
-
-  [
-    "day",
-    "week",
-    "month"
-  ].forEach(x=>{
-
-    $("etab-"+x)
-      .classList.toggle(
-        "active",
-        x===tab
-      );
-
-  });
-
-
-  renderExpenses();
-
-}
-
-
-function rangeOK(dateString,range){
-
-  if(!dateString) return false;
-
-
-  const now =
-    new Date();
-
-  const d =
-    new Date(
-      dateString + "T00:00:00"
-    );
-
-
-  if(range==="day"){
-
-    return dateString===today();
-
-  }
-
-
-  if(range==="week"){
-
-    const start =
-      new Date();
-
-    start.setDate(
-      start.getDate()-6
-    );
-
-    start.setHours(0,0,0,0);
-
-    return d>=start;
-
-  }
-
-
-  if(range==="month"){
-
-    return dateString.startsWith(
-      today().slice(0,7)
-    );
-
-  }
-
-
-  return true;
-
-}
-
-
-async function saveExpense(){
-
-  const date =
-    $("eDate").value || today();
-
-  const category =
-    $("eCategory").value.trim();
-
-  const amount =
-    Number(
-      $("eAmount").value
-    ) || 0;
-
-  const note =
-    $("eNote").value.trim();
-
-
-  if(!category){
-
-    alert("খরচের ক্যাটাগরি দিন");
-
-    return;
-  }
-
-
-  if(amount<=0){
-
-    alert("খরচের পরিমাণ দিন");
-
-    return;
-  }
-
-
-  const {data:newExpense,error} =
-    await db
-      .from("expenses")
-      .insert({
-
-        user_id:currentUser.id,
-
-        expense_date:date,
-
-        category,
-
-        amount,
-
-        note:note || null
-
-      })
-      .select()
-      .single();
-
-
-  if(error){
-
-    alert(error.message);
-
-    return;
-  }
-
-
-  if(newExpense){
-    await writeAddHistory("খরচ","expenses",newExpense.id,newExpense);
-    await writeActivity("ADD","খরচ","expenses",newExpense.id,null,newExpense);
-  }
-
-  await addLookup(
-    "expense_category",
-    category
-  );
-
-
-  $("eAmount").value = "";
-  $("eNote").value = "";
-
-
-  await loadAll();
-
-
-  alert("খরচ যোগ হয়েছে");
-
-}
-
-
-async function deleteExpense(id){
-
-  const row=DATA.expenses.find(x=>String(x.id)===String(id));
-  if(!row) return;
-
-  if(!confirm("এই খরচ Delete করবেন?")) return;
-
-  const reason=askDeleteReason("এই খরচটি Delete করতে যাচ্ছেন।");
-  if(!reason) return;
-
-  const requestId=await createDeleteRequest("খরচ","expenses",row,reason);
-  if(!requestId) return;
-
-  if(isSuperAdmin){
-    await approveDeleteRequest(requestId);
-  }
-}
-
-function renderExpenses(){
-
-  const rows =
-    DATA.expenses.filter(
-      x =>
-        rangeOK(
-          x.expense_date,
-          currentExpenseTab
-        )
-    );
-
-
-  const total =
-    rows.reduce(
-      (sum,x)=>
-        sum + Number(x.amount || 0),
-      0
-    );
-
-
-  $("expenseTotal").textContent =
-    money(total);
-
-
-  if(!rows.length){
-
-    $("expenseRecords").innerHTML =
-      `<div class="card empty">
-        এই সময়ের কোনো খরচ নেই।
-      </div>`;
-
-    return;
-  }
-
-
-  $("expenseRecords").innerHTML =
-    rows.map(x=>`
-
-      <div class="card">
-
-        <div class="row-between">
-
-          <strong>
-            ${esc(x.category)}
-          </strong>
-
-          <strong class="amount">
-            ${money(x.amount)}
-          </strong>
-
-        </div>
-
-
-        <div class="info-row">
-
-          <div>
-            তারিখ:
-            <strong>
-              ${fmt(x.expense_date)}
-            </strong>
-          </div>
-
-          <div>
-            ধরন:
-            <strong>
-              ${esc(x.category)}
-            </strong>
-          </div>
-
-        </div>
-
-
-        ${
-          x.note
-            ? `<div class="small"
-                     style="margin-top:6px">
-                📝 ${esc(x.note)}
-              </div>`
-            : ""
-        }
-
-
-        <div class="actions"
-             style="margin-top:8px">
-
-          <button
-            class="btn btn-danger btn-small"
-            onclick="deleteExpense('${x.id}')">
-            🗑 Delete
-          </button>
-
-        </div>
-
-      </div>
-
-    `).join("");
-
-}
-
-
-/* =========================================================
-   LAND
-========================================================= */
-
-async function saveLand(){
-
-  const landName =
-    $("lName").value.trim();
-
-  if(!landName){
-
-    alert("জমির নাম দিন");
-
-    return;
-  }
-
-
-  const {data:newLand,error} =
-    await db
-      .from("land_records")
-      .insert({
-
-        user_id:currentUser.id,
-
-        land_name:landName,
-
-        size_decimal:
-          $("lSize").value
-            ? Number($("lSize").value)
-            : null,
-
-        work:
-          $("lWork").value.trim(),
-
-        crop:
-          $("lCrop").value.trim(),
-
-        record_date:
-          $("lDate").value || today(),
-
-        cost:
-          $("lCost").value
-            ? Number($("lCost").value)
-            : 0,
-
-        note:
-          $("lNote").value.trim()
-
-      })
-      .select()
-      .single();
-
-
-  if(error){
-
-    alert(error.message);
-
-    return;
-  }
-
-
-  if(newLand){
-    await writeAddHistory("জমি","land_records",newLand.id,newLand);
-    await writeActivity("ADD","জমি","land_records",newLand.id,null,newLand);
-  }
-
-  $("lName").value = "";
-  $("lSize").value = "";
-  $("lWork").value = "";
-  $("lCrop").value = "";
-  $("lCost").value = "";
-  $("lNote").value = "";
-
-
-  await loadAll();
-
-
-  alert("জমির তথ্য যোগ হয়েছে");
-
-}
-
-
-async function deleteLand(id){
-
-  const row=DATA.land.find(x=>String(x.id)===String(id));
-  if(!row) return;
-
-  if(!confirm("এই জমির record Delete করবেন?")) return;
-
-  const reason=askDeleteReason("এই জমির recordটি Delete করতে যাচ্ছেন।");
-  if(!reason) return;
-
-  const requestId=await createDeleteRequest("জমি","land_records",row,reason);
-  if(!requestId) return;
-
-  if(isSuperAdmin){
-    await approveDeleteRequest(requestId);
-  }
-}
-
-
-
-function renderLand(){
-
-  if(!DATA.land.length){
-
-    $("landList").innerHTML =
-      `<div class="card empty">
-        কোনো জমির তথ্য নেই।
-      </div>`;
-
-    return;
-  }
-
-
-  $("landList").innerHTML =
-    DATA.land.map(x=>`
-
-      <div class="card">
-
-        <div class="row-between">
-
-          <strong>
-            🌱 ${esc(x.land_name)}
-          </strong>
-
-          <strong>
-            ${money(x.cost)}
-          </strong>
-
-        </div>
-
-
-        <div class="info-row">
-
-          <div>
-            আয়তন:
-            <strong>
-              ${x.size_decimal || "-"}
-            </strong>
-          </div>
-
-          <div>
-            তারিখ:
-            <strong>
-              ${fmt(x.record_date)}
-            </strong>
-          </div>
-
-          <div>
-            কাজ:
-            <strong>
-              ${esc(x.work || "-")}
-            </strong>
-          </div>
-
-          <div>
-            ফসল:
-            <strong>
-              ${esc(x.crop || "-")}
-            </strong>
-          </div>
-
-        </div>
-
-
-        ${
-          x.note
-            ? `<div class="small"
-                     style="margin-top:6px">
-                📝 ${esc(x.note)}
-              </div>`
-            : ""
-        }
-
-
-        <div class="actions"
-             style="margin-top:8px">
-
-          <button
-            class="btn btn-danger btn-small"
-            onclick="deleteLand('${x.id}')">
-            🗑 Delete
-          </button>
-
-        </div>
-
-      </div>
-
-    `).join("");
-
-}
-
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-function renderDashboard(){
-
-  const active =
-    DATA.goats.filter(
-      x=>x.status==="active"
-    ).length;
-
-
-  const purchase =
-    DATA.tx.filter(
-      x=>x.type==="purchase"
-    ).length;
-
-
-  const birth =
-    DATA.tx.filter(
-      x=>x.type==="birth"
-    ).length;
-
-
-  const sale =
-    DATA.tx.filter(
-      x=>x.type==="sale"
-    ).length;
-
-
-  const month =
-    today().slice(0,7);
-
-
-  const monthExpense =
-    DATA.expenses
-      .filter(
-        x =>
-          x.expense_date?.startsWith(month)
-      )
-      .reduce(
-        (sum,x)=>
-          sum + Number(x.amount || 0),
-        0
-      );
-
-  const monthLandCost =
-    DATA.land
-      .filter(
-        x =>
-          x.record_date?.startsWith(month)
-      )
-      .reduce(
-        (sum,x)=>
-          sum + Number(x.cost || 0),
-        0
-      );
-
-  const monthTotalCost =
-    monthExpense + monthLandCost;
-
-
-  const pending =
-    DATA.vaccines.filter(
-      x=>x.status==="pending"
-    ).length;
-
-
-  $("dActive").textContent =
-    active;
-
-  $("dPurchase").textContent =
-    purchase;
-
-  $("dBirth").textContent =
-    birth;
-
-  $("dSale").textContent =
-    sale;
-
-  $("dMonthExpense").textContent =
-    money(monthTotalCost);
-
-  $("dVaccine").textContent =
-    pending;
-
-
-  /* Vaccine alerts */
-
-  const alerts =
-    DATA.vaccines
-      .map(v => ({
-        ...v,
-        alertDate:
-          v.next_date ||
-          (v.status==="pending" ? v.scheduled_date : null)
-      }))
-      .filter(
-        v =>
-          v.alertDate &&
-          v.alertDate <= addDays(today(),14)
-      )
-      .sort(
-        (a,b)=>
-          String(a.alertDate)
-            .localeCompare(
-              String(b.alertDate)
-            )
-      )
-      .slice(0,6);
-
-
-  if(!alerts.length){
-
-    $("vaccineAlerts").innerHTML =
-      `<div class="success">
-        আগামী ১৪ দিনের মধ্যে কোনো টিকার alert নেই।
-      </div>`;
-
-  }else{
-
-    $("vaccineAlerts").innerHTML =
-      alerts.map(a=>{
-
-        const goat =
-          DATA.goats.find(
-            g=>g.id===a.goat_id
-          );
-
-
-        const late =
-          a.alertDate < today();
-
-
-        return `
-          <div class="${late ? "danger" : "alert"}">
-
-            <strong>
-              ${esc(a.vaccine_name)}
-            </strong>
-
-            — ${esc(goat?.name || "-")}
-
-            <br>
-
-            পরবর্তী টিকা:
-            ${fmt(a.alertDate)}
-
-            ${
-              late
-                ? " — ⚠️ সময় পার হয়েছে"
-                : ""
-            }
-
-          </div>
-        `;
-
-      }).join("");
-
-  }
-
-
-  /* Recent goats */
-
-  const recent =
-    DATA.goats
-      .slice(0,5);
-
-
-  $("recentGoats").innerHTML =
-    recent.length
-      ? recent.map(g=>`
-
-          <div style="
-            padding:7px 0;
-            border-bottom:1px solid #edf0ee;
-          ">
-
-            <div class="row-between">
-
-              <strong>
-                🐐 ${esc(g.name)}
-              </strong>
-
-              <span class="badge">
-                ${
-                  g.status==="active"
-                    ? "সক্রিয়"
-                    : "বিক্রি"
-                }
-              </span>
-
-            </div>
-
-            <div class="small">
-              ${esc(g.breed || "জাত দেওয়া হয়নি")}
-              •
-              ${fmt(g.birth_date)}
-            </div>
-
-          </div>
-
-        `).join("")
-      : `<div class="empty">
-          এখনো ছাগল যোগ করা হয়নি।
-        </div>`;
-
-
-  /* Recent expenses */
-
-  const recentExpenses =
-    [...DATA.expenses]
-      .sort((a,b)=>{
-        const dateCompare =
-          String(b.expense_date || "")
-            .localeCompare(String(a.expense_date || ""));
-
-        if(dateCompare!==0) return dateCompare;
-
-        return String(b.created_at || b.id || "")
-          .localeCompare(String(a.created_at || a.id || ""));
-      })
-      .slice(0,5);
-
-
-  $("recentExpenses").innerHTML =
-    recentExpenses.length
-      ? recentExpenses.map(x=>`
-
-          <div style="
-            padding:7px 0;
-            border-bottom:1px solid #edf0ee;
-          ">
-
-            <div class="row-between">
-
-              <strong>
-                ${esc(x.category)}
-              </strong>
-
-              <strong>
-                ${money(x.amount)}
-              </strong>
-
-            </div>
-
-            <div class="small">
-              ${fmt(x.expense_date)}
-              ${
-                x.note
-                  ? " • " + esc(x.note)
-                  : ""
-              }
-            </div>
-
-          </div>
-
-        `).join("")
-      : `<div class="empty">
-          এখনো কোনো খরচ নেই।
-        </div>`;
-
-}
-
-
-/* =========================================================
-   MONTHLY REPORT
-========================================================= */
-
-function getMonthKey(offset=0){
-
-  const d = new Date();
-
-  d.setDate(1);
-  d.setMonth(d.getMonth() - offset);
-
-  return (
-    d.getFullYear() +
-    "-" +
-    pad(d.getMonth()+1)
-  );
-
-}
-
-
-function monthLabel(month){
-
-  const parts = String(month).split("-");
-  const y = Number(parts[0]);
-  const m = Number(parts[1]);
-
-  const names = [
-    "জানুয়ারি",
-    "ফেব্রুয়ারি",
-    "মার্চ",
-    "এপ্রিল",
-    "মে",
-    "জুন",
-    "জুলাই",
-    "আগস্ট",
-    "সেপ্টেম্বর",
-    "অক্টোবর",
-    "নভেম্বর",
-    "ডিসেম্বর"
-  ];
-
-  return (
-    names[(m || 1)-1] +
-    " " +
-    y
-  );
-
-}
-
-
-function getMonthData(month){
-
-  const expenses =
-    DATA.expenses.filter(
-      x =>
-        x.expense_date?.startsWith(month)
-    );
-
-  const land =
-    DATA.land.filter(
-      x =>
-        x.record_date?.startsWith(month)
-    );
-
-  const purchases =
-    DATA.tx.filter(
-      x =>
-        x.type==="purchase" &&
-        x.transaction_date?.startsWith(month)
-    );
-
-  const births =
-    DATA.tx.filter(
-      x =>
-        x.type==="birth" &&
-        x.transaction_date?.startsWith(month)
-    );
-
-  const sales =
-    DATA.tx.filter(
-      x =>
-        x.type==="sale" &&
-        x.transaction_date?.startsWith(month)
-    );
-
-  const expenseTotal =
-    expenses.reduce(
-      (s,x)=>
-        s + Number(x.amount || 0),
-      0
-    );
-
-  const landTotal =
-    land.reduce(
-      (s,x)=>
-        s + Number(x.cost || 0),
-      0
-    );
-
-  const purchaseTotal =
-    purchases.reduce(
-      (s,x)=>
-        s + Number(x.amount || 0),
-      0
-    );
-
-  const saleTotal =
-    sales.reduce(
-      (s,x)=>
-        s + Number(x.amount || 0),
-      0
-    );
-
-  return {
-    expenses,
-    land,
-    purchases,
-    births,
-    sales,
-    expenseTotal,
-    landTotal,
-    totalCost:expenseTotal + landTotal,
-    purchaseTotal,
-    saleTotal
-  };
-
-}
-
-
-function reportTab(tab){
-
-  currentReportTab = tab;
-
-  [
-    "current",
-    "history",
-    "log"
-  ].forEach(x=>{
-
-    const el = $("rtab-" + x);
-
-    if(el){
-
-      el.classList.toggle(
-        "active",
-        x===tab
-      );
-
-    }
-
-  });
-
-  renderReport();
-
-}
-
-
-function renderCurrentReport(){
-
-  const month =
-    today().slice(0,7);
-
-  const data =
-    getMonthData(month);
-
-  $("rExpense").textContent =
-    money(data.totalCost);
-
-  $("rPurchase").textContent =
-    money(data.purchaseTotal);
-
-  $("rSale").textContent =
-    money(data.saleTotal);
-
-  $("rCurrent").textContent =
-    DATA.goats.filter(
-      x=>x.status==="active"
-    ).length;
-
-
-  let html = "";
-
-  html += `
-    <div class="card">
-
-      <div class="card-title">
-        📅 ${monthLabel(month)} বিস্তারিত
-      </div>
-
-      <div class="row-between"
-           style="padding:7px 0">
-        <span>মোট খরচ</span>
-        <strong>${money(data.totalCost)}</strong>
-      </div>
-
-      <div class="row-between"
-           style="padding:7px 0">
-        <span>সাধারণ খরচ</span>
-        <strong>${money(data.expenseTotal)}</strong>
-      </div>
-
-      <div class="row-between"
-           style="padding:7px 0">
-        <span>🌱 জমির খরচ</span>
-        <strong>${money(data.landTotal)}</strong>
-      </div>
-
-      <div class="row-between"
-           style="padding:7px 0">
-        <span>ছাগল ক্রয়</span>
-        <strong>${money(data.purchaseTotal)}</strong>
-      </div>
-
-      <div class="row-between"
-           style="padding:7px 0">
-        <span>ছাগল বিক্রি</span>
-        <strong>${money(data.saleTotal)}</strong>
-      </div>
-
-    </div>
-  `;
-
-
-  html += `
-    <div class="card">
-
-      <div class="card-title">
-        💰 মাসিক খরচের তালিকা
-      </div>
-  `;
-
-
-  if(!data.expenses.length && !data.land.length){
-
-    html += `
-      <div class="empty">
-        এই মাসে কোনো খরচ নেই।
-      </div>
-    `;
-
-  }else{
-
-    const rows = [
-      ...data.expenses.map(x=>({
-        date:x.expense_date,
-        created_at:x.created_at,
-        id:x.id,
-        title:x.category,
-        amount:x.amount,
-        note:x.note
-      })),
-      ...data.land.map(x=>({
-        date:x.record_date,
-        created_at:x.created_at,
-        id:x.id,
-        title:"🌱 জমির খরচ — " + (x.land_name || ""),
-        amount:x.cost,
-        note:x.note
-      }))
-    ].sort(
-      (a,b)=>{
-        const dateCompare =
-          String(b.date || "")
-            .localeCompare(String(a.date || ""));
-
-        if(dateCompare!==0) return dateCompare;
-
-        return String(b.created_at || b.id || "")
-          .localeCompare(String(a.created_at || a.id || ""));
-      }
-    );
-
-
-    html += rows.map(x=>`
-
-      <div style="
-        padding:6px 0;
-        border-bottom:1px solid #edf0ee;
-        font-size:12px;
-      ">
-
-        <div class="row-between">
-
-          <strong>
-            ${esc(x.title)}
-          </strong>
-
-          <strong>
-            ${money(x.amount)}
-          </strong>
-
-        </div>
-
-        <div class="small">
-          ${fmt(x.date)}
-          ${
-            x.note
-              ? " • " + esc(x.note)
-              : ""
-          }
-        </div>
-
-      </div>
-
-    `).join("");
-
-  }
-
-
-  html += `</div>`;
-
-  $("reportBody").innerHTML =
-    html;
-
-}
-
-
-function renderSixMonthHistory(){
-
-  let html = `
-
-    <div class="card">
-
-      <div class="card-title">
-        📚 গত ৬ মাসের হিস্টোরি
-      </div>
-
-      <div class="small">
-        বর্তমান মাসসহ সর্বশেষ ৬ মাসের খরচ, জমির খরচ, ক্রয় ও বিক্রির হিসাব
-      </div>
-
-    </div>
-
-  `;
-
-
-  for(let i=0; i<6; i++){
-
-    const month =
-      getMonthKey(i);
-
-    const data =
-      getMonthData(month);
-
-
-    html += `
-
-      <div class="card">
-
-        <div class="row-between">
-
-          <strong>
-            📅 ${monthLabel(month)}
-          </strong>
-
-          <strong class="orange">
-            ${money(data.totalCost)}
-          </strong>
-
-        </div>
-
-
-        <div class="info-row">
-
-          <div>
-            সাধারণ খরচ:
-            <strong>
-              ${money(data.expenseTotal)}
-            </strong>
-          </div>
-
-          <div>
-            🌱 জমির খরচ:
-            <strong>
-              ${money(data.landTotal)}
-            </strong>
-          </div>
-
-          <div>
-            🛒 ক্রয়:
-            <strong>
-              ${money(data.purchaseTotal)}
-            </strong>
-          </div>
-
-          <div>
-            💰 বিক্রি:
-            <strong>
-              ${money(data.saleTotal)}
-            </strong>
-          </div>
-
-          <div>
-            🐐 জন্ম:
-            <strong>
-              ${data.births.length}
-            </strong>
-          </div>
-
-          <div>
-            মোট খরচ:
-            <strong>
-              ${money(data.totalCost)}
-            </strong>
-          </div>
-
-        </div>
-
-        ${
-          (
-            data.expenses.length ||
-            data.land.length ||
-            data.purchases.length ||
-            data.births.length ||
-            data.sales.length
-          )
-            ? ""
-            : `
-              <div class="empty"
-                   style="padding:10px 0 2px">
-                এই মাসে কোনো হিসাব নেই।
-              </div>
-            `
-        }
-
-      </div>
-
-    `;
-
-  }
-
-
-  $("reportBody").innerHTML =
-    html;
-
-}
-
-
-function renderReport(){
-
-  if(currentReportTab==="history"){
-
-    renderSixMonthHistory();
-
-    return;
-
-  }
-
-  if(currentReportTab==="log"){
-    renderLog();
-    return;
-  }
-
-  renderCurrentReport();
-
-}
-
-
-/* =========================================================
-   INIT
-========================================================= */
-
-$("eDate").value = today();
-$("vDate").value = today();
-$("lDate").value = today();
-if($("amDate")) $("amDate").value = today();
-if($("amMonth")) {
-  $("amMonth").value = monthKey(today());
-  $("amMonth").addEventListener("change", renderMonthlyAddMoney);
-}
-
-checkAuth();
-
-</script>
-
-<script id="viewer-mode">
-/* শুধু OWNER_ID এডিট করতে পারবে, বাকিরা শুধু দেখতে পারবে */
-var OWNER_ID = "a2c33320-483a-4d21-9417-cec22a259db9";
-(function(){
-  var css=document.createElement('style');
-  css.textContent='body.viewer [onclick^="sellGoat("],body.viewer [onclick^="editGoat("],body.viewer [onclick^="deleteGoat("],body.viewer [onclick^="deleteExpense("],body.viewer [onclick^="deleteVaccine("],body.viewer [onclick^="deleteLand("],body.viewer [onclick^="completeVaccine("],body.viewer [onclick^="quickVaccine("],body.viewer [onclick^="toggleGoatForm("],body.viewer [onclick^="cancelGoatForm("],body.viewer .viewer-hide{display:none!important}'
-   +'#viewerBadge{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;background:#17251c;color:#fff;font-size:12px;padding:5px 12px;border-radius:99px;opacity:.9;z-index:50;display:none}body.viewer #viewerBadge{display:block}';
-  document.head.appendChild(css);
-  var b=document.createElement('div');b.id='viewerBadge';b.textContent='👁️ শুধু দেখার অনুমতি';document.body.appendChild(b);
-  var formBtns='[onclick^="saveGoat("],[onclick^="saveExpense("],[onclick^="saveLand("],[onclick^="addVaccine("],[onclick^="saveAddMoney("]';
-  setInterval(function(){
-    var viewer=false;
-    try{viewer=!!(currentUser&&OWNER_ID.indexOf('PASTE')!==0&&currentUser.id!==OWNER_ID&&!isSuperAdmin)}catch(e){}
-    document.body.classList.toggle('viewer',viewer);
-    if(viewer){
-      document.querySelectorAll(formBtns).forEach(function(x){
-        var c=x.closest('#goatFormCard')||x.closest('.card');
-        if(c)c.classList.add('viewer-hide');
-      });
-      var am=document.getElementById('addMoneyFormCard');
-      if(am) am.classList.add('viewer-hide');
-    }else{
-      var am=document.getElementById('addMoneyFormCard');
-      if(am) am.classList.remove('viewer-hide');
-    }
-  },400);
-})();
-</script>
-
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", function () {
-    navigator.serviceWorker.register("./service-worker.js")
-      .then(function () {
-        console.log("PWA service worker registered");
-      })
-      .catch(function (err) {
-        console.warn("PWA service worker registration failed:", err);
-      });
-  });
-}
-</script>
-
-</body>
-</html>
+    top:
