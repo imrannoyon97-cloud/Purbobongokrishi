@@ -559,18 +559,6 @@ hr{
   }
 }
 
-
-/* Full Add Money Details */
-.addmoney-history-modal{position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:12px}
-.addmoney-history-box{width:min(680px,100%);max-height:82vh;overflow:auto;background:#fff;border-radius:20px;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
-.addmoney-history-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.addmoney-history-title{font-size:20px;font-weight:800}
-.addmoney-history-close{border:0;background:#eef6f0;color:#176b3c;border-radius:12px;padding:8px 12px;font-size:18px}
-.addmoney-history-row{display:flex;justify-content:space-between;gap:12px;padding:11px 4px;border-bottom:1px solid #e7ece9}
-.addmoney-history-date{font-weight:700}
-.addmoney-history-meta{font-size:12px;color:#777;margin-top:3px}
-.addmoney-history-amount{font-weight:800;color:#176b3c;white-space:nowrap}
-.addmoney-history-total{display:flex;justify-content:space-between;margin-top:12px;padding:13px 10px;background:#eef8f1;border-radius:12px;font-weight:800;color:#176b3c}
 </style>
 </head>
 
@@ -2523,80 +2511,40 @@ function setCurrentMonthAndRender(){
 function toggleMonthlyAccount(accountId){
   const detail = $("monthly-detail-" + String(accountId));
   if(!detail) return;
-  detail.classList.toggle("hidden");
-}
 
-async function showFullAddMoneyDetails(accountId, accountName){
-  const old = document.getElementById("addMoneyHistoryModal");
-  if(old) old.remove();
+  const history = (DATA.addMoney || [])
+    .filter(x=>String(x.account_user_id)===String(accountId))
+    .sort((a,b)=>{
+      const d = String(b.transaction_date || "").localeCompare(String(a.transaction_date || ""));
+      if(d !== 0) return d;
+      return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+    });
 
-  // Get the latest complete history directly from Supabase.
-  let history = [];
-  const {data, error} = await db
-    .from("add_money_transactions")
-    .select("*")
-    .eq("account_user_id", accountId)
-    .order("transaction_date", {ascending:false})
-    .order("created_at", {ascending:false});
+  const total = history.reduce((sum,x)=>sum + Number(x.amount || 0), 0);
 
-  if(!error && Array.isArray(data)){
-    history = data;
-  }else{
-    // Fallback to already-loaded data if the direct request is unavailable.
-    history = (DATA.addMoney || [])
-      .filter(x=>String(x.account_user_id)===String(accountId))
-      .sort((a,b)=>{
-        const d=String(b.transaction_date||"").localeCompare(String(a.transaction_date||""));
-        return d || String(b.created_at||"").localeCompare(String(a.created_at||""));
-      });
-  }
-
-  const total = history.reduce((sum,x)=>sum+Number(x.amount||0),0);
-
-  const modal = document.createElement("div");
-  modal.id = "addMoneyHistoryModal";
-  modal.className = "addmoney-history-modal";
-  modal.innerHTML = `
-    <div class="addmoney-history-box" onclick="event.stopPropagation()">
-      <div class="addmoney-history-head">
+  detail.innerHTML = history.length ? `
+    <div class="small" style="margin-bottom:7px;font-weight:800">📋 Add Money History</div>
+    ${history.map(x=>`
+      <div class="monthly-detail-row">
         <div>
-          <div class="addmoney-history-title">${esc(accountName || "Account")} — Add Money</div>
-          <div class="small">তারিখ অনুযায়ী সম্পূর্ণ হিসাব</div>
-        </div>
-        <button class="addmoney-history-close" onclick="closeAddMoneyHistory()">✕</button>
-      </div>
-
-      ${history.length ? history.map(x=>`
-        <div class="addmoney-history-row">
-          <div>
-            <div class="addmoney-history-date">${esc(fmt(x.transaction_date))}</div>
-            <div class="addmoney-history-meta">
-              মাধ্যম: ${esc(x.payment_method || "-")}
-              ${x.note ? ` • 📝 ${esc(x.note)}` : ""}
-            </div>
+          <strong>${esc(fmt(x.transaction_date))}</strong>
+          <div class="small">
+            ${x.payment_method ? `মাধ্যম: ${esc(x.payment_method)}` : ""}
+            ${x.note ? `${x.payment_method ? " • " : ""}📝 ${esc(x.note)}` : ""}
           </div>
-          <div class="addmoney-history-amount">${money(x.amount)}</div>
         </div>
-      `).join("") : `
-        <div class="empty" style="padding:20px 5px">
-          এই ব্যক্তির এখনো কোনো Add Money History নেই।
-        </div>
-      `}
-
-      <div class="addmoney-history-total">
-        <span>এখন পর্যন্ত মোট</span>
-        <span>${money(total)}</span>
+        <strong class="amount">${money(x.amount)}</strong>
       </div>
+    `).join("")}
+    <div class="row-between" style="padding-top:9px">
+      <strong>এখন পর্যন্ত মোট</strong>
+      <strong class="green">${money(total)}</strong>
     </div>
+  ` : `
+    <div class="empty" style="padding:10px 5px">এখনো কোনো Add Money History নেই।</div>
   `;
 
-  modal.addEventListener("click", closeAddMoneyHistory);
-  document.body.appendChild(modal);
-}
-
-function closeAddMoneyHistory(){
-  const modal=document.getElementById("addMoneyHistoryModal");
-  if(modal) modal.remove();
+  detail.classList.toggle("hidden");
 }
 
 function renderMonthlyAddMoney(){
@@ -2604,16 +2552,11 @@ function renderMonthlyAddMoney(){
   if(!list) return;
 
   let selectedMonth = $("amMonth")?.value || monthKey(today());
-
-  if($("amMonth") && !$("amMonth").value){
-    $("amMonth").value = selectedMonth;
-  }
+  if($("amMonth") && !$("amMonth").value) $("amMonth").value = selectedMonth;
 
   const accounts = getAccountRows();
   const rows = DATA.addMoney || [];
-  const monthlyRows = rows.filter(
-    x=>monthKey(x.transaction_date)===selectedMonth
-  );
+  const monthlyRows = rows.filter(x=>monthKey(x.transaction_date)===selectedMonth);
 
   let monthTotal = 0;
 
@@ -2622,12 +2565,9 @@ function renderMonthlyAddMoney(){
       .filter(x=>String(x.account_user_id)===String(acc.id))
       .sort((a,b)=>String(b.transaction_date||"").localeCompare(String(a.transaction_date||"")));
 
-    const total = txs.reduce(
-      (sum,x)=>sum + Number(x.amount || 0),
-      0
-    );
-
+    const total = txs.reduce((sum,x)=>sum + Number(x.amount || 0), 0);
     monthTotal += total;
+    const detailId = `monthly-detail-${String(acc.id)}`;
 
     return `
       <div class="monthly-account-card">
@@ -2636,40 +2576,23 @@ function renderMonthlyAddMoney(){
             <div class="monthly-account-name">${esc(acc.name)}</div>
             <div class="small">এই মাসে মোট</div>
           </div>
-
           <div style="text-align:right">
             <div class="monthly-account-total">${money(total)}</div>
             <button class="btn btn-secondary btn-small"
                     style="margin-top:5px"
-                    onclick="showFullAddMoneyDetails('${esc(acc.id)}','${esc(acc.name)}')">
-              Details
-            </button>
+                    onclick="toggleMonthlyAccount('${esc(acc.id)}')">Details</button>
           </div>
         </div>
+        <div id="${esc(detailId)}" class="monthly-detail hidden"></div>
       </div>
     `;
   }).join("");
 
-  if(!accounts.length){
-    list.innerHTML = `
-      <div class="empty">
-        কোনো Account পাওয়া যায়নি।
-      </div>
-    `;
-  }else{
-    list.innerHTML = cards;
-  }
+  list.innerHTML = accounts.length ? cards : `<div class="empty">কোনো Account পাওয়া যায়নি।</div>`;
 
-  if($("monthlyAddMoneyMonthLabel")){
-    $("monthlyAddMoneyMonthLabel").textContent =
-      formatMonthLabel(selectedMonth);
-  }
-
-  if($("monthlyAddMoneyTotal")){
-    $("monthlyAddMoneyTotal").textContent = money(monthTotal);
-  }
+  if($("monthlyAddMoneyMonthLabel")) $("monthlyAddMoneyMonthLabel").textContent = formatMonthLabel(selectedMonth);
+  if($("monthlyAddMoneyTotal")) $("monthlyAddMoneyTotal").textContent = money(monthTotal);
 }
-
 
 function renderAddMoney(){
   fillAddMoneyAccounts();
