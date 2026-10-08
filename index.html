@@ -600,64 +600,7 @@ hr{
 
         <div style="height:8px"></div>
 
-        <button class="btn btn-secondary" style="width:100%"
-                onclick="showSignup()">
-          নতুন ইউজার তৈরি করুন
-        </button>
-
         <div id="loginMsg" style="margin-top:9px"></div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-<!-- =====================================================
-     SIGNUP
-===================================================== -->
-
-<section id="signupScreen" class="hidden">
-
-  <div class="login-wrap">
-
-    <div class="login-box">
-
-      <div class="login-logo">
-        <h1>🐐 নতুন ইউজার</h1>
-        <p>পূর্ববঙ্গ কৃষি কেন্দ্র</p>
-      </div>
-
-      <div class="card">
-
-        <div class="field">
-          <label>ইমেইল</label>
-          <input id="signupEmail" type="email">
-        </div>
-
-        <div class="field">
-          <label>পাসওয়ার্ড</label>
-          <input id="signupPassword" type="password">
-        </div>
-
-        <button class="btn btn-primary"
-                style="width:100%"
-                onclick="signup()">
-          অ্যাকাউন্ট তৈরি করুন
-        </button>
-
-        <div style="height:7px"></div>
-
-        <button class="btn btn-secondary"
-                style="width:100%"
-                onclick="showLogin()">
-          লগইনে ফিরে যান
-        </button>
-
-        <div id="signupMsg" style="margin-top:9px"></div>
 
       </div>
 
@@ -1908,80 +1851,6 @@ function clearMsg(id){
 /* =========================================================
    LOGIN / SIGNUP
 ========================================================= */
-
-function showSignup(){
-
-  $("loginScreen").classList.add("hidden");
-  $("signupScreen").classList.remove("hidden");
-
-}
-
-
-function showLogin(){
-
-  $("signupScreen").classList.add("hidden");
-  $("loginScreen").classList.remove("hidden");
-
-}
-
-
-async function signup(){
-
-  const email =
-    $("signupEmail").value.trim();
-
-  const password =
-    $("signupPassword").value;
-
-  if(!email || !password){
-
-    showMsg(
-      "signupMsg",
-      "ইমেইল ও পাসওয়ার্ড দিন",
-      "danger"
-    );
-
-    return;
-  }
-
-  if(password.length < 6){
-
-    showMsg(
-      "signupMsg",
-      "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
-      "danger"
-    );
-
-    return;
-  }
-
-
-  const {error} =
-    await db.auth.signUp({
-      email,
-      password
-    });
-
-
-  if(error){
-
-    showMsg(
-      "signupMsg",
-      error.message,
-      "danger"
-    );
-
-    return;
-  }
-
-
-  showMsg(
-    "signupMsg",
-    "অ্যাকাউন্ট তৈরি হয়েছে। ইমেইল verification লাগলে verify করে Login করুন।"
-  );
-
-}
-
 
 async function login(){
 
