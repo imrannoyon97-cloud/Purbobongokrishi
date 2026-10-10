@@ -3103,7 +3103,7 @@ async function saveEditedPartnerRegulation(id){
   const wasPending=r.status==='pending_approval';
   // Approval-এ পাঠানো থাকলে আগে পুরনো সিদ্ধান্ত মুছতে হবে (ব্যর্থ হলে কিছুই বদলাবে না)
   if(wasPending){
-    const del=await db.from('partner_regulation_approvals').delete().eq('regulation_id',id);
+    const del=await db.rpc('reset_regulation_approvals',{p_regulation_id:id});
     if(del.error){alert('পুরনো Approval সিদ্ধান্ত মোছা যায়নি, তাই Edit হয়নি: '+del.error.message);reset();return;}
   }
   const upd={regulation_code:code,title,body,resolution_date:date,place};
