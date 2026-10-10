@@ -83,6 +83,11 @@ header{
   margin-top:2px;
 }
 
+.logout-btn.active{
+  background:rgba(255,255,255,.34);
+  font-weight:700;
+}
+
 .logout-btn{
   border:0;
   background:rgba(255,255,255,.16);
@@ -695,9 +700,10 @@ hr{
           </div>
         </div>
 
-        <button class="logout-btn"
-                onclick="logout()">
-          Logout
+        <button id="nav-account"
+                class="logout-btn"
+                onclick="openPage('account')">
+          👤 Account
         </button>
 
       </div>
@@ -1715,7 +1721,7 @@ hr{
                  class="hidden"
                  onchange="handleAccountPicture(event)">
 
-          <button class="btn btn-secondary btn-small"
+          <button id="accountPictureButton" class="btn btn-secondary btn-small"
                   onclick="$('accountPictureInput').click()">
             📷 Add Picture
           </button>
@@ -1723,7 +1729,7 @@ hr{
           <div id="accountPictureHint"
                class="small"
                style="margin-top:6px">
-            Profile picture এই device-এ সংরক্ষিত থাকবে।
+            Profile picture Supabase-এ সংরক্ষিত হবে। একবার নিশ্চিত করলে আর পরিবর্তন করা যাবে না।
           </div>
 
         </div>
@@ -1940,13 +1946,6 @@ hr{
               onclick="openPage('partner')">
         <span>🤝</span>
         Partner Management
-      </button>
-
-      <button id="nav-account"
-              class="nav-btn"
-              onclick="openPage('account')">
-        <span>👤</span>
-        Account
       </button>
 
     </nav>
@@ -3693,38 +3692,50 @@ async function changePassword(){
   );
 }
 
-function accountPictureKey(){
-
-  return currentUser
-    ? "purbobongo_account_picture_" + currentUser.id
-    : "";
-}
-
-function renderAccountPicture(){
+async function renderAccountPicture(){
 
   const avatar = $("accountAvatar");
+  const button = $("accountPictureButton");
+  const hint   = $("accountPictureHint");
   if(!avatar || !currentUser) return;
 
-  const saved = localStorage.getItem(accountPictureKey());
+  try{
+    const {data:row,error} = await db.from("profile_pictures")
+      .select("storage_path")
+      .eq("user_id",currentUser.id)
+      .maybeSingle();
 
-  if(saved){
-    avatar.innerHTML =
-      `<img src="${saved}"
-            alt="Profile Picture"
-            style="width:100%;height:100%;object-fit:cover">`;
-  }else{
-    avatar.textContent = "👤";
+    if(error) throw error;
+
+    if(row?.storage_path){
+      const {data,error:urlError} = await db.storage
+        .from("profile-pictures")
+        .createSignedUrl(row.storage_path,300);
+
+      if(!urlError && data?.signedUrl){
+        avatar.innerHTML =
+          `<img src="${data.signedUrl}" alt="Profile Picture"
+                style="width:100%;height:100%;object-fit:cover">`;
+      }
+      if(button){button.disabled=true;button.textContent="🔒 Profile Picture Locked";}
+      if(hint) hint.textContent="Profile picture নিশ্চিত করা হয়েছে; এটি পরিবর্তন করা যাবে না।";
+      return;
+    }
+  }catch(error){
+    console.warn("profile picture load:",error);
   }
+
+  avatar.textContent = "👤";
+  if(button){button.disabled=false;button.textContent="📷 Add Picture";}
 }
 
-function handleAccountPicture(event){
+async function handleAccountPicture(event){
 
   const file = event.target.files?.[0];
+  if(!file || !currentUser) return;
 
-  if(!file) return;
-
-  if(!file.type.startsWith("image/")){
-    alert("শুধু Image file নির্বাচন করুন।");
+  if(!["image/png","image/jpeg","image/webp"].includes(file.type)){
+    alert("PNG, JPG বা WebP image নির্বাচন করুন।");
     event.target.value = "";
     return;
   }
@@ -3735,31 +3746,38 @@ function handleAccountPicture(event){
     return;
   }
 
-  const reader = new FileReader();
-
-  reader.onload = ()=>{
-    try{
-      localStorage.setItem(
-        accountPictureKey(),
-        reader.result
-      );
-
-      renderAccountPicture();
-
-      if($("accountPictureHint")){
-        $("accountPictureHint").textContent =
-          "Profile picture সেট করা হয়েছে।";
-      }
-
-    }catch(error){
-      alert("ছবিটি সংরক্ষণ করা যায়নি। অন্য ছবি চেষ্টা করুন।");
-      console.warn("profile picture error:",error);
-    }
-
+  if(!confirm("এই ছবিটি কি আপনার চূড়ান্ত Profile Picture? নিশ্চিত করার পর আর পরিবর্তন করা যাবে না।")){
     event.target.value = "";
-  };
+    return;
+  }
 
-  reader.readAsDataURL(file);
+  const ext = file.type==="image/png" ? "png" : file.type==="image/webp" ? "webp" : "jpg";
+  const path = `${currentUser.id}/avatar.${ext}`;
+
+  const {error:uploadError} = await db.storage
+    .from("profile-pictures")
+    .upload(path,file,{upsert:false,contentType:file.type});
+
+  if(uploadError){
+    alert("Profile picture আপলোড হয়নি: "+uploadError.message+". profile-pictures bucket ও Storage policy যাচাই করুন।");
+    event.target.value = "";
+    return;
+  }
+
+  const {error:insertError} = await db.from("profile_pictures").insert({
+    user_id:currentUser.id,
+    storage_path:path,
+    confirmed_at:new Date().toISOString()
+  });
+
+  if(insertError){
+    alert("Profile picture নিশ্চিত হয়নি: "+insertError.message+". যদি আগেই নিশ্চিত হয়ে থাকে, সেটি পরিবর্তন করা যাবে না।");
+    event.target.value = "";
+    return;
+  }
+
+  event.target.value = "";
+  await renderAccountPicture();
 }
 
 
