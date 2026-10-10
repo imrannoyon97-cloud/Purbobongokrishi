@@ -2888,7 +2888,9 @@ function renderRegulationItems(id){const items=regulationItemRows(id);if(!items.
 async function openRegulationPdfCore(id,finalOnly,w){
   const r=(DATA.partnerRegulations||[]).find(x=>String(x.id)===String(id));if(!r)throw new Error('Regulation data পাওয়া যায়নি (id: '+id+')');
   const items=regulationItemRows(id), votes=(DATA.partnerRegulationApprovals||[]).filter(x=>String(x.regulation_id)===String(id));
-  const responsibilities=(DATA.partnerResponsibilities||[]).filter(x=>String(x.regulation_id)===String(id));
+  let responsibilities=[];
+  try{const rr=await db.rpc('get_regulation_responsibilities',{p_regulation_id:id});if(rr.error)throw rr.error;responsibilities=rr.data||[];}
+  catch(rpcErr){console.warn('responsibility rpc:',rpcErr);responsibilities=(DATA.partnerResponsibilities||[]).filter(x=>String(x.regulation_id)===String(id));}
   const approvedVotes=votes.filter(x=>x.decision==='approve');
   const signatureRows=[];
   for(const v of approvedVotes){ try{
@@ -2913,12 +2915,13 @@ function showRegulationHtml(w,html){
   const fr=document.createElement('iframe');fr.style.cssText='flex:1;border:0;width:100%';
   fr.srcdoc=html.replace(/<script>window\.onload[\s\S]*?<\/script>/,'');
   pb.onclick=()=>{try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){alert('Print হয়নি: '+e.message);}};
-  bar.appendChild(pb);bar.appendChild(cb);ov.appendChild(bar);ov.appendChild(fr);document.body.appendChild(ov);
+  let blobUrl='';try{blobUrl=URL.createObjectURL(new Blob([html],{type:'text/html'}));}catch(e){}
+  const ob=document.createElement('a');ob.textContent='↗ Browser tab';ob.href=blobUrl||'#';ob.target='_blank';ob.rel='noopener';ob.style.cssText='padding:8px 12px;border-radius:8px;background:#fff;color:#000;text-decoration:none;font-size:14px';
+  bar.appendChild(pb);if(blobUrl)bar.appendChild(ob);bar.appendChild(cb);ov.appendChild(bar);ov.appendChild(fr);document.body.appendChild(ov);
 }
 async function openRegulationPdf(id,finalOnly=false){
   try{const t=document.createElement('div');t.textContent='PDF তৈরি হচ্ছে...';t.style.cssText='position:fixed;left:50%;top:80px;transform:translateX(-50%);background:#17251c;color:#fff;padding:10px 16px;border-radius:99px;z-index:100000;font-size:14px';document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}catch(e){}
-  let w=null;
-  try{w=window.open('','_blank');if(w)w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Loading</title></head><body style="font-family:Arial,sans-serif;padding:24px">Loading...</body></html>');}catch(e){w=null;}
+  const w=null;
   try{await openRegulationPdfCore(id,finalOnly,w);}
   catch(err){
     console.error('openRegulationPdf:',err);
@@ -3028,7 +3031,7 @@ async function createPartnerRegulation(){
   const ver=await db.from("partner_regulation_versions").insert({regulation_id:data.id,version_no:1,title,body,pdf_path:pdfPath,changed_by:currentUser.id});if(ver.error)console.warn("regulation version insert:",ver.error);
   if(selected.length){const rows=selected.map(x=>({...x,regulation_id:data.id,created_by:currentUser.id}));const ins=await db.from("partner_regulation_items").insert(rows);if(ins.error){alert("Regulation তৈরি হয়েছে, কিন্তু নির্বাচিত রেকর্ড সংরক্ষণ হয়নি: "+ins.error.message+". SQL setup চালানো হয়েছে কি না যাচাই করুন।");return;}}
   const respTitle=$("regRespTitle")?.value.trim(),assignee_id=$("regRespAssignee")?.value,due_date=$("regRespDueDate")?.value||null,respDetails=$("regRespDetails")?.value.trim()||"";
-  if(respTitle&&assignee_id){const rr=await db.from("partner_responsibilities").insert({regulation_id:data.id,title:respTitle,details:respDetails,assignee_id,due_date,status:"active",progress:0,created_by:currentUser.id});if(rr.error)console.warn("responsibility insert:",rr.error);}
+  if(respTitle&&assignee_id){const rr=await db.from("partner_responsibilities").insert({regulation_id:data.id,title:respTitle,details:respDetails,assignee_id,due_date,status:"active",progress:0,created_by:currentUser.id});if(rr.error){console.warn("responsibility insert:",rr.error);alert("Regulation সংরক্ষিত হয়েছে, কিন্তু দায়িত্বপ্রাপ্ত Partner সংরক্ষণ হয়নি: "+rr.error.message);}}
   await writeActivity("REGULATION_CREATE","Partner Management","partner_regulations",data.id,null,{regulation_code:code,title,status:"draft",place,date,selected_records:selected.length},"New regulation created with selected records and actions");
   alert("Regulation Draft সংরক্ষণ হয়েছে। PDF দেখাতে Regulation Register-এর View / Save as PDF ব্যবহার করুন। Approval-এর জন্য Send for Approval চাপুন।");await loadPartnerManagementData();
 }
