@@ -1595,6 +1595,18 @@ hr{
           </div>
         </div>
 
+        <!-- PARTNER ADD MONEY SEARCH -->
+        <div class="card" style="margin-top:10px">
+          <button id="amSearchToggle" class="btn btn-secondary" onclick="togglePartnerAddMoneySearch()">🔍 Partner অনুযায়ী Search</button>
+          <div id="amSearchPanel" class="hidden" style="margin-top:10px">
+            <div class="field">
+              <label>Partner নির্বাচন করুন</label>
+              <select id="amSearchPartner" onchange="renderPartnerAddMoneySearch()"></select>
+            </div>
+            <div id="amSearchResult"></div>
+          </div>
+        </div>
+
         <div id="addMoneyFormCard" class="card viewer-hide" style="margin-top:10px">
           <div class="card-title">💰 টাকা যোগ করুন</div>
 
@@ -4192,6 +4204,68 @@ function renderMonthlyAddMoney(){
   }
 }
 
+function togglePartnerAddMoneySearch(){
+  const panel = $("amSearchPanel");
+  if(!panel) return;
+  panel.classList.toggle("hidden");
+  if(!panel.classList.contains("hidden")) renderPartnerAddMoneySearch();
+}
+
+function renderPartnerAddMoneySearch(){
+  const select = $("amSearchPartner");
+  const box = $("amSearchResult");
+  if(!select || !box) return;
+
+  const accounts = getAccountRows();
+  const old = select.value;
+
+  select.innerHTML =
+    `<option value="">-- Partner নির্বাচন করুন --</option>` +
+    accounts.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join("");
+
+  if(accounts.some(a=>String(a.id)===String(old))) select.value = old;
+
+  if(!select.value){
+    box.innerHTML = `<div class="empty">Dropdown থেকে Partner বেছে নিন।</div>`;
+    return;
+  }
+
+  const acc = accounts.find(a=>String(a.id)===String(select.value));
+  const rows = (DATA.addMoney || [])
+    .filter(x=>String(x.account_user_id)===String(select.value))
+    .sort((a,b)=>
+      String(b.transaction_date||"").localeCompare(String(a.transaction_date||"")) ||
+      String(b.created_at||"").localeCompare(String(a.created_at||""))
+    );
+
+  const total = rows.reduce((sum,x)=>sum + Number(x.amount || 0), 0);
+
+  box.innerHTML = `
+    <div class="monthly-total-card">
+      <div class="row-between">
+        <div>
+          <div class="small">📌 ${esc(acc?.name || "-")} — এ পর্যন্ত মোট</div>
+          <div class="small" style="margin-top:2px">মোট ${rows.length} বার</div>
+        </div>
+        <div class="monthly-total-value">${money(total)}</div>
+      </div>
+    </div>
+    ${
+      rows.length
+        ? rows.map(x=>`
+          <div style="padding:8px 0;border-bottom:1px solid #edf0ee">
+            <div class="row-between">
+              <strong>${fmt(x.transaction_date)}</strong>
+              <strong class="amount">${money(x.amount)}</strong>
+            </div>
+            <div class="small" style="margin-top:4px">মাধ্যম: ${esc(x.payment_method || "-")}</div>
+            ${x.note ? `<div class="small" style="margin-top:3px">📝 ${esc(x.note)}</div>` : ""}
+          </div>`).join("")
+        : `<div class="empty">এই Partner এখনো কোনো টাকা দেননি।</div>`
+    }
+  `;
+}
+
 function renderAddMoney(){
   fillAddMoneyAccounts();
 
@@ -4211,6 +4285,7 @@ function renderAddMoney(){
   }
 
   renderMonthlyAddMoney();
+  renderPartnerAddMoneySearch();
 
   if(!$("addMoneyRecords")) return;
 
