@@ -2956,10 +2956,151 @@ async function openRegulationPdf(id,finalOnly=false){
     alert(msg);
   }
 }
+
+/* =========================================================
+   READY ACTIONS PAGE (approved regulation -> Delete / Edit ready)
+   শুধু Super Admin দেখবে; Delete/Edit বাটন চাপলেই action হবে
+========================================================= */
+const _readySeen = new Set();
+const READY_SRC_LABEL = {goats:"🐐 ছাগল",vaccinations:"💉 টিকা",expenses:"💸 খরচ",land_records:"🌱 জমি খরচ",add_money_transactions:"💰 Add Money"};
+const READY_SRC_PAGE = {goats:"goats",vaccinations:"vaccines",expenses:"expenses",land_records:"land",add_money_transactions:"addmoney"};
+
+function regulationOfQueue(q){
+  const regs=DATA.partnerRegulations||[];
+  return regs.find(x=>(q.regulation_id&&String(x.id)===String(q.regulation_id))||(!q.regulation_id&&q.regulation_code&&x.regulation_code===q.regulation_code));
+}
+function readyActionRows(){
+  return (DATA.partnerActionQueue||[]).filter(q=>{
+    if(q.status!=="pending"||(q.action!=="delete"&&q.action!=="edit")) return false;
+    const r=regulationOfQueue(q);
+    return !!r&&["approved","final"].includes(r.status);
+  });
+}
+function closeReadyActions(){const o=document.getElementById("readyActionsOverlay");if(o)o.remove();}
+function readyCard(q){
+  const isDel=q.action==="delete";
+  const src=READY_SRC_LABEL[q.source_table]||q.source_table;
+  const btns=isDel
+    ? `<button class="btn btn-danger btn-small" onclick="readyDoDelete('${esc(q.id)}')">🗑 Delete করুন</button>`
+    : `<button class="btn btn-primary btn-small" onclick="readyDoEdit('${esc(q.id)}')">✏️ Edit করুন</button> ${q.source_table==="goats"?`<button class="btn btn-secondary btn-small" onclick="readyEditDone('${esc(q.id)}')">✔ Edit সম্পন্ন</button>`:""}`;
+  return `<div style="padding:10px;border:1px solid ${isDel?"#f0b9b9":"#b9c9bd"};border-radius:10px;margin-bottom:8px;background:#fff">
+    <strong>${src} • ${esc(q.record_label||q.source_record_id)}</strong>
+    <div class="small">Regulation: ${esc(q.regulation_code||"-")}</div>
+    <div class="small">বিবরণ: ${esc(q.action_details||"-")}</div>
+    <div class="actions" style="margin-top:8px">${btns}</div></div>`;
+}
+function openReadyActions(){
+  if(typeof isSuperAdmin==="undefined"||!isSuperAdmin) return;
+  const rows=readyActionRows();
+  const dels=rows.filter(x=>x.action==="delete"), eds=rows.filter(x=>x.action==="edit");
+  let ov=document.getElementById("readyActionsOverlay");
+  if(!rows.length){closeReadyActions();return;}
+  if(!ov){ov=document.createElement("div");ov.id="readyActionsOverlay";
+    ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:flex-end;justify-content:center";
+    document.body.appendChild(ov);}
+  ov.innerHTML=`<div style="background:#f6f8f6;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px">
+    <div class="row-between"><div class="card-title">✅ Approved — Ready Actions</div><button class="btn btn-warning btn-small" onclick="closeReadyActions()">✕ বন্ধ</button></div>
+    <div class="small" style="margin-bottom:10px">রেজুলেশন ৫ জনের Approve পেয়েছে। নিচের বাটন না চাপা পর্যন্ত কিছুই Delete/Edit হবে না।</div>
+    <h3 style="margin:8px 0">🗑 Delete-এর জন্য প্রস্তুত (${dels.length})</h3>
+    ${dels.length?dels.map(readyCard).join(""):'<div class="empty">কিছু নেই</div>'}
+    <h3 style="margin:12px 0 8px">✏️ Edit-এর জন্য প্রস্তুত (${eds.length})</h3>
+    ${eds.length?eds.map(readyCard).join(""):'<div class="empty">কিছু নেই</div>'}
+  </div>`;
+}
+async function readyDoDelete(id){await executeRegulationAction(id);openReadyActions();}
+async function readyEditDone(id){await resolveRegulationEdit(id);openReadyActions();}
+function readyDoEdit(id){
+  const q=(DATA.partnerActionQueue||[]).find(x=>String(x.id)===String(id)); if(!q) return;
+  if(q.source_table!=="goats"){openRegRecordEdit(q.id);return;}
+  closeReadyActions();
+  const page=READY_SRC_PAGE[q.source_table];
+  if(page&&typeof openPage==="function") openPage(page);
+  if(q.source_table==="goats"){
+    const g=(DATA.goats||[]).find(x=>String(x.id)===String(q.source_record_id));
+    if(g&&typeof editGoat==="function") editGoat(g.id);
+  }else if(REG_EDIT_CFG[q.source_table]){
+    openRegRecordEdit(q.id);
+  }
+}
+
+/* ===== Regulation Edit modal: expenses / vaccinations / land_records / add_money_transactions ===== */
+const REG_EDIT_CFG = {
+  expenses:{title:"💸 খরচ Edit",rows:()=>DATA.expenses,fields:[
+    ["expense_date","তারিখ","date"],["category","ক্যাটাগরি","text"],["amount","পরিমাণ","number"],["note","নোট","text"]]},
+  vaccinations:{title:"💉 টিকা Edit",rows:()=>DATA.vaccines,fields:[
+    ["vaccine_name","টিকার নাম","text"],["company","কোম্পানি","text"],["scheduled_date","পরিকল্পিত তারিখ","date"],
+    ["given_date","দেওয়ার তারিখ","date"],["next_date","পরবর্তী তারিখ","date"],
+    ["status","Status","select",["pending","completed"]],["notes","নোট","text"]]},
+  land_records:{title:"🌱 জমি Edit",rows:()=>DATA.land,fields:[
+    ["land_name","জমির নাম","text"],["size_decimal","আয়তন (শতাংশ)","number"],["record_date","তারিখ","date"],
+    ["work","কাজ","text"],["crop","ফসল","text"],["cost","খরচ","number"],["note","নোট","text"]]},
+  add_money_transactions:{title:"💰 Add Money Edit",rows:()=>DATA.addMoney,fields:[
+    ["transaction_date","তারিখ","date"],["amount","পরিমাণ","number"],
+    ["payment_method","Payment Method","select",["Cash","Bank","bKash","Nagad","Other"]],["note","নোট","text"]]}
+};
+function closeRegEditModal(){const o=document.getElementById("regRecEditOverlay");if(o)o.remove();}
+function openRegRecordEdit(queueId){
+  const q=(DATA.partnerActionQueue||[]).find(x=>String(x.id)===String(queueId)); if(!q) return;
+  const cfg=REG_EDIT_CFG[q.source_table];
+  if(!cfg){alert("এই ধরনের রেকর্ডের জন্য Edit ফর্ম নেই।");return;}
+  const rec=(cfg.rows()||[]).find(x=>String(x.id)===String(q.source_record_id));
+  if(!rec){alert("রেকর্ডটি পাওয়া যায়নি (আগেই মুছে গেছে?)।");return;}
+  closeReadyActions();closeRegEditModal();
+  const inputs=cfg.fields.map(([k,label,type,opts])=>{
+    const v=rec[k]==null?"":rec[k];
+    const inp=type==="select"
+      ? `<select id="rce-${k}" style="width:100%">${opts.map(o=>`<option value="${esc(o)}" ${String(v)===o?"selected":""}>${esc(o)}</option>`).join("")}</select>`
+      : `<input id="rce-${k}" type="${type}" ${type==="number"?'step="0.01"':""} value="${esc(v)}" style="width:100%">`;
+    return `<div class="field"><label>${label}</label>${inp}</div>`;
+  }).join("");
+  const ov=document.createElement("div");ov.id="regRecEditOverlay";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:flex-end;justify-content:center";
+  ov.innerHTML=`<div style="background:#fff;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px">
+    <div class="card-title">${cfg.title}</div>
+    <div class="small" style="margin-bottom:8px">Regulation: ${esc(q.regulation_code||"-")} • প্রয়োজনীয় পরিবর্তন: ${esc(q.action_details||"-")}</div>
+    ${inputs}
+    <div class="field"><label>Audit note (ঐচ্ছিক)</label><input id="rce-_note" placeholder="কী বদলানো হয়েছে" style="width:100%"></div>
+    <div class="actions"><button class="btn btn-primary" id="rceSaveBtn" onclick="saveRegRecordEdit('${esc(q.id)}')">💾 Save & সম্পন্ন</button>
+    <button class="btn btn-secondary" onclick="closeRegEditModal();openReadyActions()">Cancel</button></div></div>`;
+  document.body.appendChild(ov);
+}
+async function saveRegRecordEdit(queueId){
+  const q=(DATA.partnerActionQueue||[]).find(x=>String(x.id)===String(queueId)); if(!q) return;
+  const cfg=REG_EDIT_CFG[q.source_table]; if(!cfg) return;
+  const changes={};
+  for(const [k,,type] of cfg.fields){
+    const v=document.getElementById("rce-"+k).value.trim();
+    if(type==="number"&&v!==""&&isNaN(Number(v))){alert("সংখ্যা সঠিক নয়: "+k);return;}
+    changes[k]=v;
+  }
+  if(q.source_table==="expenses"&&!changes.category){alert("ক্যাটাগরি দিন");return;}
+  if((q.source_table==="expenses"||q.source_table==="add_money_transactions")&&!(Number(changes.amount)>0)){alert("পরিমাণ দিন");return;}
+  if(q.source_table==="land_records"&&!changes.land_name){alert("জমির নাম দিন");return;}
+  if(q.source_table==="vaccinations"&&!changes.vaccine_name){alert("টিকার নাম দিন");return;}
+  const note=document.getElementById("rce-_note").value.trim();
+  const btn=document.getElementById("rceSaveBtn");btn.disabled=true;
+  const {error}=await db.rpc("regulation_edit_record",{p_queue_id:q.id,p_changes:changes,p_note:note||null});
+  btn.disabled=false;
+  if(error){alert("Edit সংরক্ষণ হয়নি:\n"+error.message);return;}
+  closeRegEditModal();
+  await loadPartnerManagementData();await loadAll();
+  alert("Edit সম্পন্ন হয়েছে।");
+  openReadyActions();
+}
+
+function maybeAutoOpenReadyActions(){
+  if(typeof isSuperAdmin==="undefined"||!isSuperAdmin) return;
+  const rows=readyActionRows();
+  if(document.getElementById("readyActionsOverlay")){openReadyActions();return;}
+  const fresh=rows.filter(x=>!_readySeen.has(String(x.id)));
+  rows.forEach(x=>_readySeen.add(String(x.id)));
+  if(fresh.length) openReadyActions();
+}
+
 function renderPendingRegulationActions(){
   const rows=(DATA.partnerActionQueue||[]).filter(x=>x.status==='pending');
   if(!rows.length)return '<div class="empty">Regulation থেকে Pending Edit/Delete/Archive নেই।</div>';
-  return rows.map(x=>`<div id="notif-act-${x.id}" style="padding:9px 0;border-bottom:1px solid #edf0ee"><strong>${esc(x.action.toUpperCase())} • ${esc(x.source_table)}</strong><div class="small">${esc(x.record_label||x.source_record_id)} • Regulation: ${esc(x.regulation_code||'-')}</div><div class="small">বিবরণ: ${esc(x.action_details||'-')} • Status: ${esc(x.status)}</div>${isSuperAdmin&&x.action==='delete'?`<button class="btn btn-danger btn-small" onclick="executeRegulationDelete('${x.id}')">Approve & Delete</button>`:''}${isSuperAdmin&&x.action==='edit'?`<button class="btn btn-secondary btn-small" onclick="resolveRegulationEdit('${x.id}')">Mark Edit Completed</button>`:''}${isSuperAdmin&&x.action==='archive'?`<button class="btn btn-secondary btn-small" onclick="executeRegulationAction('${x.id}')">Archive Snapshot</button>`:''}</div>`).join('');
+  return rows.map(x=>`<div id="notif-act-${x.id}" style="padding:9px 0;border-bottom:1px solid #edf0ee"><strong>${esc(x.action.toUpperCase())} • ${esc(x.source_table)}</strong><div class="small">${esc(x.record_label||x.source_record_id)} • Regulation: ${esc(x.regulation_code||'-')}</div><div class="small">বিবরণ: ${esc(x.action_details||'-')} • Status: ${esc(x.status)}</div>${isSuperAdmin&&(x.action==='delete'||x.action==='edit')?(readyActionRows().some(r=>String(r.id)===String(x.id))?`<button class="btn btn-primary btn-small" onclick="openReadyActions()">✅ Ready Page খুলুন</button>`:`<div class="small">⏳ রেজুলেশন Approve হওয়ার অপেক্ষায়</div>`):''}${isSuperAdmin&&x.action==='archive'?`<button class="btn btn-secondary btn-small" onclick="executeRegulationAction('${x.id}')">Archive Snapshot</button>`:''}</div>`).join('');
 }
 async function executeRegulationAction(queueId){if(!isSuperAdmin){alert('শুধু Super Admin action execute করতে পারবেন।');return;}const q=(DATA.partnerActionQueue||[]).find(x=>String(x.id)===String(queueId));if(!q)return;const msg=q.action==='delete'?'Regulation অনুযায়ী এই রেকর্ড স্থায়ীভাবে Delete করবেন?':q.action==='archive'?'এই রেকর্ডের Snapshot Archive History-তে সংরক্ষণ করবেন?':'এই Action কার্যকর করবেন?';if(!confirm(msg+' প্রয়োজনীয় approval সম্পন্ন হয়েছে কি না নিশ্চিত করুন।'))return;const {error}=await db.rpc('execute_partner_regulation_action',{p_queue_id:queueId});if(error){alert('Action সম্পন্ন হয়নি: '+error.message);return;}await loadPartnerManagementData();await loadAll();alert('Regulation অনুযায়ী '+q.action+' action সম্পন্ন হয়েছে।');}
 async function executeRegulationDelete(queueId){return executeRegulationAction(queueId);}
@@ -3232,7 +3373,7 @@ async function loadPartnerManagementData(){
   ]);
   DATA.partnerRegulations=reg.error?[]:(reg.data||[]);DATA.partnerRegulationVersions=ver.error?[]:(ver.data||[]);DATA.partnerRegulationApprovals=approvals.error?[]:(approvals.data||[]);DATA.partnerResponsibilities=resps.error?[]:(resps.data||[]);DATA.partnerSignatures=sigs.error?[]:(sigs.data||[]);DATA.partnerRegulationItems=items.error?[]:(items.data||[]);DATA.partnerActionQueue=queue.error?[]:(queue.data||[]);DATA.partnerRecordArchives=archives.error?[]:(archives.data||[]);
   if(reg.error)console.warn("partner_regulations load:",reg.error);if(ver.error)console.warn("partner_regulation_versions load:",ver.error);if(approvals.error)console.warn("partner_regulation_approvals load:",approvals.error);if(resps.error)console.warn("partner_responsibilities load:",resps.error);if(sigs.error)console.warn("partner_signatures load:",sigs.error);if(items.error)console.warn("partner_regulation_items load:",items.error);if(queue.error)console.warn("partner_action_queue load:",queue.error);if(archives.error)console.warn("partner_record_archives load:",archives.error);
-  renderPartnerManagement();renderPartnerSignature();
+  renderPartnerManagement();renderPartnerSignature();maybeAutoOpenReadyActions();
 }
 
 /* =========================================================
