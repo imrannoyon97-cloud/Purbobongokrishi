@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="পূর্ববঙ্গ কৃষি কেন্দ্র">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 
 <style>
 
@@ -2989,9 +2989,13 @@ function readyCard(q){
     <div class="small">বিবরণ: ${esc(q.action_details||"-")}</div>
     <div class="actions" style="margin-top:8px">${btns}</div></div>`;
 }
-function openReadyActions(){
+function openReadyActions(force){
   if(typeof isSuperAdmin==="undefined"||!isSuperAdmin) return;
   const rows=readyActionRows();
+  if(!rows.length&&force===true){
+    alert("এখন Delete/Edit-এর জন্য প্রস্তুত কিছু নেই।\n(রেজুলেশন Approved হতে হবে এবং রেকর্ডের পাশে Delete/Edit সিলেক্ট করা থাকতে হবে।)");
+    return;
+  }
   const dels=rows.filter(x=>x.action==="delete"), eds=rows.filter(x=>x.action==="edit");
   let ov=document.getElementById("readyActionsOverlay");
   if(!rows.length){closeReadyActions();return;}
@@ -3099,8 +3103,10 @@ function maybeAutoOpenReadyActions(){
 
 function renderPendingRegulationActions(){
   const rows=(DATA.partnerActionQueue||[]).filter(x=>x.status==='pending');
-  if(!rows.length)return '<div class="empty">Regulation থেকে Pending Edit/Delete/Archive নেই।</div>';
-  return rows.map(x=>`<div id="notif-act-${x.id}" style="padding:9px 0;border-bottom:1px solid #edf0ee"><strong>${esc(x.action.toUpperCase())} • ${esc(x.source_table)}</strong><div class="small">${esc(x.record_label||x.source_record_id)} • Regulation: ${esc(x.regulation_code||'-')}</div><div class="small">বিবরণ: ${esc(x.action_details||'-')} • Status: ${esc(x.status)}</div>${isSuperAdmin&&(x.action==='delete'||x.action==='edit')?(readyActionRows().some(r=>String(r.id)===String(x.id))?`<button class="btn btn-primary btn-small" onclick="openReadyActions()">✅ Ready Page খুলুন</button>`:`<div class="small">⏳ রেজুলেশন Approve হওয়ার অপেক্ষায়</div>`):''}${isSuperAdmin&&x.action==='archive'?`<button class="btn btn-secondary btn-small" onclick="executeRegulationAction('${x.id}')">Archive Snapshot</button>`:''}</div>`).join('');
+  const readyN=isSuperAdmin?readyActionRows().length:0;
+  const topBtn=isSuperAdmin?`<div style="margin-bottom:8px"><button class="btn btn-primary" onclick="openReadyActions(true)">✅ Ready Actions খুলুন (${readyN})</button></div>`:'';
+  if(!rows.length)return topBtn+'<div class="empty">Regulation থেকে Pending Edit/Delete/Archive নেই।</div>';
+  return topBtn+rows.map(x=>`<div id="notif-act-${x.id}" style="padding:9px 0;border-bottom:1px solid #edf0ee"><strong>${esc(x.action.toUpperCase())} • ${esc(x.source_table)}</strong><div class="small">${esc(x.record_label||x.source_record_id)} • Regulation: ${esc(x.regulation_code||'-')}</div><div class="small">বিবরণ: ${esc(x.action_details||'-')} • Status: ${esc(x.status)}</div>${isSuperAdmin&&(x.action==='delete'||x.action==='edit')?(readyActionRows().some(r=>String(r.id)===String(x.id))?`<button class="btn btn-primary btn-small" onclick="openReadyActions()">✅ Ready Page খুলুন</button>`:`<div class="small">⏳ রেজুলেশন Approve হওয়ার অপেক্ষায়</div>`):''}${isSuperAdmin&&x.action==='archive'?`<button class="btn btn-secondary btn-small" onclick="executeRegulationAction('${x.id}')">Archive Snapshot</button>`:''}</div>`).join('');
 }
 async function executeRegulationAction(queueId){if(!isSuperAdmin){alert('শুধু Super Admin action execute করতে পারবেন।');return;}const q=(DATA.partnerActionQueue||[]).find(x=>String(x.id)===String(queueId));if(!q)return;const msg=q.action==='delete'?'Regulation অনুযায়ী এই রেকর্ড স্থায়ীভাবে Delete করবেন?':q.action==='archive'?'এই রেকর্ডের Snapshot Archive History-তে সংরক্ষণ করবেন?':'এই Action কার্যকর করবেন?';if(!confirm(msg+' প্রয়োজনীয় approval সম্পন্ন হয়েছে কি না নিশ্চিত করুন।'))return;const {error}=await db.rpc('execute_partner_regulation_action',{p_queue_id:queueId});if(error){alert('Action সম্পন্ন হয়নি: '+error.message);return;}await loadPartnerManagementData();await loadAll();alert('Regulation অনুযায়ী '+q.action+' action সম্পন্ন হয়েছে।');}
 async function executeRegulationDelete(queueId){return executeRegulationAction(queueId);}
