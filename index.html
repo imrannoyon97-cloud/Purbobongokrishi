@@ -1741,19 +1741,19 @@ hr{
           <div id="accountPictureHint"
                class="small"
                style="margin-top:6px">
-            Profile picture Supabase-এ সংরক্ষিত হবে। একবার নিশ্চিত করলে আর পরিবর্তন করা যাবে না।
+            Profile picture Supabase-এ সংরক্ষিত হবে। যেকোনো সময় নতুন ছবি দিয়ে বদলানো যাবে।
           </div>
 
         </div>
 
-        <!-- PARTNER SIGNATURE: immutable after confirmation -->
+        <!-- PARTNER SIGNATURE: can be replaced any time -->
         <div class="card" style="margin-top:10px;text-align:left">
           <div class="card-title">✍️ Partner Signature / স্বাক্ষর</div>
           <div id="partnerSignatureStatus" class="small">স্বাক্ষরের অবস্থা যাচাই হচ্ছে…</div>
           <div id="partnerSignaturePreview" style="margin:10px 0"></div>
           <input id="partnerSignatureInput" type="file" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="uploadPartnerSignature(event)">
-          <button id="partnerSignatureUploadButton" class="btn btn-secondary btn-small" onclick="$('partnerSignatureInput').click()">✍️ স্বাক্ষর আপলোড ও নিশ্চিত করুন</button>
-          <div class="small" style="margin-top:6px">একবার নিশ্চিত করলে স্বাক্ষর আর পরিবর্তন করা যাবে না। এটি Supabase-এ সংরক্ষিত হবে।</div>
+          <button id="partnerSignatureUploadButton" class="btn btn-secondary btn-small" onclick="$('partnerSignatureInput').click()">✍️ স্বাক্ষর আপলোড করুন</button>
+          <div class="small" style="margin-top:6px">স্বাক্ষর Supabase-এ সংরক্ষিত হবে এবং যেকোনো সময় বদলানো যাবে।</div>
         </div>
 
         <!-- ACCOUNT HOLDER DETAILS -->
@@ -3679,9 +3679,9 @@ function renderAccount(){
 async function renderPartnerSignature(){
   const status=$("partnerSignatureStatus"),preview=$("partnerSignaturePreview"),button=$("partnerSignatureUploadButton");if(!status||!currentUser)return;
   const row=(DATA.partnerSignatures||[]).find(x=>String(x.user_id)===String(currentUser.id));
-  if(!row){status.textContent="এখনো স্বাক্ষর নিশ্চিত করা হয়নি। একবার আপলোড করে নিশ্চিত করুন।";preview.innerHTML="";if(button){button.disabled=false;button.textContent="✍️ স্বাক্ষর আপলোড ও নিশ্চিত করুন";}return;}
-  status.textContent="✅ স্বাক্ষর নিশ্চিত করা হয়েছে: "+fmtDT(row.confirmed_at)+"। নিরাপত্তার জন্য এটি লক করা আছে।";
-  if(button){button.disabled=true;button.textContent="🔒 Signature Confirmed — Locked";}
+  if(!row){status.textContent="এখনো স্বাক্ষর দেওয়া হয়নি। স্বাক্ষরের ছবি আপলোড করুন।";preview.innerHTML="";if(button){button.disabled=false;button.textContent="✍️ স্বাক্ষর আপলোড করুন";}return;}
+  status.textContent="✅ স্বাক্ষর সংরক্ষিত আছে: "+fmtDT(row.confirmed_at);
+  if(button){button.disabled=false;button.textContent="✍️ স্বাক্ষর পরিবর্তন করুন";}
   const {data,error}=await db.storage.from("partner-signatures").createSignedUrl(row.storage_path,300);
   if(!error&&data?.signedUrl)preview.innerHTML=`<img src="${data.signedUrl}" alt="Confirmed partner signature" style="max-width:260px;max-height:120px;object-fit:contain;border:1px solid #d7dfda;border-radius:8px;padding:8px;background:white">`;
   else preview.innerHTML=`<div class="small">স্বাক্ষর সংরক্ষিত আছে, তবে Preview link পাওয়া যায়নি।</div>`;
@@ -3689,14 +3689,14 @@ async function renderPartnerSignature(){
 async function uploadPartnerSignature(event){
   const file=event.target.files?.[0];if(!file||!currentUser)return;
   if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size>2*1024*1024){alert("PNG, JPG বা WebP image দিন (সর্বোচ্চ 2 MB)।");event.target.value="";return;}
-  if((DATA.partnerSignatures||[]).some(x=>String(x.user_id)===String(currentUser.id))){alert("আপনার স্বাক্ষর ইতিমধ্যে নিশ্চিত করা হয়েছে; এটি পরিবর্তন করা যাবে না।");event.target.value="";return;}
-  if(!confirm("এই স্বাক্ষরটি কি আপনার চূড়ান্ত Partner Signature? নিশ্চিত করার পর আর পরিবর্তন করা যাবে না।")){event.target.value="";return;}
+  const oldRow=(DATA.partnerSignatures||[]).find(x=>String(x.user_id)===String(currentUser.id));
   const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";const path=`${currentUser.id}/signature.${ext}`;
-  const {error:uploadError}=await db.storage.from("partner-signatures").upload(path,file,{upsert:false,contentType:file.type});
-  if(uploadError){alert("স্বাক্ষর আপলোড হয়নি: "+uploadError.message+". partner-signatures bucket ও Storage policy যাচাই করুন।");event.target.value="";return;}
-  const {error:insertError}=await db.from("partner_signatures").insert({user_id:currentUser.id,storage_path:path,confirmed_at:new Date().toISOString()});
-  if(insertError){alert("স্বাক্ষর নিশ্চিত হয়নি: "+insertError.message+". যদি আগেই স্বাক্ষর নিশ্চিত হয়ে থাকে, সেটি পরিবর্তন করা যাবে না।");event.target.value="";return;}
-  await writeActivity("PARTNER_SIGNATURE_CONFIRMED","Account","partner_signatures",currentUser.id,null,{storage_path:path},"Partner signature confirmed");
+  const {error:uploadError}=await db.storage.from("partner-signatures").upload(path,file,{upsert:true,contentType:file.type});
+  if(uploadError){alert("স্বাক্ষর আপলোড হয়নি: "+uploadError.message+". partner-signatures bucket ও Storage policy যাচাই করুন।");event.target.value="";return;}
+  const {error:insertError}=await db.from("partner_signatures").upsert({user_id:currentUser.id,storage_path:path,confirmed_at:new Date().toISOString()},{onConflict:"user_id"});
+  if(insertError){alert("স্বাক্ষর সংরক্ষণ হয়নি: "+insertError.message);event.target.value="";return;}
+  if(oldRow?.storage_path&&oldRow.storage_path!==path){try{await db.storage.from("partner-signatures").remove([oldRow.storage_path]);}catch(e){}}
+  await writeActivity("PARTNER_SIGNATURE_CONFIRMED","Account","partner_signatures",currentUser.id,oldRow?{storage_path:oldRow.storage_path}:null,{storage_path:path},oldRow?"Partner signature changed":"Partner signature confirmed");
   await loadPartnerManagementData();event.target.value="";
 }
 
@@ -3878,8 +3878,8 @@ async function renderAccountPicture(){
           `<img src="${data.signedUrl}" alt="Profile Picture"
                 style="width:100%;height:100%;object-fit:cover">`;
       }
-      if(button){button.disabled=true;button.textContent="🔒 Profile Picture Locked";}
-      if(hint) hint.textContent="Profile picture নিশ্চিত করা হয়েছে; এটি পরিবর্তন করা যাবে না।";
+      if(button){button.disabled=false;button.textContent="📷 ছবি পরিবর্তন করুন";}
+      if(hint) hint.textContent="নতুন ছবি দিয়ে যেকোনো সময় বদলানো যাবে।";
       return;
     }
   }catch(error){
@@ -3907,17 +3907,15 @@ async function handleAccountPicture(event){
     return;
   }
 
-  if(!confirm("এই ছবিটি কি আপনার চূড়ান্ত Profile Picture? নিশ্চিত করার পর আর পরিবর্তন করা যাবে না।")){
-    event.target.value = "";
-    return;
-  }
+  const oldQ = await db.from("profile_pictures").select("storage_path").eq("user_id",currentUser.id).maybeSingle();
+  const oldPath = oldQ?.data?.storage_path || null;
 
   const ext = file.type==="image/png" ? "png" : file.type==="image/webp" ? "webp" : "jpg";
   const path = `${currentUser.id}/avatar.${ext}`;
 
   const {error:uploadError} = await db.storage
     .from("profile-pictures")
-    .upload(path,file,{upsert:false,contentType:file.type});
+    .upload(path,file,{upsert:true,contentType:file.type});
 
   if(uploadError){
     alert("Profile picture আপলোড হয়নি: "+uploadError.message+". profile-pictures bucket ও Storage policy যাচাই করুন।");
@@ -3925,16 +3923,20 @@ async function handleAccountPicture(event){
     return;
   }
 
-  const {error:insertError} = await db.from("profile_pictures").insert({
+  const {error:insertError} = await db.from("profile_pictures").upsert({
     user_id:currentUser.id,
     storage_path:path,
     confirmed_at:new Date().toISOString()
-  });
+  },{onConflict:"user_id"});
 
   if(insertError){
-    alert("Profile picture নিশ্চিত হয়নি: "+insertError.message+". যদি আগেই নিশ্চিত হয়ে থাকে, সেটি পরিবর্তন করা যাবে না।");
+    alert("Profile picture সংরক্ষণ হয়নি: "+insertError.message);
     event.target.value = "";
     return;
+  }
+
+  if(oldPath && oldPath!==path){
+    try{ await db.storage.from("profile-pictures").remove([oldPath]); }catch(e){}
   }
 
   event.target.value = "";
