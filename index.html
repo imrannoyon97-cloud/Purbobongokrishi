@@ -1483,7 +1483,7 @@ hr{
           <button id="rtab-history"
                   class="tab"
                   onclick="reportTab('history')">
-            📚 ৬ মাসের হিস্টোরি
+            📚 ১ বছরের হিস্টোরি
           </button>
 
           <button id="rtab-log"
@@ -2750,7 +2750,7 @@ function renderPendingRequests(pending,mode){
     const summary=snapshotSummary(r.record_snapshot);
 
     return `
-      <div style="padding:10px 0;border-bottom:1px solid #edf0ee">
+      <div id="notif-del-${esc(r.id)}" style="padding:10px 0;border-bottom:1px solid #edf0ee">
         <div class="row-between">
           <strong>${esc(r.module)} • ${esc(r.table_name)}</strong>
           <span class="badge ${ready?"badge-green":"badge-orange"}">${appr.length}/${req} Approve</span>
@@ -2888,6 +2888,7 @@ function regulationRecordLabel(source,row){
   if(source==="goats")return [row.name,row.goat_code,row.status].filter(Boolean).join(" • ")||row.id;
   if(source==="vaccinations")return [row.vaccine_name||row.vaccine||row.name,row.scheduled_date,row.status].filter(Boolean).join(" • ")||row.id;
   if(source==="expenses")return [row.category,row.expense_date,row.amount!=null?"৳ "+row.amount:null,row.note].filter(Boolean).join(" • ")||row.id;
+  if(source==="land_records")return [row.land_name,row.record_date,row.work,row.cost!=null?"৳ "+row.cost:null,row.note].filter(Boolean).join(" • ")||row.id;
   return [row.transaction_date,row.amount!=null?"৳ "+row.amount:null,row.payment_method,row.note].filter(Boolean).join(" • ")||row.id;
 }
 function renderRegulationSourceSection(source,title,rows){
@@ -2895,7 +2896,7 @@ function renderRegulationSourceSection(source,title,rows){
   return `<details class="card" open><summary class="card-title" style="cursor:pointer">${title} (${(rows||[]).length})</summary><div style="max-height:260px;overflow:auto">${list||'<div class="empty">কোনো রেকর্ড পাওয়া যায়নি।</div>'}</div></details>`;
 }
 function regulationItemRows(id){return (DATA.partnerRegulationItems||[]).filter(x=>String(x.regulation_id)===String(id));}
-function renderRegulationItems(id){const items=regulationItemRows(id);if(!items.length)return '<div class="small">এই Regulation-এ আলাদা রেকর্ড Link করা হয়নি।</div>';return `<div style="margin-top:8px"><strong>সংযুক্ত রেকর্ড</strong>${items.map(x=>`<div class="small" style="padding:4px 0">${esc(x.source_table)} • ${esc(x.record_label||x.source_record_id)} • Action: <strong>${esc(x.action)}</strong>${x.action_details?' • '+esc(x.action_details):''}</div>`).join('')}</div>`;}
+function renderRegulationItems(id){const items=regulationItemRows(id);if(!items.length)return '<div class="small">এই Regulation-এ আলাদা রেকর্ড Link করা হয়নি।</div>';return `<div style="margin-top:8px"><strong>সংযুক্ত রেকর্ড</strong>${items.map(x=>`<div class="small" style="padding:4px 0">${esc(({land_records:"জমি খরচ"})[x.source_table]||x.source_table)} • ${esc(x.record_label||x.source_record_id)} • Action: <strong>${esc(x.action)}</strong>${x.action_details?' • '+esc(x.action_details):''}</div>`).join('')}</div>`;}
 async function openRegulationPdfCore(id,finalOnly,w){
   const r=(DATA.partnerRegulations||[]).find(x=>String(x.id)===String(id));if(!r)throw new Error('Regulation data পাওয়া যায়নি (id: '+id+')');
   const items=regulationItemRows(id), votes=(DATA.partnerRegulationApprovals||[]).filter(x=>String(x.regulation_id)===String(id));
@@ -2914,7 +2915,7 @@ async function openRegulationPdfCore(id,finalOnly,w){
   const voteRows=votes.map(x=>`<tr><td>${esc(userLabel(x.user_id))}</td><td>${x.decision==='approve'?'অনুমোদন':'আপত্তি'}</td><td>${esc(x.note||'')}</td><td>${esc(fmtDT(x.created_at))}</td></tr>`).join('');
   const signatureHtml=signatureRows.length?`<div class="signature-grid">${signatureRows.map(x=>`<div class="signature-card">${x.signatureUrl?`<img src="${esc(x.signatureUrl)}" alt="${esc(x.name)} signature">`:'<div class="no-signature">স্বাক্ষর সংরক্ষিত/দৃশ্যমান নয়</div>'}<div class="sigline"></div><strong>${esc(x.name)}</strong><div>অনুমোদনের তারিখ: ${esc(fmtDT(x.vote.created_at))}</div></div>`).join('')}</div>`:'<p>এখনো কোনো Partner অনুমোদন করেননি।</p>';
   // ===== কমপ্যাক্ট PDF লেআউট =====
-  const srcLabel={add_money_transactions:'Add Money',expenses:'খরচ',goats:'ছাগল',vaccinations:'টিকা'};
+  const srcLabel={add_money_transactions:'Add Money',expenses:'খরচ',land_records:'জমি খরচ',goats:'ছাগল',vaccinations:'টিকা'};
   const bodyTxt=String(r.body||'').trim();
   const itemDetail=x=>{const d=String(x.action_details||'').trim();return (d&&d!==bodyTxt)?d:'';};
   const showDetails=items.some(x=>itemDetail(x));
@@ -2958,7 +2959,7 @@ async function openRegulationPdf(id,finalOnly=false){
 function renderPendingRegulationActions(){
   const rows=(DATA.partnerActionQueue||[]).filter(x=>x.status==='pending');
   if(!rows.length)return '<div class="empty">Regulation থেকে Pending Edit/Delete/Archive নেই।</div>';
-  return rows.map(x=>`<div style="padding:9px 0;border-bottom:1px solid #edf0ee"><strong>${esc(x.action.toUpperCase())} • ${esc(x.source_table)}</strong><div class="small">${esc(x.record_label||x.source_record_id)} • Regulation: ${esc(x.regulation_code||'-')}</div><div class="small">বিবরণ: ${esc(x.action_details||'-')} • Status: ${esc(x.status)}</div>${isSuperAdmin&&x.action==='delete'?`<button class="btn btn-danger btn-small" onclick="executeRegulationDelete('${x.id}')">Approve & Delete</button>`:''}${isSuperAdmin&&x.action==='edit'?`<button class="btn btn-secondary btn-small" onclick="resolveRegulationEdit('${x.id}')">Mark Edit Completed</button>`:''}${isSuperAdmin&&x.action==='archive'?`<button class="btn btn-secondary btn-small" onclick="executeRegulationAction('${x.id}')">Archive Snapshot</button>`:''}</div>`).join('');
+  return rows.map(x=>`<div id="notif-act-${x.id}" style="padding:9px 0;border-bottom:1px solid #edf0ee"><strong>${esc(x.action.toUpperCase())} • ${esc(x.source_table)}</strong><div class="small">${esc(x.record_label||x.source_record_id)} • Regulation: ${esc(x.regulation_code||'-')}</div><div class="small">বিবরণ: ${esc(x.action_details||'-')} • Status: ${esc(x.status)}</div>${isSuperAdmin&&x.action==='delete'?`<button class="btn btn-danger btn-small" onclick="executeRegulationDelete('${x.id}')">Approve & Delete</button>`:''}${isSuperAdmin&&x.action==='edit'?`<button class="btn btn-secondary btn-small" onclick="resolveRegulationEdit('${x.id}')">Mark Edit Completed</button>`:''}${isSuperAdmin&&x.action==='archive'?`<button class="btn btn-secondary btn-small" onclick="executeRegulationAction('${x.id}')">Archive Snapshot</button>`:''}</div>`).join('');
 }
 async function executeRegulationAction(queueId){if(!isSuperAdmin){alert('শুধু Super Admin action execute করতে পারবেন।');return;}const q=(DATA.partnerActionQueue||[]).find(x=>String(x.id)===String(queueId));if(!q)return;const msg=q.action==='delete'?'Regulation অনুযায়ী এই রেকর্ড স্থায়ীভাবে Delete করবেন?':q.action==='archive'?'এই রেকর্ডের Snapshot Archive History-তে সংরক্ষণ করবেন?':'এই Action কার্যকর করবেন?';if(!confirm(msg+' প্রয়োজনীয় approval সম্পন্ন হয়েছে কি না নিশ্চিত করুন।'))return;const {error}=await db.rpc('execute_partner_regulation_action',{p_queue_id:queueId});if(error){alert('Action সম্পন্ন হয়নি: '+error.message);return;}await loadPartnerManagementData();await loadAll();alert('Regulation অনুযায়ী '+q.action+' action সম্পন্ন হয়েছে।');}
 async function executeRegulationDelete(queueId){return executeRegulationAction(queueId);}
@@ -3025,7 +3026,7 @@ function renderPartnerManagement(){
     const regs=(DATA.partnerRegulations||[]).filter(r=>r.status==="pending_approval");
     const regHtml=regs.length?regs.map(r=>{
       const myVote=(DATA.partnerRegulationApprovals||[]).find(a=>String(a.regulation_id)===String(r.id)&&String(a.user_id)===myId);
-      return `<div style="padding:10px 0;border-bottom:1px solid #edf0ee"><strong>${esc(r.regulation_code)} — ${esc(r.title)}</strong><div class="small">Date: ${esc(r.resolution_date||"-")} • Place: ${esc(r.place||"-")} • ${esc(fmtDT(r.created_at))} • ${esc(r.created_by_name||userLabel(r.created_by))}</div><div style="white-space:pre-wrap;margin:6px 0">${esc((r.body||"").slice(0,700))}</div><button class="btn btn-secondary btn-small" onclick="openRegulationPdf('${r.id}')">📄 View / Save PDF</button>${myVote?`<span class="badge">আপনার সিদ্ধান্ত: ${myVote.decision==="approve"?"Approved":"Objection"}</span>`:`<div class="actions"><button class="btn btn-primary btn-small" onclick="votePartnerRegulation('${r.id}','approve')">✅ Approve</button><button class="btn btn-warning btn-small" onclick="votePartnerRegulation('${r.id}','objection')">⚠️ আপত্তি</button></div><textarea id="regVoteNote-${r.id}" rows="2" placeholder="মন্তব্য (ঐচ্ছিক)" style="width:100%;margin-top:6px"></textarea>`}</div>`;
+      return `<div id="notif-reg-${r.id}" style="padding:10px 0;border-bottom:1px solid #edf0ee"><strong>${esc(r.regulation_code)} — ${esc(r.title)}</strong><div class="small">Date: ${esc(r.resolution_date||"-")} • Place: ${esc(r.place||"-")} • ${esc(fmtDT(r.created_at))} • ${esc(r.created_by_name||userLabel(r.created_by))}</div><div style="white-space:pre-wrap;margin:6px 0">${esc((r.body||"").slice(0,700))}</div><button class="btn btn-secondary btn-small" onclick="openRegulationPdf('${r.id}')">📄 View / Save PDF</button>${myVote?`<span class="badge">আপনার সিদ্ধান্ত: ${myVote.decision==="approve"?"Approved":"Objection"}</span>`:`<div class="actions"><button class="btn btn-primary btn-small" onclick="votePartnerRegulation('${r.id}','approve')">✅ Approve</button><button class="btn btn-warning btn-small" onclick="votePartnerRegulation('${r.id}','objection')">⚠️ আপত্তি</button></div><textarea id="regVoteNote-${r.id}" rows="2" placeholder="মন্তব্য (ঐচ্ছিক)" style="width:100%;margin-top:6px"></textarea>`}</div>`;
     }).join(""):`<div class="empty">অনুমোদনের অপেক্ষায় কোনো Regulation নেই।</div>`;
     body.innerHTML=`<div class="card"><div class="card-title">📜 Regulation Approval</div><div class="small">প্রত্যেক পার্টনার PDF দেখতে/প্রিন্ট করে PDF হিসেবে সংরক্ষণ করতে এবং সিদ্ধান্ত দিতে পারবেন।</div>${regHtml}</div><div class="card"><div class="card-title">🛠 Regulation Pending Edit / Delete / Archive</div>${renderPendingRegulationActions()}</div><div class="card"><div class="card-title">✅ Delete Request Approval</div><div class="small">বিদ্যমান Delete Request approval workflow অপরিবর্তিত রাখা হয়েছে। ${DELETE_REQUIRED_APPROVALS} জনের অনুমোদনের নিয়ম অপরিবর্তিত।</div>${renderPendingRequests(toVote,"vote")}</div>`;
     return;
@@ -3060,7 +3061,7 @@ function renderPartnerManagement(){
     const approve=votes.filter(a=>a.decision==="approve").length, objection=votes.filter(a=>a.decision==="objection").length;
     return `<div style="padding:10px 0;border-bottom:1px solid #edf0ee"><div class="row-between" style="gap:8px;align-items:start"><div><strong>${esc(r.regulation_code)} — ${esc(r.title)}</strong><div class="small">তারিখ: ${esc(r.resolution_date||String(r.created_at||"").slice(0,10)||"-")} • স্থান: ${esc(r.place||"-")} • Status: ${esc(r.status||"draft")}</div></div>${isSuperAdmin&&r.status!=="archived"?`<div class="actions">${(r.status==="draft"||r.status==="pending_approval")?`<button class="btn btn-secondary btn-small" onclick="editPartnerRegulation('${r.id}')">✏️ Edit</button>`:""}<button class="btn btn-warning btn-small" onclick="archivePartnerRegulation('${r.id}')">Archive</button>${r.status==="draft"?`<button class="btn btn-primary btn-small" onclick="submitPartnerRegulationForApproval('${r.id}')">Send for Approval</button>`:""}${r.status==="pending_approval"?`<button class="btn btn-primary btn-small" onclick="manuallyApprovePartnerRegulation('${r.id}')">Admin Review / Approve</button>`:""}${r.status==="approved"||r.status==="final"?`<label class="btn btn-secondary btn-small" style="display:inline-block">Upload Final PDF<input type="file" accept="application/pdf" class="hidden" onchange="uploadFinalRegulationPdf('${r.id}',event)"></label>`:""}</div>`:""}</div><div style="white-space:pre-wrap;margin:7px 0">${esc(r.body||"")}</div><div class="small">Created by: ${esc(userLabel(r.created_by))} • Version: ${((DATA.partnerRegulationVersions||[]).filter(v=>String(v.regulation_id)===String(r.id)).length)||1} • Approve: ${approve} • আপত্তি: ${objection}</div>${renderRegulationItems(r.id)}${renderRegulationApprovalAudit(r.id)}${renderSuperAdminVoteBox(r)}<button class="btn btn-secondary btn-small" style="margin-top:7px" onclick="openRegulationPdf('${r.id}')">📄 View / Save as PDF (v2)</button>${r.pdf_path?`<button class="btn btn-secondary btn-small" style="margin-top:7px" onclick="downloadPartnerDocument('${r.id}','pdf_path')">📎 Attached PDF</button>`:""}${r.final_pdf_path?` <button class="btn btn-primary btn-small" style="margin-top:7px" onclick="downloadPartnerDocument('${r.id}','final_pdf_path')">📑 Final PDF</button>`:""}</div>`;
   }).join(""):`<div class="empty">মিল পাওয়া যায়নি বা Regulation তৈরি করা হয়নি।</div>`;
-  const createForm=isSuperAdmin?`<div class="card"><div class="card-title">➕ নতুন Regulation / রেজুলেশন</div><div class="field"><label>রেজুলেশন কোড</label><input id="regCode" placeholder="যেমন: PB-RES-2026-001"></div><div class="field"><label>শিরোনাম</label><input id="regTitle" placeholder="রেজুলেশনের শিরোনাম"></div><div class="grid"><div class="field"><label>তারিখ</label><input id="regDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>স্থান (Place)</label><input id="regPlace" placeholder="যেমন: অফিস / স্টেশন"></div></div><div class="field"><label>সংযুক্ত PDF (ঐচ্ছিক)</label><input id="regPdf" type="file" accept="application/pdf"></div><div class="field"><label>বাংলা বিবরণ / সিদ্ধান্ত</label><textarea id="regBody" rows="4" placeholder="সম্পূর্ণ সিদ্ধান্ত ও বিবরণ লিখুন"></textarea></div><div class="field"><label>Action / সিদ্ধান্তের ধরন</label><div class="small">নিচের প্রতিটি নির্বাচিত রেকর্ডের পাশে Link / Edit / Delete / Archive নির্ধারণ করুন।</div></div>${renderRegulationSourceSection("goats","🐐 Goats — Active / Sold / Other",DATA.goats||[])}${renderRegulationSourceSection("vaccinations","💉 Vaccination / টিকার ঘর",DATA.vaccines||[])}${renderRegulationSourceSection("expenses","💸 Expense",DATA.expenses||[])}${renderRegulationSourceSection("add_money_transactions","💰 Add Money",DATA.addMoney||[])}<div class="card"><div class="card-title">👥 দায়িত্বপ্রাপ্ত Partner (ঐচ্ছিক)</div><div class="field"><label>দায়িত্বের নাম</label><input id="regRespTitle" placeholder="যে কাজের দায়িত্ব দেওয়া হবে"></div><div class="field"><label>বিবরণ</label><textarea id="regRespDetails" rows="2" placeholder="কাজের বিস্তারিত"></textarea></div><div class="grid"><div class="field"><label>Partner (একাধিক নির্বাচন করা যাবে)</label>${partnerCheckboxList("regRespAssignee")}</div><div class="field"><label>শেষ তারিখ</label><input id="regRespDueDate" type="date"></div></div></div><button class="btn btn-primary" onclick="createPartnerRegulation()">Save Draft</button><div class="small" style="margin-top:6px">রেকর্ডের Action ও Regulation একসঙ্গে সংরক্ষিত হবে। Approval-এর জন্য পাঠালে Partner-রা PDF দেখতে পারবেন।</div></div>`:"";
+  const createForm=isSuperAdmin?`<div class="card"><div class="card-title">➕ নতুন Regulation / রেজুলেশন</div><div class="field"><label>রেজুলেশন কোড</label><input id="regCode" placeholder="যেমন: PB-RES-2026-001"></div><div class="field"><label>শিরোনাম</label><input id="regTitle" placeholder="রেজুলেশনের শিরোনাম"></div><div class="grid"><div class="field"><label>তারিখ</label><input id="regDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>স্থান (Place)</label><input id="regPlace" placeholder="যেমন: অফিস / স্টেশন"></div></div><div class="field"><label>সংযুক্ত PDF (ঐচ্ছিক)</label><input id="regPdf" type="file" accept="application/pdf"></div><div class="field"><label>বাংলা বিবরণ / সিদ্ধান্ত</label><textarea id="regBody" rows="4" placeholder="সম্পূর্ণ সিদ্ধান্ত ও বিবরণ লিখুন"></textarea></div><div class="field"><label>Action / সিদ্ধান্তের ধরন</label><div class="small">নিচের প্রতিটি নির্বাচিত রেকর্ডের পাশে Link / Edit / Delete / Archive নির্ধারণ করুন।</div></div>${renderRegulationSourceSection("goats","🐐 Goats — Active / Sold / Other",DATA.goats||[])}${renderRegulationSourceSection("vaccinations","💉 Vaccination / টিকার ঘর",DATA.vaccines||[])}${renderRegulationSourceSection("expenses","💸 Expense",DATA.expenses||[])}${renderRegulationSourceSection("land_records","🌱 জমি খরচ",DATA.land||[])}${renderRegulationSourceSection("add_money_transactions","💰 Add Money",DATA.addMoney||[])}<div class="card"><div class="card-title">👥 দায়িত্বপ্রাপ্ত Partner (ঐচ্ছিক)</div><div class="field"><label>দায়িত্বের নাম</label><input id="regRespTitle" placeholder="যে কাজের দায়িত্ব দেওয়া হবে"></div><div class="field"><label>বিবরণ</label><textarea id="regRespDetails" rows="2" placeholder="কাজের বিস্তারিত"></textarea></div><div class="grid"><div class="field"><label>Partner (একাধিক নির্বাচন করা যাবে)</label>${partnerCheckboxList("regRespAssignee")}</div><div class="field"><label>শেষ তারিখ</label><input id="regRespDueDate" type="date"></div></div></div><button class="btn btn-primary" onclick="createPartnerRegulation()">Save Draft</button><div class="small" style="margin-top:6px">রেকর্ডের Action ও Regulation একসঙ্গে সংরক্ষিত হবে। Approval-এর জন্য পাঠালে Partner-রা PDF দেখতে পারবেন।</div></div>`:"";
   body.innerHTML=`${createForm}<div class="card"><div class="card-title">🔎 Regulation Search</div><div class="grid"><div class="field"><label>রেজুলেশন কোড</label><input id="regSearchCode" value="${esc(partnerRegulationSearch.code)}" oninput="setRegulationSearch('code',this.value)" placeholder="কোড দিয়ে খুঁজুন"></div><div class="field"><label>শিরোনাম / Partner</label><input id="regSearchName" value="${esc(partnerRegulationSearch.name)}" oninput="setRegulationSearch('name',this.value)" placeholder="নাম দিয়ে খুঁজুন"></div><div class="field"><label>তারিখ</label><input id="regSearchDate" type="date" value="${esc(partnerRegulationSearch.date)}" onchange="setRegulationSearch('date',this.value)"></div></div></div><div class="card"><div class="card-title">📜 Regulation Register</div>${regRows}</div>`;
 }
 function setRegulationSearch(key,value){partnerRegulationSearch[key]=value;const y=window.scrollY;renderPartnerManagement();window.scrollTo(0,y);const id={code:"regSearchCode",name:"regSearchName",date:"regSearchDate"}[key];const el=$(id);if(el){el.focus();if(key!=="date")el.setSelectionRange(value.length,value.length)}}
@@ -3068,7 +3069,7 @@ async function createPartnerRegulation(){
   if(!currentUser||!isSuperAdmin){alert("শুধু Superadmin Regulation তৈরি করতে পারবেন।");return;}
   const code=$("regCode")?.value.trim(), title=$("regTitle")?.value.trim(), body=$("regBody")?.value.trim(), date=$("regDate")?.value||null, place=$("regPlace")?.value.trim()||"", file=$("regPdf")?.files?.[0];
   if(!code||!title||!body||!date||!place){alert("Regulation Code, Title, Date, Place ও বিবরণ পূরণ করুন।");return;}
-  const selected=[...document.querySelectorAll(".reg-item-check:checked")].map(chk=>{const source=chk.dataset.source,id=chk.dataset.id,actionEl=[...document.querySelectorAll(".reg-item-action")].find(x=>x.dataset.source===source&&x.dataset.id===id),detailEl=[...document.querySelectorAll(".reg-item-details")].find(x=>x.dataset.source===source&&x.dataset.id===id);const sourceRows=source==="goats"?DATA.goats:source==="vaccinations"?DATA.vaccines:source==="expenses"?DATA.expenses:DATA.addMoney;const row=(sourceRows||[]).find(x=>String(x.id)===String(id));const action=actionEl?.value||"link";return {source_table:source,source_record_id:String(id),action,record_label:regulationRecordLabel(source,row),action_details:detailEl?.value.trim()||'',record_snapshot:row||{}};});
+  const selected=[...document.querySelectorAll(".reg-item-check:checked")].map(chk=>{const source=chk.dataset.source,id=chk.dataset.id,actionEl=[...document.querySelectorAll(".reg-item-action")].find(x=>x.dataset.source===source&&x.dataset.id===id),detailEl=[...document.querySelectorAll(".reg-item-details")].find(x=>x.dataset.source===source&&x.dataset.id===id);const sourceRows=source==="goats"?DATA.goats:source==="vaccinations"?DATA.vaccines:source==="expenses"?DATA.expenses:source==="land_records"?DATA.land:DATA.addMoney;const row=(sourceRows||[]).find(x=>String(x.id)===String(id));const action=actionEl?.value||"link";return {source_table:source,source_record_id:String(id),action,record_label:regulationRecordLabel(source,row),action_details:detailEl?.value.trim()||'',record_snapshot:row||{}};});
   let pdfPath=null;
   if(file){if(file.type!=="application/pdf"||file.size>15*1024*1024){alert("শুধু 15 MB-এর মধ্যে PDF ফাইল দিন।");return;}pdfPath=`regulations/${currentUser.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;const up=await db.storage.from("partner-documents").upload(pdfPath,file,{upsert:false,contentType:"application/pdf"});if(up.error){alert("PDF upload হয়নি: "+up.error.message+". partner-documents bucket/policy যাচাই করুন।");return;}}
   const {data,error}=await db.from("partner_regulations").insert({regulation_code:code,title,body,resolution_date:date,place,status:"draft",pdf_path:pdfPath,created_by:currentUser.id}).select("*").single();
@@ -6795,124 +6796,106 @@ function renderCurrentReport(){
 }
 
 
-function renderSixMonthHistory(){
-
-  let html = `
-
-    <div class="card">
-
-      <div class="card-title">
-        📚 গত ৬ মাসের হিস্টোরি
-      </div>
-
-      <div class="small">
-        বর্তমান মাসসহ সর্বশেষ ৬ মাসের খরচ, জমির খরচ, ক্রয় ও বিক্রির হিসাব
-      </div>
-
-    </div>
-
-  `;
-
-
-  for(let i=0; i<6; i++){
-
-    const month =
-      getMonthKey(i);
-
-    const data =
-      getMonthData(month);
-
-
-    html += `
-
-      <div class="card">
-
-        <div class="row-between">
-
-          <strong>
-            📅 ${monthLabel(month)}
-          </strong>
-
-          <strong class="orange">
-            ${money(data.totalCost)}
-          </strong>
-
-        </div>
-
-
-        <div class="info-row">
-
-          <div>
-            সাধারণ খরচ:
-            <strong>
-              ${money(data.expenseTotal)}
-            </strong>
-          </div>
-
-          <div>
-            🌱 জমির খরচ:
-            <strong>
-              ${money(data.landTotal)}
-            </strong>
-          </div>
-
-          <div>
-            🛒 ক্রয়:
-            <strong>
-              ${money(data.purchaseTotal)}
-            </strong>
-          </div>
-
-          <div>
-            💰 বিক্রি:
-            <strong>
-              ${money(data.saleTotal)}
-            </strong>
-          </div>
-
-          <div>
-            🐐 জন্ম:
-            <strong>
-              ${data.births.length}
-            </strong>
-          </div>
-
-          <div>
-            মোট খরচ:
-            <strong>
-              ${money(data.totalCost)}
-            </strong>
-          </div>
-
-        </div>
-
-        ${
-          (
-            data.expenses.length ||
-            data.land.length ||
-            data.purchases.length ||
-            data.births.length ||
-            data.sales.length
-          )
-            ? ""
-            : `
-              <div class="empty"
-                   style="padding:10px 0 2px">
-                এই মাসে কোনো হিসাব নেই।
-              </div>
-            `
-        }
-
-      </div>
-
-    `;
-
+var historyRange={from:"",to:""};
+function applyHistorySearch(){
+  const f=$("histFrom").value, t=$("histTo").value;
+  if(f && t && f>t){ alert("শুরুর তারিখ শেষ তারিখের আগে হতে হবে"); return; }
+  historyRange={from:f,to:t};
+  renderSixMonthHistory();
+}
+function clearHistorySearch(){
+  historyRange={from:"",to:""};
+  renderSixMonthHistory();
+}
+function histWindow(){
+  const r=historyRange;
+  if(r.from||r.to){
+    return {from:r.from||"0000-01-01", to:r.to||"9999-12-31", isRange:true,
+      label:(r.from?fmt(r.from):"শুরু")+" থেকে "+(r.to?fmt(r.to):"আজ পর্যন্ত")};
   }
+  return {from:getMonthKey(11)+"-01", to:getMonthKey(0)+"-31", isRange:false, label:"গত ১২ মাস"};
+}
+function histIn(d,w){ const x=String(d||"").slice(0,10); return !!x && x>=w.from && x<=w.to; }
+function getRangeData(w){
+  const expenses=(DATA.expenses||[]).filter(x=>histIn(x.expense_date,w));
+  const land=(DATA.land||[]).filter(x=>histIn(x.record_date,w));
+  const tx=(DATA.tx||[]).filter(x=>histIn(x.transaction_date,w));
+  const purchases=tx.filter(x=>x.type==="purchase");
+  const sales=tx.filter(x=>x.type==="sale");
+  const births=tx.filter(x=>x.type==="birth");
+  const sum=(a,k)=>a.reduce((s,x)=>s+Number(x[k]||0),0);
+  const expenseTotal=sum(expenses,"amount"), landTotal=sum(land,"cost");
+  return {expenses,land,purchases,sales,births,expenseTotal,landTotal,
+    purchaseTotal:sum(purchases,"amount"), saleTotal:sum(sales,"amount"),
+    totalCost:expenseTotal+landTotal};
+}
+function histGoatName(id){
+  const g=(DATA.goats||[]).find(x=>x.id===id);
+  return g ? (g.name||g.goat_code||"-") : "-";
+}
+function histSummaryRow(d){
+  return `<div class="info-row">
+    <div>সাধারণ খরচ: <strong>${money(d.expenseTotal)}</strong></div>
+    <div>🌱 জমির খরচ: <strong>${money(d.landTotal)}</strong></div>
+    <div>🛒 ক্রয়: <strong>${money(d.purchaseTotal)}</strong></div>
+    <div>💰 বিক্রি: <strong>${money(d.saleTotal)}</strong></div>
+    <div>🐐 জন্ম: <strong>${d.births.length}</strong></div>
+    <div>মোট খরচ: <strong>${money(d.totalCost)}</strong></div>
+  </div>`;
+}
+function histListCard(title,rows){
+  const line=r=>`<div class="small" style="padding:6px 0;border-bottom:1px solid #edf0ee">${r}</div>`;
+  return `<details class="card" open><summary class="card-title" style="cursor:pointer">${title} (${rows.length})</summary>${
+    rows.length ? rows.map(line).join("") : '<div class="empty">কোনো রেকর্ড নেই।</div>'
+  }</details>`;
+}
+function renderSixMonthHistory(){
+  const w=histWindow();
+  const isSA=(typeof isSuperAdmin!=="undefined") && isSuperAdmin===true;
+  let html=`<div class="card">
+    <div class="card-title">📚 গত ১ বছরের হিস্টোরি</div>
+    <div class="small">বর্তমান মাসসহ সর্বশেষ ১২ মাসের খরচ, জমির খরচ, ক্রয় ও বিক্রির হিসাব। নির্দিষ্ট তারিখ দিয়েও খুঁজতে পারবেন।</div>
+    <div class="grid" style="margin-top:10px">
+      <div class="field"><label>শুরুর তারিখ</label><input id="histFrom" type="date" value="${esc(historyRange.from)}"></div>
+      <div class="field"><label>শেষ তারিখ</label><input id="histTo" type="date" value="${esc(historyRange.to)}"></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary btn-small" onclick="applyHistorySearch()">🔍 খুঁজুন</button>
+      <button class="btn btn-secondary btn-small" onclick="clearHistorySearch()">✕ মুছুন</button>
+      ${isSA ? `<button class="btn btn-secondary btn-small" onclick="exportData('history','xlsx')">📊 Excel</button>
+      <button class="btn btn-secondary btn-small" onclick="exportData('history','pdf')">📄 PDF</button>` : ""}
+    </div>
+    ${w.isRange ? `<div class="small" style="margin-top:6px">🔎 ফলাফল: ${esc(w.label)}</div>` : ""}
+  </div>`;
 
-
-  $("reportBody").innerHTML =
-    html;
-
+  if(w.isRange){
+    const d=getRangeData(w);
+    html+=`<div class="card">
+      <div class="row-between"><strong>📅 ${esc(w.label)}</strong><strong class="orange">${money(d.totalCost)}</strong></div>
+      ${histSummaryRow(d)}
+    </div>`;
+    html+=histListCard("💸 সাধারণ খরচ", d.expenses.slice().sort((a,b)=>String(b.expense_date||"").localeCompare(String(a.expense_date||""))).map(x=>
+      `${fmt(x.expense_date)} • ${esc(x.category||"-")} • <strong>${money(x.amount)}</strong>${x.note?" • "+esc(x.note):""}`));
+    html+=histListCard("🌱 জমির খরচ", d.land.slice().sort((a,b)=>String(b.record_date||"").localeCompare(String(a.record_date||""))).map(x=>
+      `${fmt(x.record_date)} • ${esc(x.land_name||"-")} • ${esc(x.work||"-")}${x.crop?" • "+esc(x.crop):""} • <strong>${money(x.cost)}</strong>`));
+    html+=histListCard("🛒 ক্রয়", d.purchases.slice().sort((a,b)=>String(b.transaction_date||"").localeCompare(String(a.transaction_date||""))).map(x=>
+      `${fmt(x.transaction_date)} • ${esc(histGoatName(x.goat_id))} • <strong>${money(x.amount)}</strong>${x.note?" • "+esc(x.note):""}`));
+    html+=histListCard("💰 বিক্রি", d.sales.slice().sort((a,b)=>String(b.transaction_date||"").localeCompare(String(a.transaction_date||""))).map(x=>
+      `${fmt(x.transaction_date)} • ${esc(histGoatName(x.goat_id))} • <strong>${money(x.amount)}</strong>${x.note?" • "+esc(x.note):""}`));
+    html+=histListCard("🐐 জন্ম", d.births.slice().sort((a,b)=>String(b.transaction_date||"").localeCompare(String(a.transaction_date||""))).map(x=>
+      `${fmt(x.transaction_date)} • ${esc(histGoatName(x.goat_id))}${x.note?" • "+esc(x.note):""}`));
+  }else{
+    for(let i=0;i<12;i++){
+      const month=getMonthKey(i), data=getMonthData(month);
+      const any=data.expenses.length||data.land.length||data.purchases.length||data.births.length||data.sales.length;
+      html+=`<div class="card">
+        <div class="row-between"><strong>📅 ${monthLabel(month)}</strong><strong class="orange">${money(data.totalCost)}</strong></div>
+        ${histSummaryRow(data)}
+        ${any ? "" : `<div class="empty" style="padding:10px 0 2px">এই মাসে কোনো হিসাব নেই।</div>`}
+      </div>`;
+    }
+  }
+  $("reportBody").innerHTML=html;
 }
 
 
@@ -7014,7 +6997,8 @@ const EXPORT_PAGES = {
   expenses: {section:"page-expenses", title:"খরচের তালিকা"},
   land:     {section:"page-land",     title:"জমির হিসাব"},
   addmoney: {section:"page-addmoney", title:"Add Money হিসাব"},
-  partner:  {section:"page-partner",  title:"Partner Management"}
+  partner:  {section:"page-partner",  title:"Partner Management"},
+  vaccines: {section:"page-vaccines", title:"টিকার হিস্টোরি"}
 };
 
 function exLabel(uid){ try{ return uid ? userLabel(uid) : ""; }catch(e){ return String(uid||""); } }
@@ -7181,6 +7165,57 @@ function buildExportData(kind){
       sets:[{name:"Responsibility", headers:["Regulation","কাজ","Partner","শেষ তারিখ","Status","Progress %","সম্পন্ন হয়েছে"], rows:respRows}]};
   }
 
+  if(kind==="history"){
+    const w=histWindow(), d=getRangeData(w);
+    const sets=[];
+    if(!w.isRange){
+      const mrows=[];
+      for(let i=0;i<12;i++){
+        const m=getMonthKey(i), x=getMonthData(m);
+        mrows.push([monthLabel(m),x.expenseTotal,x.landTotal,x.purchaseTotal,x.saleTotal,x.births.length,x.totalCost]);
+      }
+      sets.push({name:"মাসওয়ারি সারাংশ",headers:["মাস","সাধারণ খরচ","জমির খরচ","ক্রয়","বিক্রি","জন্ম (সংখ্যা)","মোট খরচ"],rows:mrows,sumCols:[1,2,3,4,5,6]});
+    }else{
+      sets.push({name:"সারাংশ",headers:["বিবরণ","টাকা"],rows:[
+        ["সাধারণ খরচ",d.expenseTotal],["জমির খরচ",d.landTotal],["ক্রয়",d.purchaseTotal],
+        ["বিক্রি",d.saleTotal],["জন্ম (সংখ্যা)",d.births.length],["মোট খরচ (সাধারণ + জমি)",d.totalCost]]});
+    }
+    sets.push({name:"সাধারণ খরচ",headers:["তারিখ","ক্যাটাগরি","টাকা","নোট"],
+      rows:exByDateDesc(d.expenses,"expense_date").map(x=>[exDate(x.expense_date),x.category||"",Number(x.amount||0),x.note||""]),sumCols:[2]});
+    sets.push({name:"জমির খরচ",headers:["তারিখ","জমির নাম","কাজ","ফসল","খরচ","নোট"],
+      rows:exByDateDesc(d.land,"record_date").map(x=>[exDate(x.record_date),x.land_name||"",x.work||"",x.crop||"",Number(x.cost||0),x.note||""]),sumCols:[4]});
+    sets.push({name:"ক্রয়",headers:["তারিখ","ছাগল","টাকা","নোট"],
+      rows:exByDateDesc(d.purchases,"transaction_date").map(x=>[exDate(x.transaction_date),histGoatName(x.goat_id),Number(x.amount||0),x.note||""]),sumCols:[2]});
+    sets.push({name:"বিক্রি",headers:["তারিখ","ছাগল","টাকা","নোট"],
+      rows:exByDateDesc(d.sales,"transaction_date").map(x=>[exDate(x.transaction_date),histGoatName(x.goat_id),Number(x.amount||0),x.note||""]),sumCols:[2]});
+    sets.push({name:"জন্ম",headers:["তারিখ","ছাগল","নোট"],
+      rows:exByDateDesc(d.births,"transaction_date").map(x=>[exDate(x.transaction_date),histGoatName(x.goat_id),x.note||""])});
+    return {
+      title:"হিস্টোরি — "+w.label,
+      file:"history-"+(w.isRange?((historyRange.from||"start")+"_to_"+(historyRange.to||"today")):"12-months"),
+      landscape:true, sets
+    };
+  }
+
+  if(kind==="vaccines"){
+    const tab=(typeof currentVaccineTab!=="undefined"?currentVaccineTab:"pending");
+    const tabName={pending:"বাকি",completed:"দেওয়া হয়েছে",all:"সব"}[tab]||tab;
+    let list=DATA.vaccines||[];
+    if(tab!=="all") list=list.filter(x=>x.status===tab);
+    const rows=exByDateDesc(list,"scheduled_date").map(v=>{
+      const g=(DATA.goats||[]).find(x=>x.id===v.goat_id);
+      return [
+        g?(g.name||""):"", g?(g.goat_code||""):"", v.vaccine_name||"", v.company||"",
+        v.status==="completed"?"দেওয়া হয়েছে":"বাকি",
+        exDate(v.scheduled_date), exDate(v.given_date), exDate(v.next_date), v.notes||""
+      ];
+    });
+    return {
+      title:"টিকার হিস্টোরি — "+tabName, file:"vaccines-"+tab, landscape:true,
+      sets:[{name:"টিকা",headers:["ছাগল","কোড","টিকার নাম","কোম্পানি","অবস্থা","নির্ধারিত তারিখ","দেওয়ার তারিখ","পরবর্তী তারিখ","নোট"],rows}]
+    };
+  }
+
   return null;
 }
 
@@ -7308,6 +7343,7 @@ function exportData(kind,format){
       `<button class="btn btn-secondary btn-small" onclick="exportData('${kind}','xlsx')">📊 Excel</button>`+
       `<button class="btn btn-secondary btn-small" onclick="exportData('${kind}','pdf')">📄 PDF</button>`+
       (kind==="land"?"":`<span class="small" style="align-self:center">বর্তমান ফিল্টার অনুযায়ী</span>`);
+    if(kind==="vaccines"){ const lb=document.getElementById("vaccineListBox"); if(lb){ lb.parentNode.insertBefore(bar,lb); return; } }
     const anchor = kind==="partner" ? sec.querySelector(".tabbar") : sec.firstElementChild;
     if(kind==="partner" && anchor) anchor.parentNode.insertBefore(bar,anchor);
     else if(anchor) anchor.insertAdjacentElement("afterend",bar);
@@ -7322,6 +7358,122 @@ function refreshExportBars(){
 }
 refreshExportBars();
 setInterval(refreshExportBars,800);
+
+/* ================= Partner Management notification ================= */
+(function(){
+  var css=document.createElement("style");
+  css.textContent=
+    "#nav-partner{position:relative}"+
+    ".nbadge{position:absolute;top:0;right:14%;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#e11d48;color:#fff;font-size:10px;font-weight:800;line-height:16px;text-align:center}"+
+    ".tab .tbadge{display:inline-block;margin-left:5px;min-width:16px;padding:0 5px;border-radius:99px;background:#e11d48;color:#fff;font-size:10px;line-height:16px}"+
+    ".notif-hl{outline:2px solid #f59e0b;background:#fff8e6!important;border-radius:10px;padding-left:8px!important;padding-right:8px!important;animation:nflash 1.2s ease 3}"+
+    "@keyframes nflash{50%{background:#ffe9b0}}"+
+    "#partnerNotif .nrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0dca8}"+
+    "#partnerNotif .nrow:last-child{border-bottom:0}";
+  document.head.appendChild(css);
+
+  function sa(){ return (typeof isSuperAdmin!=="undefined") && isSuperAdmin===true; }
+
+  window.partnerNotifs=function(){
+    var out=[];
+    try{
+      if(typeof currentUser==="undefined"||!currentUser) return out;
+      var me=String(currentUser.id);
+      (DATA.partnerRegulations||[]).filter(function(r){return r.status==="pending_approval";}).forEach(function(r){
+        var voted=(DATA.partnerRegulationApprovals||[]).some(function(a){return String(a.regulation_id)===String(r.id)&&String(a.user_id)===me;});
+        if(!voted) out.push({tab:"approval",el:"notif-reg-"+r.id,text:"📜 Regulation "+(r.regulation_code||"")+" — "+(r.title||"")+" : আপনার Approve / আপত্তি দরকার"});
+      });
+      (DATA.deleteRequests||[]).filter(function(x){return x.status==="pending";}).forEach(function(r){
+        var voted=votesFor(r.id).some(function(v){return String(v.voter_id)===me;});
+        if(!voted) out.push({tab:"approval",el:"notif-del-"+r.id,text:"🗑 Delete Request ("+(r.module||"-")+") : আপনার ভোট দরকার"});
+      });
+      if(sa()){
+        (DATA.partnerActionQueue||[]).filter(function(x){return x.status==="pending";}).forEach(function(x){
+          out.push({tab:"approval",el:"notif-act-"+x.id,text:"🛠 Regulation Action ("+String(x.action||"").toUpperCase()+") : "+(x.record_label||x.source_record_id||"")+" — আপনার করণীয় আছে"});
+        });
+      }
+    }catch(e){}
+    return out;
+  };
+
+  function partnerBodyEl(){ return document.getElementById("partnerBody"); }
+
+  window.markPartnerNotifs=function(){
+    var body=partnerBodyEl(); if(!body) return;
+    var list=window.partnerNotifs();
+    list.forEach(function(n){
+      if(n.tab!==currentPartnerTab) return;
+      var el=body.querySelector('[id="'+n.el+'"]');
+      if(el && !el.classList.contains("notif-hl")){
+        el.classList.add("notif-hl");
+        el.insertAdjacentHTML("afterbegin",'<div class="nlabel" style="font-size:11px;font-weight:800;color:#b45309">🔔 আপনার সিদ্ধান্ত / করণীয় দরকার</div>');
+      }
+    });
+  };
+
+  var _rpm=renderPartnerManagement;
+  renderPartnerManagement=function(){
+    _rpm.apply(this,arguments);
+    window.markPartnerNotifs();
+  };
+
+  window.goPartnerNotif=function(i){
+    var n=(window.__pn||[])[i]; if(!n) return;
+    partnerTab(n.tab);
+    setTimeout(function(){
+      var body=partnerBodyEl(); if(!body) return;
+      var el=body.querySelector('[id="'+n.el+'"]');
+      if(el) el.scrollIntoView({behavior:"smooth",block:"center"});
+    },80);
+  };
+
+  var lastSig="";
+  function refresh(){
+    var list=window.partnerNotifs(); window.__pn=list;
+    var sig=list.map(function(n){return n.el;}).join("|")+"#"+currentPartnerTab;
+    var nav=document.getElementById("nav-partner");
+    if(nav){
+      var b=nav.querySelector(".nbadge");
+      if(list.length){ if(!b){b=document.createElement("b");b.className="nbadge";nav.appendChild(b);} b.textContent=list.length>9?"9+":String(list.length); }
+      else if(b) b.remove();
+    }
+    var cnt={}; list.forEach(function(n){cnt[n.tab]=(cnt[n.tab]||0)+1;});
+    ["regulation","approval","history","responsibility"].forEach(function(t){
+      var btn=document.getElementById("ptab-"+t); if(!btn) return;
+      var tb=btn.querySelector(".tbadge");
+      if(cnt[t]){ if(!tb){tb=document.createElement("span");tb.className="tbadge";btn.appendChild(tb);} tb.textContent=String(cnt[t]); }
+      else if(tb) tb.remove();
+    });
+    var sec=document.getElementById("page-partner"); if(!sec) return;
+    var box=document.getElementById("partnerNotif");
+    if(!box){
+      box=document.createElement("div"); box.id="partnerNotif";
+      var body=partnerBodyEl(); if(body) body.parentNode.insertBefore(box,body); else return;
+    }
+    if(box.getAttribute("data-sig")===sig) return;
+    box.setAttribute("data-sig",sig);
+    if(!list.length){ box.innerHTML=""; return; }
+    box.innerHTML='<div class="alert" style="margin:8px 0"><strong>🔔 '+list.length+'টি বিষয় আপনার অপেক্ষায়</strong>'+
+      list.map(function(n,i){
+        return '<div class="nrow"><span style="flex:1">'+esc(n.text)+'<div class="small">'+({approval:"📍 Approval ট্যাব",responsibility:"📍 Responsibility ট্যাব"}[n.tab]||"")+'</div></span><button class="btn btn-primary btn-small" onclick="goPartnerNotif('+i+')">👉 দেখুন</button></div>';
+      }).join("")+'</div>';
+    window.markPartnerNotifs();
+  }
+  setInterval(refresh,800);
+
+  var _op=openPage;
+  openPage=function(p){
+    _op.apply(this,arguments);
+    if(p==="partner"){
+      var list=window.partnerNotifs();
+      if(list.length && !list.some(function(n){return n.tab===currentPartnerTab;})){ partnerTab(list[0].tab); }
+      setTimeout(function(){
+        var box=document.getElementById("partnerNotif");
+        if(box && box.innerHTML) box.scrollIntoView({behavior:"smooth",block:"start"});
+      },150);
+    }
+  };
+})();
 </script>
 </body>
 </html>
